@@ -5,12 +5,16 @@
 #include <PxPhysicsAPI.h>
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
+#include <glm.hpp>
 
 using namespace std;
+using namespace glm;
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 
 int main() {
+
+	vec3 testVec = vec3(1.0f, 1.0f, 1.0f);
 
 	const int SCREEN_X = 1440;
 	const int SCREEN_Y = 1440;
