@@ -7,49 +7,36 @@
 #include <GLFW/glfw3.h>
 #include <glm.hpp>
 
+// Boilerplate Includes
+#include <Boilerplate/Window.h>
+#include <Boilerplate/Input.h>
+
 using namespace std;
 using namespace glm;
 
-void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 
+// Main
+// Handles program initialization
+// Runs the primary game loop
 int main() {
+	// INITIALIZATION
+	GLFWwindow* window = initWindow();
 
-	vec3 testVec = vec3(1.0f, 1.0f, 1.0f);
-
-	const int SCREEN_X = 1440;
-	const int SCREEN_Y = 1440;
-
-	glfwInit();
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-	GLFWwindow* window = glfwCreateWindow(SCREEN_X, SCREEN_Y, "585 Game", NULL, NULL);
-
-	if (window == NULL) {
-		cout << "Failed To Create Window\n";
-		glfwTerminate();
-		return -1;
-	}
-	glfwMakeContextCurrent(window);
-	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
-
-	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
-		cout << "Failed to initialize GLAD\n";
-		return -1;
-	}
-
-	while (!glfwWindowShouldClose(window))
-	{
+	// PRIMARY GAME LOOP
+	while (!glfwWindowShouldClose(window)) {
+		// Process GLFW window user inputs
+		processInput(window);
+		
+		// <game stuff goes here>
+		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+		glClear(GL_COLOR_BUFFER_BIT);
+		
+		// Swap buffers, poll events
 		glfwSwapBuffers(window);
 		glfwPollEvents();
 	}
 
-	glViewport(0, 0, SCREEN_X, SCREEN_Y);
-
+	// Terminate program
 	glfwTerminate();
 	return 0;
-}
-
-void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
-	glViewport(0, 0, width, height);
 }
