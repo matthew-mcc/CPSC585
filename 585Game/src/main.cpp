@@ -10,6 +10,7 @@
 // Boilerplate Includes
 #include <Boilerplate/Window.h>
 #include <Boilerplate/Input.h>
+#include <Boilerplate/Renderer.h>
 
 using namespace std;
 using namespace glm;
@@ -22,6 +23,15 @@ int main() {
 	// INITIALIZATION
 	GLFWwindow* window = initWindow();
 
+	float testTriangle[] = {
+			-0.5f, -0.5f, 0.0f,
+			 0.5f, -0.5f, 0.0f,
+			 0.0f,  0.5f, 0.0f
+	};
+	//Vertex buffer initialization
+	unsigned int testTriangleVAO = initVAO(testTriangle, sizeof(testTriangle));
+	unsigned int shaderProgram = initShaders();
+
 	// PRIMARY GAME LOOP
 	while (!glfwWindowShouldClose(window)) {
 		// Process GLFW window user inputs
@@ -30,6 +40,10 @@ int main() {
 		// <game stuff goes here>
 		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT);
+
+		glUseProgram(shaderProgram);
+		glBindVertexArray(testTriangleVAO);
+		glDrawArrays(GL_TRIANGLES, 0, 3);
 		
 		// Swap buffers, poll events
 		glfwSwapBuffers(window);

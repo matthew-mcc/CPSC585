@@ -27,6 +27,9 @@
     <ClCompile Include="src\Boilerplate\Input.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\Boilerplate\Renderer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include=".gitignore" />
@@ -36,6 +39,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\Boilerplate\Input.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Boilerplate\Renderer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
