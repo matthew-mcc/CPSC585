@@ -27,7 +27,7 @@
     <ClCompile Include="src\Boilerplate\Input.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\Boilerplate\Renderer.cpp">
+    <ClCompile Include="src\Boilerplate\Shader.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -41,8 +41,12 @@
     <ClInclude Include="src\Boilerplate\Input.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\Boilerplate\Renderer.h">
+    <ClInclude Include="src\Boilerplate\Shader.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="src\Boilerplate\shaderFragment.txt" />
+    <Text Include="src\Boilerplate\shaderVertex.txt" />
   </ItemGroup>
 </Project>

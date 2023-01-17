@@ -152,7 +152,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="src\Boilerplate\Input.cpp" />
-    <ClCompile Include="src\Boilerplate\Renderer.cpp" />
+    <ClCompile Include="src\Boilerplate\Shader.cpp" />
     <ClCompile Include="src\Boilerplate\Window.cpp" />
     <ClCompile Include="src\Boilerplate\glad.c" />
     <ClCompile Include="src\main.cpp" />
@@ -161,9 +161,13 @@
     <None Include=".gitignore" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\Boilerplate\Shader.h" />
     <ClInclude Include="src\Boilerplate\Input.h" />
-    <ClInclude Include="src\Boilerplate\Renderer.h" />
     <ClInclude Include="src\Boilerplate\Window.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="src\Boilerplate\shaderFragment.txt" />
+    <Text Include="src\Boilerplate\shaderVertex.txt" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

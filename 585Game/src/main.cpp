@@ -10,7 +10,7 @@
 // Boilerplate Includes
 #include <Boilerplate/Window.h>
 #include <Boilerplate/Input.h>
-#include <Boilerplate/Renderer.h>
+#include <Boilerplate/Shader.h>
 
 using namespace std;
 using namespace glm;
@@ -24,13 +24,13 @@ int main() {
 	GLFWwindow* window = initWindow();
 
 	float testTriangle[] = {
-			-0.5f, -0.5f, 0.0f,
-			 0.5f, -0.5f, 0.0f,
-			 0.0f,  0.5f, 0.0f
+			-0.5f, -0.5f, 0.0f,  1.0f, 0.0f, 0.0f,
+			 0.5f, -0.5f, 0.0f,  0.0f, 1.0f, 0.0f,
+			 0.0f,  0.5f, 0.0f,  0.0f, 0.0f, 1.0f
 	};
 	//Vertex buffer initialization
+	Shader basicShader("src/Boilerplate/shaderVertex.txt","src/Boilerplate/shaderFragment.txt");
 	unsigned int testTriangleVAO = initVAO(testTriangle, sizeof(testTriangle));
-	unsigned int shaderProgram = initShaders();
 
 	// PRIMARY GAME LOOP
 	while (!glfwWindowShouldClose(window)) {
@@ -40,8 +40,8 @@ int main() {
 		// <game stuff goes here>
 		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT);
+		basicShader.use();
 
-		glUseProgram(shaderProgram);
 		glBindVertexArray(testTriangleVAO);
 		glDrawArrays(GL_TRIANGLES, 0, 3);
 		
