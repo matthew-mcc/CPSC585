@@ -11,7 +11,10 @@
 #include <Boilerplate/Window.h>
 #include <Boilerplate/Input.h>
 #include <Boilerplate/Shader.h>
+#include <Boilerplate/Texture.h>
 #include <Boilerplate/Timer.h>
+
+#include <Boilerplate/stb_image.h>
 
 using namespace std;
 using namespace glm;
@@ -23,16 +26,26 @@ using namespace glm;
 int main() {
 	// INITIALIZATION
 	GLFWwindow* window = initWindow();
+	Shader basicShader("src/Boilerplate/shaderVertex.txt", "src/Boilerplate/shaderFragment.txt");
 
 	float testTriangle[] = {
-			-0.5f, -0.5f, 0.0f,  1.0f, 0.0f, 0.0f,
-			 0.5f, -0.5f, 0.0f,  0.0f, 1.0f, 0.0f,
-			 0.0f,  0.5f, 0.0f,  0.0f, 0.0f, 1.0f
+			//Coordinates		 //Colors			//Texture Coords
+			 0.5f,  0.5f, 0.0f,  1.0f, 0.0f, 0.0f,  1.0f, 1.0f,
+			 0.5f, -0.5f, 0.0f,  0.0f, 1.0f, 0.0f,  1.0f, 0.0f,
+			-0.5f, -0.5f, 0.0f,  0.0f, 0.0f, 1.0f,  0.0f, 0.0f,
+			-0.5f,  0.5f, 0.0f,  1.0f, 1.0f, 0.0f,  0.0f, 1.0f
 	};
 
 	//Vertex buffer initialization
-	Shader basicShader("src/Boilerplate/shaderVertex.txt","src/Boilerplate/shaderFragment.txt");
 	unsigned int testTriangleVAO = initVAO(testTriangle, sizeof(testTriangle));
+
+	//Texture loading
+	stbi_set_flip_vertically_on_load(true);
+	unsigned int texture1 = generateTexture("src/Textures/container.jpg", true);
+	unsigned int texture2 = generateTexture("src/Textures/awesomeface.png", false);
+	basicShader.use(); 
+	basicShader.setInt("texture1", 0);
+	basicShader.setInt("texture2", 1);
 
 	// Time initialization
 	Timer &timer = Timer::Instance();		// Create pointer to singleton timer instance
@@ -49,12 +62,18 @@ int main() {
 		if (fps != NULL) cout << fps << "\n";		// TODO: Render FPS on screen instead of printing to console
 
 		// <game stuff goes here>
+
 		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT);
-		basicShader.use();
 
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, texture1);
+		glActiveTexture(GL_TEXTURE1);
+		glBindTexture(GL_TEXTURE_2D, texture2);
+
+		basicShader.use();
 		glBindVertexArray(testTriangleVAO);
-		glDrawArrays(GL_TRIANGLES, 0, 3);
+		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 		
 		// Swap buffers, poll events
 		glfwSwapBuffers(window);
