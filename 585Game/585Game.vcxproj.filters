@@ -44,6 +44,9 @@
     <ClInclude Include="src\Boilerplate\Shader.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\Boilerplate\Timer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Text Include="src\Boilerplate\shaderFragment.txt" />

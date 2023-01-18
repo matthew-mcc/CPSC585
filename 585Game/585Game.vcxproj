@@ -163,6 +163,7 @@
   <ItemGroup>
     <ClInclude Include="src\Boilerplate\Shader.h" />
     <ClInclude Include="src\Boilerplate\Input.h" />
+    <ClInclude Include="src\Boilerplate\Timer.h" />
     <ClInclude Include="src\Boilerplate\Window.h" />
   </ItemGroup>
   <ItemGroup>
