@@ -175,8 +175,8 @@
     <Text Include="src\Boilerplate\shaderVertex.txt" />
   </ItemGroup>
   <ItemGroup>
-    <Image Include="src\Textures\awesomeface.png" />
     <Image Include="src\Textures\container.jpg" />
+    <Image Include="src\Textures\nice.jpg" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

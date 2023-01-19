@@ -5,6 +5,7 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <glm.hpp>
+#include <gtc/type_ptr.hpp>
 
 #include <glad/glad.h> // include glad to get all the required OpenGL headers
 
@@ -13,6 +14,7 @@
 #include <sstream>
 #include "Shader.h"
 
+#include <vector>
 using namespace std;
 
 // the program ID
@@ -109,25 +111,20 @@ void Shader::setInt(const std::string& name, int value) {
 void Shader::setFloat(const std::string& name, float value) {
     glUniform1f(glGetUniformLocation(ID, name.c_str()), value);
 }
+void Shader::setMat4(const std::string& name, glm::mat4 value) {
+    int modelLoc = glGetUniformLocation(ID, name.c_str());
+    glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(value));
+}
 
 unsigned int initVAO(float* vertices, int size) {
-    unsigned int indices[] = {
-        0, 1, 3, // first triangle
-        1, 2, 3  // second triangle
-    };
-
-    unsigned int VAO, VBO, EBO;
+    unsigned int VAO, VBO;
     glGenVertexArrays(1, &VAO);
     glGenBuffers(1, &VBO);
-    glGenBuffers(1, &EBO);
     
     glBindVertexArray(VAO);
 
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
     glBufferData(GL_ARRAY_BUFFER, size, vertices, GL_STATIC_DRAW);
-
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
 
     //Position vertex attribute
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
