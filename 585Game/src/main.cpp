@@ -118,7 +118,7 @@ int main() {
 
 		// <game stuff goes here>
 
-		model = glm::rotate(model, (float)glfwGetTime() * glm::radians(50.f), glm::vec3(0.5f, 1.0f, 0.0f));
+		model = glm::rotate(model, glm::radians(50.f) * (float)deltaTime, glm::vec3(0.5f, 1.0f, 0.0f));
 		basicShader.setMat4("model", model);
 		basicShader.setMat4("view", view);
 		basicShader.setMat4("projection", projection);
