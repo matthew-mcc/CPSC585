@@ -8,13 +8,13 @@
 #include <glm.hpp>
 #include <gtc/matrix_transform.hpp>
 
+
 // Boilerplate Includes
 #include <Boilerplate/Window.h>
 #include <Boilerplate/Input.h>
 #include <Boilerplate/Shader.h>
 #include <Boilerplate/Texture.h>
 #include <Boilerplate/Timer.h>
-
 #include <Boilerplate/stb_image.h>
 
 using namespace std;
@@ -104,11 +104,10 @@ int main() {
 
 	// Time initialization
 	Timer &timer = Timer::Instance();		// Create pointer to singleton timer instance
-
+	std::shared_ptr<CallbackInterface> Callptr = processInput(window);
 	// PRIMARY GAME LOOP
 	while (!glfwWindowShouldClose(window)) {
 		// Process GLFW window user inputs
-		processInput(window);
 
 		// Update time
 		timer.update();								// Update time instance
@@ -117,7 +116,7 @@ int main() {
 		if (fps != NULL) cout << fps << "\n";		// TODO: Render FPS on screen instead of printing to console
 
 		// <game stuff goes here>
-
+		view = glm::lookAt(Callptr->camera_pos, Callptr->camera_pos + Callptr->camera_front,Callptr->camera_up);
 		model = glm::rotate(model, glm::radians(50.f) * (float)deltaTime, glm::vec3(0.5f, 1.0f, 0.0f));
 		basicShader.setMat4("model", model);
 		basicShader.setMat4("view", view);
