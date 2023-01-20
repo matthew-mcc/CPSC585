@@ -1,7 +1,35 @@
-﻿  Input.cpp
-  Shader.cpp
-  Window.cpp
-  main.cpp
+﻿  main.cpp
+  PhysicsSystem.cpp
+C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.29.30133\include\xmemory(681,47): error C2664: 'Transform::Transform(const Transform &)': cannot convert argument 1 from '_Ty' to 'const Transform &'
+          with
+          [
+              _Ty=Transform *
+          ]
+C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.29.30133\include\xmemory(674,1): message : Reason: cannot convert from '_Ty' to 'const Transform'
+          with
+          [
+              _Ty=Transform *
+          ]
+C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.29.30133\include\xmemory(674,1): message : No constructor could take the source type, or constructor overload resolution was ambiguous
+C:\GIT\CPSC585\585Game\src\Transform.h(13,1): message : see declaration of 'Transform::Transform'
+C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.29.30133\include\vector(708): message : see reference to function template instantiation 'void std::_Default_allocator_traits<_Alloc>::construct<_Ty,Transform*>(_Alloc &,_Objty *const ,Transform *&&)' being compiled
+          with
+          [
+              _Alloc=std::allocator<Transform>,
+              _Ty=Transform,
+              _Objty=Transform
+          ]
+C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.29.30133\include\vector(713): message : see reference to function template instantiation 'void std::_Default_allocator_traits<_Alloc>::construct<_Ty,Transform*>(_Alloc &,_Objty *const ,Transform *&&)' being compiled
+          with
+          [
+              _Alloc=std::allocator<Transform>,
+              _Ty=Transform,
+              _Objty=Transform
+          ]
+C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.29.30133\include\vector(726): message : see reference to function template instantiation 'void std::vector<Transform,std::allocator<Transform>>::_Emplace_back_with_unused_capacity<_Ty>(_Ty &&)' being compiled
+          with
+          [
+              _Ty=Transform *
+          ]
+C:\GIT\CPSC585\585Game\src\PhysicsSystem.cpp(179): message : see reference to function template instantiation 'void std::vector<Transform,std::allocator<Transform>>::emplace_back<Transform*>(Transform *&&)' being compiled
   Generating Code...
-  glad.c
-  585Game.vcxproj -> C:\GIT\CPSC585\585Game\x64\Debug\585Game.exe

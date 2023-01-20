@@ -7,6 +7,10 @@
 #include <GLFW/glfw3.h>
 #include <glm.hpp>
 #include <gtc/matrix_transform.hpp>
+#include "PhysicsSystem.h"
+#include "Entity.h"
+#include "Model.h"
+#include "Transform.h"
 
 // Boilerplate Includes
 #include <Boilerplate/Window.h>
@@ -27,7 +31,17 @@ using namespace glm;
 int main() {
 	// INITIALIZATION
 	GLFWwindow* window = initWindow();
-	Shader basicShader("src/Boilerplate/shaderVertex.txt", "src/Boilerplate/shaderFragment.txt");
+	Shader basicShader("C:/GIT/CPSC585/585Game/src/Boilerplate/shaderVertex.txt", "C:/GIT/CPSC585/585Game/src/Boilerplate/shaderFragment.txt");
+
+
+	PhysicsSystem physics;
+	std::vector<Entity> entityList;
+	entityList.reserve(465);
+	for (int i = 0; i < 465; i++) {
+		entityList.emplace_back();
+		entityList.back().transform = &(physics.transformList[i]);
+		entityList.back().model = &(physics.modelList[i]);
+	}
 
 	/*float testTriangle[] = {
 			//Coordinates		 //Colors			//Texture Coords
@@ -35,7 +49,12 @@ int main() {
 			 0.5f, -0.5f, 0.0f,  0.0f, 1.0f, 0.0f,  1.0f, 0.0f,
 			-0.5f,  0.5f, 0.0f,  0.0f, 0.0f, 1.0f,  0.0f, 1.0f,
 			-0.5f, -0.5f, 0.0f,  1.0f, 1.0f, 0.0f,  0.0f, 0.0f
-	};*/
+	};*/ 
+
+	
+
+		
+	
 	float testTriangle[] = {
 	-0.5f, -0.5f, -0.5f,  1.0f, 0.0f, 0.0f,  0.0f, 0.0f,
 	 0.5f, -0.5f, -0.5f,  1.0f, 0.0f, 0.0f,  1.0f, 0.0f,
@@ -85,11 +104,11 @@ int main() {
 
 	//Texture loading
 	stbi_set_flip_vertically_on_load(true);
-	unsigned int texture1 = generateTexture("src/Textures/container.jpg", true);
-	unsigned int texture2 = generateTexture("src/Textures/nice.jpg", true);
-	basicShader.use(); 
+	/*unsigned int texture1 = generateTexture("C:/GIT/CPSC585/585Game/src/Textures/container.jpg", true);
+	unsigned int texture2 = generateTexture("C:/GIT/CPSC585/585Game/src/Textures/nice.jpg", true);
+	basicShader.use();
 	basicShader.setInt("texture1", 0);
-	basicShader.setInt("texture2", 1);
+	basicShader.setInt("texture2", 1);*/
 
 	//Coordinate transformations
 	//Transforms local coords to world coords
@@ -103,7 +122,12 @@ int main() {
 	projection = glm::perspective(glm::radians(45.0f), 800.0f / 600.0f, 0.1f, 100.0f);
 
 	// Time initialization
-	Timer &timer = Timer::Instance();		// Create pointer to singleton timer instance
+	Timer& timer = Timer::Instance();		// Create pointer to singleton timer instance
+
+
+
+	
+
 
 	// PRIMARY GAME LOOP
 	while (!glfwWindowShouldClose(window)) {
@@ -118,23 +142,40 @@ int main() {
 
 		// <game stuff goes here>
 
-		model = glm::rotate(model, glm::radians(50.f) * (float)deltaTime, glm::vec3(0.5f, 1.0f, 0.0f));
+		/*model = glm::rotate(model, glm::radians(50.f) * (float)deltaTime, glm::vec3(0.5f, 1.0f, 0.0f));
 		basicShader.setMat4("model", model);
 		basicShader.setMat4("view", view);
-		basicShader.setMat4("projection", projection);
+		basicShader.setMat4("projection", projection);*/
 
 		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		glActiveTexture(GL_TEXTURE0);
+		for (int i = 0; i < physics.modelList.size(); i++) {
+			glm::vec3 position = physics.transformList[i].position;
+			glm::quat rotation = physics.transformList[i].rotation;
+
+			glm::mat4 model = glm::mat4(1.f);
+			model = glm::translate(model, position);
+			model = model * glm::toMat4(rotation);
+			model = glm::scale(model, glm::vec3(1.f)); // not needed
+			physics.modelList[i].modelMatrix = model;
+			
+			basicShader.setMat4("model", model);
+			basicShader.setMat4("view", view);
+			basicShader.setMat4("projection", projection);
+		}
+		physics.updateTransforms();
+
+
+		/*glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, texture1);
 		glActiveTexture(GL_TEXTURE1);
-		glBindTexture(GL_TEXTURE_2D, texture2);
+		glBindTexture(GL_TEXTURE_2D, texture2);*/
 
 		basicShader.use();
 		glBindVertexArray(testTriangleVAO);
 		glDrawArrays(GL_TRIANGLES, 0, 36);
-		
+
 		// Swap buffers, poll events
 		glfwSwapBuffers(window);
 		glfwPollEvents();
