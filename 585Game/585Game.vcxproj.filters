@@ -75,4 +75,7 @@
   <ItemGroup>
     <Font Include="src\Fonts\arial.ttf" />
   </ItemGroup>
+  <ItemGroup>
+    <Library Include="libraries\freetype-2.12.1\objs\freetype.lib" />
+  </ItemGroup>
 </Project>

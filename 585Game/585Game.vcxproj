@@ -79,7 +79,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
     <IncludePath>$(SolutionDir)libraries\opengl\glfw-3.3.8.bin.WIN64\include;$(SolutionDir)libraries\freetype-2.12.1\include;$(VC_IncludePath);$(WindowsSDK_IncludePath);</IncludePath>
-    <LibraryPath>$(SolutionDir)libraries\opengl\glfw-3.3.8.bin.WIN64\lib-vc2019;$(LibraryPath)</LibraryPath>
+    <LibraryPath>$(SolutionDir)libraries\freetype-2.12.1\objs;$(SolutionDir)libraries\opengl\glfw-3.3.8.bin.WIN64\lib-vc2019;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
@@ -180,6 +180,9 @@
   </ItemGroup>
   <ItemGroup>
     <Font Include="src\Fonts\arial.ttf" />
+  </ItemGroup>
+  <ItemGroup>
+    <Library Include="libraries\freetype-2.12.1\objs\freetype.lib" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
