@@ -72,4 +72,7 @@
       <Filter>Resource Files</Filter>
     </Image>
   </ItemGroup>
+  <ItemGroup>
+    <Font Include="src\Fonts\arial.ttf" />
+  </ItemGroup>
 </Project>

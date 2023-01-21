@@ -1,5 +1,6 @@
 // Core Includes
 #include <iostream>
+#include <map>
 
 // 3rd Party Includes
 #include <PxPhysicsAPI.h>
@@ -7,6 +8,8 @@
 #include <GLFW/glfw3.h>
 #include <glm.hpp>
 #include <gtc/matrix_transform.hpp>
+#include <ft2build.h>
+#include FT_FREETYPE_H
 
 
 // Boilerplate Includes
@@ -28,6 +31,13 @@ int main() {
 	// INITIALIZATION
 	GLFWwindow* window = initWindow();
 	Shader basicShader("src/Boilerplate/shaderVertex.txt", "src/Boilerplate/shaderFragment.txt");
+
+	FT_Library ft;
+	if (FT_Init_FreeType(&ft))
+	{
+		std::cout << "ERROR::FREETYPE: Could not init FreeType Library" << std::endl;
+		return -1;
+	}
 
 	/*float testTriangle[] = {
 			//Coordinates		 //Colors			//Texture Coords
