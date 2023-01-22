@@ -59,6 +59,9 @@
     <ClInclude Include="src\Boilerplate\Texture.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\Boilerplate\Cube.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Text Include="src\Boilerplate\shaderFragment.txt" />

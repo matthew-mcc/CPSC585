@@ -163,6 +163,7 @@
     <None Include=".gitignore" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\Boilerplate\Cube.h" />
     <ClInclude Include="src\Boilerplate\Texture.h" />
     <ClInclude Include="src\Boilerplate\stb_image.h" />
     <ClInclude Include="src\Boilerplate\Shader.h" />

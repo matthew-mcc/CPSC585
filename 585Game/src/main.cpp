@@ -3,17 +3,27 @@
 #include <map>
 
 // 3rd Party Includes
+// PHYSX
 #include <PxPhysicsAPI.h>
+
+// GLAD
 #include <glad/glad.h>
+
+// GLFW
 #include <GLFW/glfw3.h>
+
+// GLM
 #include <glm.hpp>
 #include <gtc/matrix_transform.hpp>
+
+// FREETYPE
 #include <ft2build.h>
 #include FT_FREETYPE_H
+
+//ASSIMP
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
-
 
 // Boilerplate Includes
 #include <Boilerplate/Window.h>
@@ -22,6 +32,7 @@
 #include <Boilerplate/Texture.h>
 #include <Boilerplate/Timer.h>
 #include <Boilerplate/stb_image.h>
+#include <Boilerplate/Cube.h>
 
 using namespace std;
 using namespace glm;
@@ -35,6 +46,7 @@ int main() {
 	GLFWwindow* window = initWindow();
 	Shader basicShader("src/Boilerplate/shaderVertex.txt", "src/Boilerplate/shaderFragment.txt");
 
+	// Freetype test init
 	FT_Library ft;
 	if (FT_Init_FreeType(&ft))
 	{
@@ -42,59 +54,8 @@ int main() {
 		return -1;
 	}
 
-	/*float testTriangle[] = {
-			//Coordinates		 //Colors			//Texture Coords
-			 0.5f,  0.5f, 0.0f,  1.0f, 0.0f, 0.0f,  1.0f, 1.0f,
-			 0.5f, -0.5f, 0.0f,  0.0f, 1.0f, 0.0f,  1.0f, 0.0f,
-			-0.5f,  0.5f, 0.0f,  0.0f, 0.0f, 1.0f,  0.0f, 1.0f,
-			-0.5f, -0.5f, 0.0f,  1.0f, 1.0f, 0.0f,  0.0f, 0.0f
-	};*/
-	float testTriangle[] = {
-	-0.5f, -0.5f, -0.5f,  1.0f, 0.0f, 0.0f,  0.0f, 0.0f,
-	 0.5f, -0.5f, -0.5f,  1.0f, 0.0f, 0.0f,  1.0f, 0.0f,
-	 0.5f,  0.5f, -0.5f,  1.0f, 0.0f, 0.0f,  1.0f, 1.0f,
-	 0.5f,  0.5f, -0.5f,  1.0f, 0.0f, 0.0f,  1.0f, 1.0f,
-	-0.5f,  0.5f, -0.5f,  1.0f, 0.0f, 0.0f,  0.0f, 1.0f,
-	-0.5f, -0.5f, -0.5f,  1.0f, 0.0f, 0.0f,  0.0f, 0.0f,
-
-	-0.5f, -0.5f,  0.5f,  1.0f, 0.0f, 0.0f,  0.0f, 0.0f,
-	 0.5f, -0.5f,  0.5f,  1.0f, 0.0f, 0.0f,  1.0f, 0.0f,
-	 0.5f,  0.5f,  0.5f,  1.0f, 0.0f, 0.0f,  1.0f, 1.0f,
-	 0.5f,  0.5f,  0.5f,  1.0f, 0.0f, 0.0f,  1.0f, 1.0f,
-	-0.5f,  0.5f,  0.5f,  1.0f, 0.0f, 0.0f,  0.0f, 1.0f,
-	-0.5f, -0.5f,  0.5f,  1.0f, 0.0f, 0.0f,  0.0f, 0.0f,
-
-	-0.5f,  0.5f,  0.5f,  1.0f, 0.0f, 0.0f,  1.0f, 0.0f,
-	-0.5f,  0.5f, -0.5f,  1.0f, 0.0f, 0.0f,  1.0f, 1.0f,
-	-0.5f, -0.5f, -0.5f,  1.0f, 0.0f, 0.0f,  0.0f, 1.0f,
-	-0.5f, -0.5f, -0.5f,  1.0f, 0.0f, 0.0f,  0.0f, 1.0f,
-	-0.5f, -0.5f,  0.5f,  1.0f, 0.0f, 0.0f,  0.0f, 0.0f,
-	-0.5f,  0.5f,  0.5f,  1.0f, 0.0f, 0.0f,  1.0f, 0.0f,
-
-	 0.5f,  0.5f,  0.5f,  1.0f, 0.0f, 0.0f,  1.0f, 0.0f,
-	 0.5f,  0.5f, -0.5f,  1.0f, 0.0f, 0.0f,  1.0f, 1.0f,
-	 0.5f, -0.5f, -0.5f,  1.0f, 0.0f, 0.0f,  0.0f, 1.0f,
-	 0.5f, -0.5f, -0.5f,  1.0f, 0.0f, 0.0f,  0.0f, 1.0f,
-	 0.5f, -0.5f,  0.5f,  1.0f, 0.0f, 0.0f,  0.0f, 0.0f,
-	 0.5f,  0.5f,  0.5f,  1.0f, 0.0f, 0.0f,  1.0f, 0.0f,
-
-	-0.5f, -0.5f, -0.5f,  1.0f, 0.0f, 0.0f,  0.0f, 1.0f,
-	 0.5f, -0.5f, -0.5f,  1.0f, 0.0f, 0.0f,  1.0f, 1.0f,
-	 0.5f, -0.5f,  0.5f,  1.0f, 0.0f, 0.0f,  1.0f, 0.0f,
-	 0.5f, -0.5f,  0.5f,  1.0f, 0.0f, 0.0f,  1.0f, 0.0f,
-	-0.5f, -0.5f,  0.5f,  1.0f, 0.0f, 0.0f,  0.0f, 0.0f,
-	-0.5f, -0.5f, -0.5f,  1.0f, 0.0f, 0.0f,  0.0f, 1.0f,
-
-	-0.5f,  0.5f, -0.5f,  1.0f, 0.0f, 0.0f,  0.0f, 1.0f,
-	 0.5f,  0.5f, -0.5f,  1.0f, 0.0f, 0.0f,  1.0f, 1.0f,
-	 0.5f,  0.5f,  0.5f,  1.0f, 0.0f, 0.0f,  1.0f, 0.0f,
-	 0.5f,  0.5f,  0.5f,  1.0f, 0.0f, 0.0f,  1.0f, 0.0f,
-	-0.5f,  0.5f,  0.5f,  1.0f, 0.0f, 0.0f,  0.0f, 0.0f,
-	-0.5f,  0.5f, -0.5f,  1.0f, 0.0f, 0.0f,  0.0f, 1.0f
-	};
-
 	//Vertex buffer initialization
-	unsigned int testTriangleVAO = initVAO(testTriangle, sizeof(testTriangle));
+	unsigned int testCubeVAO = initVAO(testCube, sizeof(testCube));
 
 	//Texture loading
 	stbi_set_flip_vertically_on_load(true);
@@ -118,6 +79,8 @@ int main() {
 	// Time initialization
 	Timer &timer = Timer::Instance();		// Create pointer to singleton timer instance
 	std::shared_ptr<CallbackInterface> Callptr = processInput(window);
+
+
 	// PRIMARY GAME LOOP
 	while (!glfwWindowShouldClose(window)) {
 		// Process GLFW window user inputs
@@ -144,7 +107,7 @@ int main() {
 		glBindTexture(GL_TEXTURE_2D, texture2);
 
 		basicShader.use();
-		glBindVertexArray(testTriangleVAO);
+		glBindVertexArray(testCubeVAO);
 		glDrawArrays(GL_TRIANGLES, 0, 36);
 		
 		// Swap buffers, poll events
