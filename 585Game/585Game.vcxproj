@@ -153,6 +153,7 @@
   <ItemGroup>
     <ClCompile Include="src\Boilerplate\Input.cpp" />
     <ClCompile Include="src\Boilerplate\Shader.cpp" />
+    <ClCompile Include="src\Boilerplate\Text.cpp" />
     <ClCompile Include="src\Boilerplate\Texture.cpp" />
     <ClCompile Include="src\Boilerplate\stb_image.cpp" />
     <ClCompile Include="src\Boilerplate\Window.cpp" />
@@ -164,16 +165,13 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Boilerplate\Cube.h" />
+    <ClInclude Include="src\Boilerplate\Text.h" />
     <ClInclude Include="src\Boilerplate\Texture.h" />
     <ClInclude Include="src\Boilerplate\stb_image.h" />
     <ClInclude Include="src\Boilerplate\Shader.h" />
     <ClInclude Include="src\Boilerplate\Input.h" />
     <ClInclude Include="src\Boilerplate\Timer.h" />
     <ClInclude Include="src\Boilerplate\Window.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <Text Include="src\Boilerplate\shaderFragment.txt" />
-    <Text Include="src\Boilerplate\shaderVertex.txt" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="assets\textures\container.jpg" />
@@ -184,6 +182,12 @@
   </ItemGroup>
   <ItemGroup>
     <Library Include="libraries\freetype-2.12.1\objs\freetype.lib" />
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="src\Boilerplate\shaderBasicFragment.txt" />
+    <Text Include="src\Boilerplate\shaderBasicVertex.txt" />
+    <Text Include="src\Boilerplate\shaderTextFragment.txt" />
+    <Text Include="src\Boilerplate\shaderTextVertex.txt" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -6,9 +6,12 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <glm.hpp>
+#include <ft2build.h>
+#include FT_FREETYPE_H
 
 #include <Boilerplate/stb_image.h>
 #include <Boilerplate/Texture.h>
+
 
 unsigned int generateTexture(const char* imagePath, bool isJPG) {
 	unsigned int texture;
@@ -38,5 +41,27 @@ unsigned int generateTexture(const char* imagePath, bool isJPG) {
 		std::cout << "Failed to load texture AHF" << std::endl;
 	}
 	stbi_image_free(data);
+	return texture;
+}
+unsigned int generateChar(FT_Face face) {
+	unsigned int texture;
+	glGenTextures(1, &texture);
+	glBindTexture(GL_TEXTURE_2D, texture);
+	glTexImage2D(
+		GL_TEXTURE_2D,
+		0,
+		GL_RED,
+		face->glyph->bitmap.width,
+		face->glyph->bitmap.rows,
+		0,
+		GL_RED,
+		GL_UNSIGNED_BYTE,
+		face->glyph->bitmap.buffer
+	);
+	// set texture options
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	return texture;
 }

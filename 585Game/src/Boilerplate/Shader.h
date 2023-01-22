@@ -1,3 +1,5 @@
+#pragma once
+
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <glm.hpp>
@@ -13,4 +15,5 @@ class Shader {
 		void setMat4(const std::string& name, glm::mat4 value);
 };
 
-unsigned int initVAO(float* vertices, int size);
+void initGeomVAO(float* vertices, int size, unsigned int* VAO, unsigned int* VBO);
+void initTextVAO(unsigned int* VAO, unsigned int* VBO);
