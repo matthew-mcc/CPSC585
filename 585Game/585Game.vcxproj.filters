@@ -65,15 +65,15 @@
     <Text Include="src\Boilerplate\shaderVertex.txt" />
   </ItemGroup>
   <ItemGroup>
-    <Image Include="src\Textures\container.jpg">
+    <Image Include="assets\textures\container.jpg">
       <Filter>Resource Files</Filter>
     </Image>
-    <Image Include="src\Textures\nice.jpg">
+    <Image Include="assets\textures\nice.jpg">
       <Filter>Resource Files</Filter>
     </Image>
   </ItemGroup>
   <ItemGroup>
-    <Font Include="src\Fonts\arial.ttf" />
+    <Font Include="assets\fonts\arial.ttf" />
   </ItemGroup>
   <ItemGroup>
     <Library Include="libraries\freetype-2.12.1\objs\freetype.lib" />

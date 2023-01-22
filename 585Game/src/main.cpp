@@ -98,8 +98,8 @@ int main() {
 
 	//Texture loading
 	stbi_set_flip_vertically_on_load(true);
-	unsigned int texture1 = generateTexture("src/Textures/container.jpg", true);
-	unsigned int texture2 = generateTexture("src/Textures/nice.jpg", true);
+	unsigned int texture1 = generateTexture("assets/textures/container.jpg", true);
+	unsigned int texture2 = generateTexture("assets/textures/nice.jpg", true);
 	basicShader.use(); 
 	basicShader.setInt("texture1", 0);
 	basicShader.setInt("texture2", 1);
