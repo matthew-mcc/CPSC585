@@ -152,6 +152,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="src\Boilerplate\Input.cpp" />
+    <ClCompile Include="src\Boilerplate\Mesh.cpp" />
     <ClCompile Include="src\Boilerplate\Shader.cpp" />
     <ClCompile Include="src\Boilerplate\Text.cpp" />
     <ClCompile Include="src\Boilerplate\Texture.cpp" />
@@ -165,6 +166,8 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Boilerplate\Cube.h" />
+    <ClInclude Include="src\Boilerplate\Mesh.h" />
+    <ClInclude Include="src\Boilerplate\Model.h" />
     <ClInclude Include="src\Boilerplate\Text.h" />
     <ClInclude Include="src\Boilerplate\Texture.h" />
     <ClInclude Include="src\Boilerplate\stb_image.h" />
