@@ -160,6 +160,7 @@
     <ClCompile Include="src\Boilerplate\Window.cpp" />
     <ClCompile Include="src\Boilerplate\glad.c" />
     <ClCompile Include="src\main.cpp" />
+    <ClCompile Include="src\PhysicsSystem.cpp" />
     <ClCompile Include="src\RenderingSystem.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -176,7 +177,11 @@
     <ClInclude Include="src\Boilerplate\Input.h" />
     <ClInclude Include="src\Boilerplate\Timer.h" />
     <ClInclude Include="src\Boilerplate\Window.h" />
+    <ClInclude Include="src\Entity.h" />
+    <ClInclude Include="src\Model.h" />
+    <ClInclude Include="src\PhysicsSystem.h" />
     <ClInclude Include="src\RenderingSystem.h" />
+    <ClInclude Include="src\Transform.h" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="assets\textures\container.jpg" />
