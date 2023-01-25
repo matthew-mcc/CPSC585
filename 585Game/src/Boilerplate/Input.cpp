@@ -101,7 +101,7 @@ public:
 
 	glm::vec2 current_pos;
 	bool view_3D = true;
-	float cameraSpeed = 0.01f;
+	float cameraSpeed = 1.0f;
 	int window_w = 1000;
 	int window_h = 1000;
 private:

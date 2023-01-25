@@ -11,12 +11,9 @@
 #include <assimp/postprocess.h>
 
 #include <Boilerplate/Mesh.h>
-#include <Boilerplate/shader.h>
+#include <Boilerplate/Shader.h>
 
 #include <string>
-#include <fstream>
-#include <sstream>
-#include <iostream>
 #include <map>
 #include <vector>
 using namespace std;
@@ -180,7 +177,7 @@ private:
 };
 
 
-unsigned int TextureFromFile(const char* path, const string& directory, bool gamma){
+inline unsigned int TextureFromFile(const char* path, const string& directory, bool gamma){
     string filename = string(path);
     filename = directory + '/' + filename;
 

@@ -160,6 +160,7 @@
     <ClCompile Include="src\Boilerplate\Window.cpp" />
     <ClCompile Include="src\Boilerplate\glad.c" />
     <ClCompile Include="src\main.cpp" />
+    <ClCompile Include="src\RenderingSystem.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include=".gitignore" />
@@ -175,6 +176,7 @@
     <ClInclude Include="src\Boilerplate\Input.h" />
     <ClInclude Include="src\Boilerplate\Timer.h" />
     <ClInclude Include="src\Boilerplate\Window.h" />
+    <ClInclude Include="src\RenderingSystem.h" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="assets\textures\container.jpg" />

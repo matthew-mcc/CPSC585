@@ -3,10 +3,12 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <glm.hpp>
+#include <string>
 
 class Shader {
 	public:
 		unsigned int ID;
+		Shader();
 		Shader(const char* vertexPath, const char* fragmentPath);
 		void use();
 		void setBool(const std::string& name, bool value);
