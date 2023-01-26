@@ -1,6 +1,6 @@
 #ifndef MODEL_H
 #define MODEL_H
-
+#pragma once
 #include <glad/glad.h> 
 
 #include <glm.hpp>

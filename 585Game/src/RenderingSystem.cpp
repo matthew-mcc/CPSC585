@@ -1,11 +1,6 @@
 #include "RenderingSystem.h"
-
-#include <glad/glad.h>
-#include <GLFW/glfw3.h>
-#include <glm.hpp>
 #include <gtc/type_ptr.hpp>
 #include <gtc/matrix_transform.hpp>
-
 #include <Boilerplate/stb_image.h>
 
 

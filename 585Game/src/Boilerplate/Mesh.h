@@ -1,10 +1,10 @@
 // Includes
-#include <string>
+#pragma once
+#include "Shader.h"
 #include <vector>
 #include <glm.hpp>
 #include <gtc/matrix_transform.hpp>
 #include <gtc/type_ptr.hpp>
-#include "Shader.h"
 
 using namespace std;
 

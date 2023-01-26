@@ -1,18 +1,14 @@
-// Core Includes
+#include "Shader.h"// Core Includes
 #include <iostream>
-
-// 3rd Party Includes
-#include <glad/glad.h>
 #include <GLFW/glfw3.h>
-#include <glm.hpp>
+// 3rd Party Includes
+
+
 #include <gtc/type_ptr.hpp>
 
-#include <glad/glad.h> // include glad to get all the required OpenGL headers
-
-#include <string>
+//#include <glad/glad.h> // include glad to get all the required OpenGL headers
 #include <fstream>
 #include <sstream>
-#include "Shader.h"
 
 #include <vector>
 using namespace std;
