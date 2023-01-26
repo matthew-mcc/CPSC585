@@ -75,13 +75,13 @@ public:
 
 	void XboxUpdate(XboxInput x) {
 		if (x.data.LThumb_magnitude != 0) {
-			camera_pos += x.data.LThumb_Y_direction * camera_front;
-			camera_pos += x.data.LThumb_X_direction * (glm::normalize(glm::cross(camera_front, camera_up)));
+			camera_pos += (x.data.LThumb_Y_direction/10) * camera_front;
+			camera_pos += (x.data.LThumb_X_direction/10) * (glm::normalize(glm::cross(camera_front, camera_up)));
 		}
 
 		if (x.data.RThumb_magnitude != 0) {
 			yaw += x.data.RThumb_X_direction;     //
-			pitch -= x.data.RThumb_Y_direction;  // REVERSE UP/DOWN DIRECTION 
+			pitch += x.data.RThumb_Y_direction;  // REVERSE UP/DOWN DIRECTION 
 			if (pitch > 89.0f)
 				pitch = 89.0f;
 			if (pitch < -89.0f)
