@@ -38,6 +38,8 @@ void RenderingSystem::initRenderer() {
 	view = glm::mat4(1.0f);																		// Transforms world coords to camera coords
 	projection = glm::perspective(glm::radians(45.0f), 800.0f / 600.0f, 0.1f, 100.0f);			// Transforms camera coords to clip coords
 
+	outlineShader = Shader("src/Cel Shader/shaderOutlineVertex.txt", "src/Cel Shader/shaderOutlineFragment.txt");
+
 // FONT INITIALIZATION
 	// Create character map based on font file
 	textChars = initFont("assets/fonts/arial.ttf");
@@ -65,20 +67,31 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> callback
 
 // WORLD SHADER
 	// Use world shader, set scene background colour
-	worldShader.use();
 	glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	// TEMP: Simple camera look
 	view = glm::lookAt(callback_ptr->camera_pos, callback_ptr->camera_pos + callback_ptr->camera_front, callback_ptr->camera_up);
 
-	// Set MVP matrices
+
+	// Draw outlines
+	outlineShader.use();
+	outlineShader.setMat4("model", model);
+	outlineShader.setMat4("view", view);
+	outlineShader.setMat4("projection", projection);
+	outlineShader.setFloat("thickness", 0.2f);
+	for (int i = 0; i < models.size(); i ++) {
+		models.at(i).Draw(outlineShader);
+	}
+
+	glClear(GL_DEPTH_BUFFER_BIT);
+
+	//Draw models
+	worldShader.use();
 	worldShader.setMat4("model", model);
 	worldShader.setMat4("view", view);
 	worldShader.setMat4("projection", projection);
-
-	// Draw models
-	for (int i = 0; i < models.size(); i++) {
+	for (int i = 0; i < models.size(); i ++) {
 		models.at(i).Draw(worldShader);
 	}
 

@@ -29,6 +29,7 @@ private:
 	// Shaders
 	Shader textShader;
 	Shader worldShader;
+	Shader outlineShader;
 
 	// Coordinate Transformations
 	glm::mat4 model;
