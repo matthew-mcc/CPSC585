@@ -89,6 +89,7 @@
     </ClCompile><ClCompile Include="src\testInput.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+</ItemGroup>
   <ItemGroup>
     <None Include=".gitignore" />
   </ItemGroup>

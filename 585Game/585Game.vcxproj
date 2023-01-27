@@ -151,13 +151,13 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include=    <ClCompile Include="libraries\imgui-1.89.2\imgui.cpp" />
+	<ClCompile Include="libraries\imgui-1.89.2\imgui.cpp" />
     <ClCompile Include="libraries\imgui-1.89.2\imgui_demo.cpp" />
     <ClCompile Include="libraries\imgui-1.89.2\imgui_draw.cpp" />
     <ClCompile Include="libraries\imgui-1.89.2\imgui_impl_glfw.cpp" />
     <ClCompile Include="libraries\imgui-1.89.2\imgui_impl_opengl3.cpp" />
     <ClCompile Include="libraries\imgui-1.89.2\imgui_tables.cpp" />
-    <ClCompile Include="libraries\imgui-1.89.2\imgui_widgets.cpp" />"src\Boilerplate\Input.cpp" />
+    <ClCompile Include="libraries\imgui-1.89.2\imgui_widgets.cpp" />
     <ClCompile Include="src\Boilerplate\Mesh.cpp" />
     <ClCompile Include="src\Boilerplate\Shader.cpp" />
     <ClCompile Include="src\Boilerplate\Text.cpp" />
