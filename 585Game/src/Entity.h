@@ -1,7 +1,7 @@
 #pragma once
 
 #include<string>
-#include "Model.h"
+#include "Boilerplate/Model.h"
 #include "Transform.h"
 
 /*

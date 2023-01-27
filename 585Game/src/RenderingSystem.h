@@ -4,6 +4,8 @@
 #include <Boilerplate/Timer.h>
 #include <Boilerplate/Text.h>
 #include <Boilerplate/Model.h>
+#include <Entity.h>
+
 //#include <Boilerplate/Input.h>
 class RenderingSystem {
 
@@ -15,10 +17,7 @@ public:
 	void initRenderer();
 
 	// Update Renderer
-	void updateRenderer(std::shared_ptr<CallbackInterface> callback_ptr);
-
-	// Models vector
-	vector<Model> models;
+	void updateRenderer(std::shared_ptr<CallbackInterface> callback_ptr, std::vector<Entity> entityList);
 
 	// Window pointer
 	GLFWwindow* window;

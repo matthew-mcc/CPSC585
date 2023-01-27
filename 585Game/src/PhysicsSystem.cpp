@@ -64,7 +64,7 @@ PhysicsSystem::PhysicsSystem() {
 
 			// filling up our vectors with the new data 
 			rigidDynamicList.push_back(body);
-			//transformList.emplace_back(new Transform());
+			//transformList.emplace_back();
 
 			body->attachShape(*shape);
 			physx::PxRigidBodyExt::updateMassAndInertia(*body, 10.0f);
@@ -76,7 +76,7 @@ PhysicsSystem::PhysicsSystem() {
 	
 	shape->release(); // cleanup
 
-	updateTransforms();
+	//updateTransforms();
 
 }
 
@@ -86,15 +86,15 @@ physx::PxVec3 PhysicsSystem::getPosition() {
 	return position;
 }
 
-void PhysicsSystem::updateTransforms() {
-	/*for (int i = 0; i < transformList.size(); i++) {
-		transformList[i].position.x = rigidDynamicList[i]->getGlobalPose().p.x;
-		transformList[i].position.y = rigidDynamicList[i]->getGlobalPose().p.y;
-		transformList[i].position.z = rigidDynamicList[i]->getGlobalPose().p.z;
+void PhysicsSystem::updateTransforms(std::vector<Entity> entityList) {
+	for (int i = 0; i < entityList.size(); i++) {
+		entityList.at(i).transform->position.x = rigidDynamicList[i]->getGlobalPose().p.x;
+		entityList.at(i).transform->position.y = rigidDynamicList[i]->getGlobalPose().p.y;
+		entityList.at(i).transform->position.z = rigidDynamicList[i]->getGlobalPose().p.z;
 
-		transformList[i].rotation.x = rigidDynamicList[i]->getGlobalPose().q.x;
-		transformList[i].rotation.y = rigidDynamicList[i]->getGlobalPose().q.y;
-		transformList[i].rotation.z = rigidDynamicList[i]->getGlobalPose().q.z;
-		transformList[i].rotation.w = rigidDynamicList[i]->getGlobalPose().q.w;
-	}*/
+		entityList.at(i).transform->rotation.x = rigidDynamicList[i]->getGlobalPose().q.x;
+		entityList.at(i).transform->rotation.y = rigidDynamicList[i]->getGlobalPose().q.y;
+		entityList.at(i).transform->rotation.z = rigidDynamicList[i]->getGlobalPose().q.z;
+		entityList.at(i).transform->rotation.w = rigidDynamicList[i]->getGlobalPose().q.w;
+	}
 }

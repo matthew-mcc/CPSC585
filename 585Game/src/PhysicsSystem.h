@@ -4,7 +4,7 @@
 #include<vector>
 #include <iostream>
 
-
+#include "Entity.h"
 class PhysicsSystem {
 
 public:
@@ -25,7 +25,7 @@ public:
 	physx::PxMaterial* gMaterial = NULL;
 	physx::PxPvd* gPvd = NULL;
 
-	void updateTransforms();
+	void updateTransforms(std::vector<Entity> entityList);
 	PhysicsSystem();
 	physx::PxVec3 getPosition();
 

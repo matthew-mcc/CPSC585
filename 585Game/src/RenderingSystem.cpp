@@ -43,15 +43,11 @@ void RenderingSystem::initRenderer() {
 	glm::mat4 textProjection = glm::ortho(0.0f, static_cast<float>(1440), 0.0f, static_cast<float>(1440));
 	textShader.use();
 	glUniformMatrix4fv(glGetUniformLocation(textShader.ID, "projection"), 1, GL_FALSE, glm::value_ptr(textProjection));
-
-// MODEL INITIALIZATION
-	Model testModel = Model("assets/models/tire1/tire1.obj");
-	models.push_back(testModel);
 }
 
 
 // Update Renderer
-void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> callback_ptr) {
+void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> callback_ptr, std::vector<Entity> entityList) {
 
 // TIME UPDATE
 	// Get deltaTime Update
@@ -73,8 +69,8 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> callback
 	worldShader.setMat4("projection", projection);
 
 	// Draw models
-	for (int i = 0; i < models.size(); i++) {
-		models.at(i).Draw(worldShader);
+	for (int i = 0; i < entityList.size(); i++) {
+		entityList.at(i).model->Draw(worldShader);
 	}
 
 // TEXT SHADER
