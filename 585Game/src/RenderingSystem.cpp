@@ -40,7 +40,7 @@ void RenderingSystem::initRenderer() {
 
 // FONT INITIALIZATION
 	// Create character map based on font file
-	textChars = initFont("assets/fonts/arial.ttf");
+	textChars = initFont("assets/fonts/Rowdies-Regular.ttf");
 	// Create vertex array and buffer objects
 	initTextVAO(&textVAO, &textVBO);
 	// Create text shader
