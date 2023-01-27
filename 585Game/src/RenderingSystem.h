@@ -19,6 +19,8 @@ public:
 	// Update Renderer
 	void updateRenderer(std::shared_ptr<CallbackInterface> callback_ptr);
 
+	void shutdownImgui();
+
 	// Models vector
 	vector<Model> models;
 
@@ -35,6 +37,8 @@ private:
 	glm::mat4 model;
 	glm::mat4 view;
 	glm::mat4 projection;
+
+	float lightRotation = 0.f;
 
 	// Text
 	std::map<char, Character> textChars;

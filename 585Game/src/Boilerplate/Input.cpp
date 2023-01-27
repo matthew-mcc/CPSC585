@@ -141,9 +141,10 @@ void windowSizeMetaCallback(GLFWwindow* window, int width, int height) {
 	// Handles GLFW window inputs
 std::shared_ptr<CallbackInterface> processInput(GLFWwindow* window ) {
 	//glfwSetWindowUserPointer(window, callbacks_.get());
+
 	glfwSetKeyCallback(window, keyMetaCallback);
-	glfwSetMouseButtonCallback(window, mouseButtonMetaCallback);
-	glfwSetCursorPosCallback(window, cursorPosMetaCallback);
+	//glfwSetMouseButtonCallback(window, mouseButtonMetaCallback);
+	//glfwSetCursorPosCallback(window, cursorPosMetaCallback);
 	glfwSetScrollCallback(window, scrollMetaCallback);
 	glfwSetWindowSizeCallback(window, windowSizeMetaCallback);
 

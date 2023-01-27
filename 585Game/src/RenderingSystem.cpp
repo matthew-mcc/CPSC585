@@ -1,5 +1,9 @@
 #include "RenderingSystem.h"
 
+#include "imgui.h"
+#include "imgui_impl_glfw.h"
+#include "imgui_impl_opengl3.h"
+
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <glm.hpp>
@@ -7,7 +11,6 @@
 #include <gtc/matrix_transform.hpp>
 
 #include <Boilerplate/stb_image.h>
-
 
 // Rendering System Constructor
 RenderingSystem::RenderingSystem() {
@@ -22,6 +25,14 @@ void RenderingSystem::initRenderer() {
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+// IMGUI INITIALIZATION
+	IMGUI_CHECKVERSION();
+	ImGui::CreateContext();
+	ImGuiIO& io = ImGui::GetIO(); (void)io;
+	ImGui::StyleColorsDark();
+	ImGui_ImplGlfw_InitForOpenGL(window, true);
+	ImGui_ImplOpenGL3_Init("#version 330");
 
 // TIMER INITIALIZATION
 	timer = &Timer::Instance();		// Create pointer to singleton timer instance
@@ -69,6 +80,11 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> callback
 	glClearColor(0.65f, 0.5f, 0.4f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+	// Create IMGUI Window
+	ImGui_ImplOpenGL3_NewFrame();
+	ImGui_ImplGlfw_NewFrame();
+	ImGui::NewFrame();
+
 	// TEMP: Simple camera look
 	view = glm::lookAt(callback_ptr->camera_pos, callback_ptr->camera_pos + callback_ptr->camera_front, callback_ptr->camera_up);
 
@@ -94,7 +110,7 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> callback
 
 	worldShader.setVec3("lightColor", glm::vec3(0.95f, 0.8f, 0.7f));
 	worldShader.setVec3("shadowColor", glm::vec3(0.45f, 0.3f, 0.2f));
-	worldShader.setVec3("sun", normalize(glm::vec3(sin(glfwGetTime()), 0.2f, cos(glfwGetTime()))));
+	worldShader.setVec3("sun", normalize(glm::vec3(sin(lightRotation), 0.2f, cos(lightRotation))));
 	for (int i = 0; i < models.size(); i ++) {
 		models.at(i).Draw(worldShader);
 	}
@@ -108,10 +124,23 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> callback
 	if (fpsTest != NULL) fps = fpsTest;				// Set fps if fpsTest isn't null
 	RenderText(textShader, textVAO, textVBO, "FPS: " + std::to_string(fps), 10.0f, 1390.0f, 1.0f, glm::vec3(0.5, 0.8f, 0.2f), textChars);
 
+	ImGui::Begin("Super Space Salvagers");
+	ImGui::SliderFloat("Light Angle", &lightRotation, 0.f, 6.f);
+	ImGui::End();
+
+	ImGui::Render();
+	ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
 // PREPARE FOR NEXT FRAME
 	// Swap buffers, poll events
 	glfwSwapBuffers(window);
 	glfwPollEvents();
 
 
+}
+
+void RenderingSystem::shutdownImgui() {
+	ImGui_ImplOpenGL3_Shutdown();
+	ImGui_ImplGlfw_Shutdown();
+	ImGui::DestroyContext();
 }

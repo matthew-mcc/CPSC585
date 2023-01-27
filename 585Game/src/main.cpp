@@ -20,6 +20,7 @@ int main() {
 		physics.gScene->simulate(1.f / 60.f);
 		physics.gScene->fetchResults(true);
 	}
+	renderer.shutdownImgui();
 
 	// Terminate program
 	glfwTerminate();
