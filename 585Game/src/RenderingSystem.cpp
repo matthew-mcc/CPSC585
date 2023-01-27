@@ -94,7 +94,7 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> callback
 
 	worldShader.setVec3("lightColor", glm::vec3(0.95f, 0.8f, 0.7f));
 	worldShader.setVec3("shadowColor", glm::vec3(0.45f, 0.3f, 0.2f));
-	worldShader.setVec3("sun", normalize(glm::vec3(sin(glfwGetTime()), 1.f, cos(glfwGetTime()))));
+	worldShader.setVec3("sun", normalize(glm::vec3(sin(glfwGetTime()), 0.2f, cos(glfwGetTime()))));
 	for (int i = 0; i < models.size(); i ++) {
 		models.at(i).Draw(worldShader);
 	}
