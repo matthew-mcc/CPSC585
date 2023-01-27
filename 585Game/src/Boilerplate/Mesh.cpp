@@ -1,4 +1,12 @@
 #include "Mesh.h"
+#include <glm.hpp>
+#include <gtc/type_ptr.hpp>
+
+#include <glad/glad.h> // include glad to get all the required OpenGL headers
+#include <fstream>
+#include <sstream>
+
+#include <vector>
 
 // Mesh Constructor
 Mesh::Mesh(vector<Vertex> vertices, vector<unsigned int> indices, vector<MTexture> textures) {

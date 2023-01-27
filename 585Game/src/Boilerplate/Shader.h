@@ -1,10 +1,7 @@
 #pragma once
-
-#include <glad/glad.h>
-#include <GLFW/glfw3.h>
-#include <glm.hpp>
 #include <string>
-
+#include <glm.hpp>
+#include <glad/glad.h>
 class Shader {
 	public:
 		unsigned int ID;

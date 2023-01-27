@@ -1,12 +1,10 @@
 #pragma once
-
 #include <Boilerplate/Window.h>
 #include <Boilerplate/Shader.h>
 #include <Boilerplate/Timer.h>
 #include <Boilerplate/Text.h>
 #include <Boilerplate/Model.h>
-#include <Boilerplate/Input.h>
-
+//#include <Boilerplate/Input.h>
 class RenderingSystem {
 
 public:

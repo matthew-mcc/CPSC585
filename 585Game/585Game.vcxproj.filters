@@ -24,9 +24,6 @@
     <ClCompile Include="src\Boilerplate\Window.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\Boilerplate\Input.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="src\Boilerplate\Shader.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -89,16 +86,14 @@
     </ClCompile>
     <ClCompile Include="src\imgui\imgui_widgets.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile><ClCompile Include="src\testInput.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
-  </ItemGroup>
   <ItemGroup>
     <None Include=".gitignore" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Boilerplate\Window.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Boilerplate\Input.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\Boilerplate\Shader.h">
