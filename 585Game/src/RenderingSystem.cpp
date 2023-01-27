@@ -50,7 +50,9 @@ void RenderingSystem::initRenderer() {
 	textShader.setMat4("projection", textProjection);
 
 // MODEL INITIALIZATION
-	Model testModel = Model("assets/models/tire1/tire1.obj");
+	Model testModel = Model("assets/models/test_truck1/test_truck1.obj");
+	models.push_back(testModel);
+	testModel = Model("assets/models/test_tire1/test_tire1.obj");
 	models.push_back(testModel);
 }
 
@@ -80,6 +82,7 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> callback
 	for (int i = 0; i < models.size(); i ++) {
 		models.at(i).Draw(outlineShader);
 	}
+	
 
 	glClear(GL_DEPTH_BUFFER_BIT);
 
