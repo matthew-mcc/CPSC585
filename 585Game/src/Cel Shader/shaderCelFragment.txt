@@ -1,0 +1,37 @@
+#version 330 core
+out vec4 FragColor;
+
+in vec2 TexCoords;
+in vec3 normal;
+
+uniform sampler2D texture_diffuse1;
+uniform vec3 lightColor;
+uniform vec3 shadowColor;
+uniform vec3 sun;
+uniform float band;
+uniform float gradient;
+
+void main(){
+    float nl = dot(normal, sun);
+    vec3 light;
+    vec3 middleColor = (lightColor + shadowColor) / 2.0;
+    //float band = 0.15;
+    //float gradient = 0.02;
+
+    if (nl > band + gradient)
+        light = lightColor;
+    else if (nl > band - gradient) {
+        float i = (nl - (band - gradient)) / (2.0*gradient);
+        light = i*lightColor + (1-i)*middleColor;
+    }
+    else if (nl > -band + gradient)
+        light = middleColor;
+    else if (nl > -band - gradient) {
+        float i = (nl - (-band - gradient)) / (2.0*gradient);
+        light = i*middleColor + (1-i)*shadowColor;
+    }
+    else
+        light = shadowColor;
+
+    FragColor = vec4(texture(texture_diffuse1, TexCoords).xyz * light, 1.0);
+}
