@@ -89,8 +89,12 @@ physx::PxVec3 PhysicsSystem::getPosition() {
 void PhysicsSystem::updateTransforms(std::vector<Entity> entityList) {
 	for (int i = 0; i < entityList.size(); i++) {
 		entityList.at(i).transform->position.x = rigidDynamicList[i]->getGlobalPose().p.x;
+		float tempPos = rigidDynamicList[i]->getGlobalPose().p.y;
 		entityList.at(i).transform->position.y = rigidDynamicList[i]->getGlobalPose().p.y;
 		entityList.at(i).transform->position.z = rigidDynamicList[i]->getGlobalPose().p.z;
+
+	
+		std::cout  << " , " << tempPos << std::endl;
 
 		entityList.at(i).transform->rotation.x = rigidDynamicList[i]->getGlobalPose().q.x;
 		entityList.at(i).transform->rotation.y = rigidDynamicList[i]->getGlobalPose().q.y;

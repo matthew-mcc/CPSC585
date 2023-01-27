@@ -20,10 +20,10 @@ void RenderingSystem::initRenderer() {
 
 // TIMER INITIALIZATION
 	timer = &Timer::Instance();		// Create pointer to singleton timer instance
-	
+
 // WORLD SHADER INITIALIZATION
 	// Bind vertex and fragment shaders to world shader object
-	worldShader = Shader("src/Boilerplate/shaderBasicVertex.txt", "src/Boilerplate/shaderBasicFragment.txt");
+	worldShader = Shader("C:/GIT/CPSC585/585Game/src/Boilerplate/shaderBasicVertex.txt", "C:/GIT/CPSC585/585Game/src/Boilerplate/shaderBasicFragment.txt");
 	stbi_set_flip_vertically_on_load(true);
 	worldShader.use();
 
@@ -35,11 +35,11 @@ void RenderingSystem::initRenderer() {
 
 // FONT INITIALIZATION
 	// Create character map based on font file
-	textChars = initFont("assets/fonts/arial.ttf");
+	textChars = initFont("C:/GIT/CPSC585/585Game/assets/fonts/arial.ttf");
 	// Create vertex array and buffer objects
 	initTextVAO(&textVAO, &textVBO);
 	// Create text shader
-	textShader = Shader("src/Boilerplate/shaderTextVertex.txt", "src/Boilerplate/shaderTextFragment.txt");
+	textShader = Shader("C:/GIT/CPSC585/585Game/src/Boilerplate/shaderTextVertex.txt", "C:/GIT/CPSC585/585Game/src/Boilerplate/shaderTextFragment.txt");
 	glm::mat4 textProjection = glm::ortho(0.0f, static_cast<float>(1440), 0.0f, static_cast<float>(1440));
 	textShader.use();
 	glUniformMatrix4fv(glGetUniformLocation(textShader.ID, "projection"), 1, GL_FALSE, glm::value_ptr(textProjection));
@@ -64,12 +64,23 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> callback
 	view = glm::lookAt(callback_ptr->camera_pos, callback_ptr->camera_pos + callback_ptr->camera_front, callback_ptr->camera_up);
 
 	// Set MVP matrices
-	worldShader.setMat4("model", model);
+	//worldShader.setMat4("model", model);
 	worldShader.setMat4("view", view);
 	worldShader.setMat4("projection", projection);
 
 	// Draw models
 	for (int i = 0; i < entityList.size(); i++) {
+		glm::vec3 position = entityList.at(i).transform->position;
+		glm::quat rotation = entityList.at(i).transform->rotation;
+
+		//std::cout << entityList.at(i).transform->position.x << " , " << entityList.at(i).transform->position.y << "\n";
+
+
+		model = glm::mat4(1.0f);
+		model = glm::translate(model, position);
+		model = model * glm::toMat4(rotation);
+		model = glm::scale(model, glm::vec3(1.0f));
+		worldShader.setMat4("model", model);
 		entityList.at(i).model->Draw(worldShader);
 	}
 
