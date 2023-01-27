@@ -26,18 +26,16 @@ void RenderingSystem::initRenderer() {
 // TIMER INITIALIZATION
 	timer = &Timer::Instance();		// Create pointer to singleton timer instance
 	
-// WORLD SHADER INITIALIZATION
-	// Bind vertex and fragment shaders to world shader object
-	worldShader = Shader("src/Boilerplate/shaderBasicVertex.txt", "src/Boilerplate/shaderBasicFragment.txt");
-	stbi_set_flip_vertically_on_load(true);
-	worldShader.use();
-
 // INTIAL MODEL, VIEW, AND PROJECTION MATRICES
 	// Coordinate transformations
 	model = glm::mat4(1.0f);																	// Transforms local coords to world coords
 	view = glm::mat4(1.0f);																		// Transforms world coords to camera coords
 	projection = glm::perspective(glm::radians(45.0f), 800.0f / 600.0f, 0.1f, 100.0f);			// Transforms camera coords to clip coords
 
+// WORLD SHADER INITIALIZATION
+	// Bind vertex and fragment shaders to world shader object
+	stbi_set_flip_vertically_on_load(true);
+	worldShader = Shader("src/Cel Shader/shaderCelVertex.txt", "src/Cel Shader/shaderCelFragment.txt");
 	outlineShader = Shader("src/Cel Shader/shaderOutlineVertex.txt", "src/Cel Shader/shaderOutlineFragment.txt");
 
 // FONT INITIALIZATION
@@ -49,13 +47,12 @@ void RenderingSystem::initRenderer() {
 	textShader = Shader("src/Boilerplate/shaderTextVertex.txt", "src/Boilerplate/shaderTextFragment.txt");
 	glm::mat4 textProjection = glm::ortho(0.0f, static_cast<float>(1440), 0.0f, static_cast<float>(1440));
 	textShader.use();
-	glUniformMatrix4fv(glGetUniformLocation(textShader.ID, "projection"), 1, GL_FALSE, glm::value_ptr(textProjection));
+	textShader.setMat4("projection", textProjection);
 
 // MODEL INITIALIZATION
 	Model testModel = Model("assets/models/tire1/tire1.obj");
 	models.push_back(testModel);
 }
-
 
 // Update Renderer
 void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> callback_ptr) {
@@ -67,7 +64,7 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> callback
 
 // WORLD SHADER
 	// Use world shader, set scene background colour
-	glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+	glClearColor(0.65f, 0.5f, 0.4f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	// TEMP: Simple camera look
@@ -91,6 +88,10 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> callback
 	worldShader.setMat4("model", model);
 	worldShader.setMat4("view", view);
 	worldShader.setMat4("projection", projection);
+
+	worldShader.setVec3("lightColor", glm::vec3(0.95f, 0.8f, 0.7f));
+	worldShader.setVec3("shadowColor", glm::vec3(0.45f, 0.3f, 0.2f));
+	worldShader.setVec3("sun", normalize(glm::vec3(sin(glfwGetTime()), 1.f, cos(glfwGetTime()))));
 	for (int i = 0; i < models.size(); i ++) {
 		models.at(i).Draw(worldShader);
 	}
