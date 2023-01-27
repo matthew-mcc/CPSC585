@@ -8,13 +8,15 @@ uniform sampler2D texture_diffuse1;
 uniform vec3 lightColor;
 uniform vec3 shadowColor;
 uniform vec3 sun;
+uniform float band;
+uniform float gradient;
 
 void main(){
     float nl = dot(normal, sun);
     vec3 light;
     vec3 middleColor = (lightColor + shadowColor) / 2.0;
-    float band = 0.15;
-    float gradient = 0.02;
+    //float band = 0.15;
+    //float gradient = 0.02;
 
     if (nl > band + gradient)
         light = lightColor;

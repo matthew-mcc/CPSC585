@@ -39,6 +39,10 @@ private:
 	glm::mat4 projection;
 
 	float lightRotation = 0.f;
+	float band = 0.15f;
+	float gradient = 0.02f;
+	glm::vec3 lightColor = glm::vec3(0.95f, 0.8f, 0.7f);
+	glm::vec3 shadowColor = glm::vec3(0.45f, 0.3f, 0.2f);
 
 	// Text
 	std::map<char, Character> textChars;

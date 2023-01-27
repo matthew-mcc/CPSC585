@@ -108,9 +108,11 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> callback
 	worldShader.setMat4("view", view);
 	worldShader.setMat4("projection", projection);
 
-	worldShader.setVec3("lightColor", glm::vec3(0.95f, 0.8f, 0.7f));
-	worldShader.setVec3("shadowColor", glm::vec3(0.45f, 0.3f, 0.2f));
+	worldShader.setVec3("lightColor", lightColor);
+	worldShader.setVec3("shadowColor", shadowColor);
 	worldShader.setVec3("sun", normalize(glm::vec3(sin(lightRotation), 0.2f, cos(lightRotation))));
+	worldShader.setFloat("band", band);
+	worldShader.setFloat("gradient", gradient);
 	for (int i = 0; i < models.size(); i ++) {
 		models.at(i).Draw(worldShader);
 	}
@@ -125,7 +127,12 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> callback
 	RenderText(textShader, textVAO, textVBO, "FPS: " + std::to_string(fps), 10.0f, 1390.0f, 1.0f, glm::vec3(0.5, 0.8f, 0.2f), textChars);
 
 	ImGui::Begin("Super Space Salvagers");
+	ImGui::Text("Cel Shader Parameters");
 	ImGui::SliderFloat("Light Angle", &lightRotation, 0.f, 6.f);
+	ImGui::SliderFloat("Middle Band Width", &band, 0.f, 0.2f);
+	ImGui::SliderFloat("Gradient Strength", &gradient, 0.0001f, 0.1f);
+	ImGui::ColorEdit3("Highlight Color", (float*)&lightColor);
+	ImGui::ColorEdit3("Shadow Color", (float*)&shadowColor);
 	ImGui::End();
 
 	ImGui::Render();

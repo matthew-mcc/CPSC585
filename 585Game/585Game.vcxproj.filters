@@ -214,5 +214,9 @@
     <Text Include="src\Boilerplate\shaderBasicVertex.txt" />
     <Text Include="src\Boilerplate\shaderTextFragment.txt" />
     <Text Include="src\Boilerplate\shaderTextVertex.txt" />
+    <Text Include="src\Cel Shader\shaderCelFragment.txt" />
+    <Text Include="src\Cel Shader\shaderCelVertex.txt" />
+    <Text Include="src\Cel Shader\shaderOutlineFragment.txt" />
+    <Text Include="src\Cel Shader\shaderOutlineVertex.txt" />
   </ItemGroup>
 </Project>
