@@ -11,11 +11,12 @@ int main() {
 	XboxInput x;
 	x.run();
 
+	// Process Callbacks
+	std::shared_ptr<CallbackInterface> callback_ptr = processInput(renderer.window);
+	renderer.SetupImgui();
 	// PRIMARY GAME LOOP
 	while (!glfwWindowShouldClose(renderer.window)) {
-		// Process Callbacks
-		std::shared_ptr<CallbackInterface> callback_ptr = processInput(renderer.window);
-
+		
 		x.update();
 		callback_ptr->XboxUpdate(x);
 		// Update Rendering System

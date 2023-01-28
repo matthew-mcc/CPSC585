@@ -72,7 +72,6 @@ public:
 	float lastX = 0.f;
 	float lastY = 0.f;
 	float fov = 45.f;
-
 	void XboxUpdate(XboxInput x) {
 		if (x.data.LThumb_magnitude != 0) {
 			camera_pos += (x.data.LThumb_Y_direction/10) * camera_front;

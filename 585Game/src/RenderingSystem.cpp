@@ -1,7 +1,5 @@
 #include "RenderingSystem.h"
-#include "imgui.h"
-#include "imgui_impl_glfw.h"
-#include "imgui_impl_opengl3.h"
+
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <glm.hpp>
@@ -14,6 +12,15 @@ RenderingSystem::RenderingSystem() {
 	initRenderer();
 }
 
+void RenderingSystem::SetupImgui() {
+// IMGUI INITIALIZATION
+	IMGUI_CHECKVERSION();
+	ImGui::CreateContext();
+	ImGuiIO& io = ImGui::GetIO(); (void)io;
+	ImGui::StyleColorsDark();
+	ImGui_ImplGlfw_InitForOpenGL(window, true);
+	ImGui_ImplOpenGL3_Init("#version 330");
+}
 
 // Initialize Renderer
 void RenderingSystem::initRenderer() {
@@ -22,14 +29,6 @@ void RenderingSystem::initRenderer() {
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-// IMGUI INITIALIZATION
-	IMGUI_CHECKVERSION();
-	ImGui::CreateContext();
-	ImGuiIO& io = ImGui::GetIO(); (void)io;
-	ImGui::StyleColorsDark();
-	ImGui_ImplGlfw_InitForOpenGL(window, true);
-	ImGui_ImplOpenGL3_Init("#version 330");
 
 // TIMER INITIALIZATION
 	timer = &Timer::Instance();		// Create pointer to singleton timer instance
@@ -62,6 +61,7 @@ void RenderingSystem::initRenderer() {
 	models.push_back(testModel);
 	testModel = Model("assets/models/test_tire1/test_tire1.obj");
 	models.push_back(testModel);
+
 }
 
 // Update Renderer

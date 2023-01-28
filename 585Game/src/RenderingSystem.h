@@ -4,6 +4,9 @@
 #include <Boilerplate/Timer.h>
 #include <Boilerplate/Text.h>
 #include <Boilerplate/Model.h>
+#include "imgui.h"
+#include "imgui_impl_glfw.h"
+#include "imgui_impl_opengl3.h"
 //#include <Boilerplate/Input.h>
 class RenderingSystem {
 
@@ -13,6 +16,8 @@ public:
 
 	// Initialize Renderer
 	void initRenderer();
+
+	void SetupImgui();
 
 	// Update Renderer
 	void updateRenderer(std::shared_ptr<CallbackInterface> callback_ptr);
@@ -24,7 +29,7 @@ public:
 
 	// Window pointer
 	GLFWwindow* window;
-
+	
 private:
 	// Shaders
 	Shader textShader;

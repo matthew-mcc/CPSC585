@@ -1,6 +1,8 @@
 
 #include <Boilerplate/Window.h>
-
+#include "imgui.h"
+#include "imgui_impl_glfw.h"
+#include "imgui_impl_opengl3.h"
 using namespace std;
 
 // Global Constants
@@ -54,7 +56,7 @@ public:
 	{
 	}
 	virtual void keyCallback(int key, int scancode, int action, int mods) {
-
+		
 		//MOVE CAMERA
 		/*
 		if (key == GLFW_KEY_C && action == GLFW_PRESS) {
@@ -65,6 +67,8 @@ public:
 				view_3D = false;
 			}
 		}*/
+		//auto& io = ImGui::GetIO();
+
 
 		if (key == GLFW_KEY_W && (action == GLFW_REPEAT || action == GLFW_PRESS) && view_3D == true) {
 			camera_pos += cameraSpeed * camera_front;
@@ -79,11 +83,16 @@ public:
 			camera_pos += cameraSpeed * (glm::normalize(glm::cross(camera_front, camera_up)));
 		}
 
+	
+
 	}
 	virtual void mouseButtonCallback(int button, int action, int mods) {
+		auto& io = ImGui::GetIO();
+
+		if (io.WantCaptureMouse) return;
 
 		if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS) {
-			cout << "Mouse Left clicked" << endl;
+				cout << "Mouse Left clicked" << endl;
 		}
 
 		if (button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_PRESS) {
@@ -92,6 +101,9 @@ public:
 
 	}
 	virtual void cursorPosCallback(double xpos, double ypos) {
+		auto& io = ImGui::GetIO();
+
+		if (io.WantCaptureMouse) return;
 		current_pos.x = (2.f / (float)window_w) * xpos - 1.f;
 		current_pos.y = (2.f / (float)window_h) * ypos - 1.f;
 		current_pos.y *= -1.f;
@@ -117,6 +129,7 @@ public:
 		front.y = sin(glm::radians(pitch));
 		front.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
 		camera_front = glm::normalize(front);
+		
 	}
 	virtual void scrollCallback(double xoffset, double yoffset) {
 		fov -= (float)yoffset;
@@ -180,6 +193,7 @@ std::shared_ptr<CallbackInterface> processInput(GLFWwindow* window) {
 	glfwSetKeyCallback(window, keyMetaCallback);
 	glfwSetMouseButtonCallback(window, mouseButtonMetaCallback);
 	glfwSetCursorPosCallback(window, cursorPosMetaCallback);
+	
 	glfwSetScrollCallback(window, scrollMetaCallback);
 	glfwSetWindowSizeCallback(window, windowSizeMetaCallback);
 
