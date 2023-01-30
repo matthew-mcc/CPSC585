@@ -151,7 +151,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-	<ClCompile Include="libraries\imgui-1.89.2\imgui.cpp" />
+    <ClCompile Include="libraries\imgui-1.89.2\imgui.cpp" />
     <ClCompile Include="libraries\imgui-1.89.2\imgui_demo.cpp" />
     <ClCompile Include="libraries\imgui-1.89.2\imgui_draw.cpp" />
     <ClCompile Include="libraries\imgui-1.89.2\imgui_impl_glfw.cpp" />
@@ -160,6 +160,7 @@
     <ClCompile Include="libraries\imgui-1.89.2\imgui_widgets.cpp" />
     <ClCompile Include="src\Boilerplate\Mesh.cpp" />
     <ClCompile Include="src\Boilerplate\Shader.cpp" />
+    <ClCompile Include="src\Boilerplate\Shadow.cpp" />
     <ClCompile Include="src\Boilerplate\Text.cpp" />
     <ClCompile Include="src\Boilerplate\Texture.cpp" />
     <ClCompile Include="src\Boilerplate\stb_image.cpp" />
@@ -191,6 +192,7 @@
     <ClInclude Include="libraries\imgui-1.89.2\imstb_textedit.h" />
     <ClInclude Include="libraries\imgui-1.89.2\imstb_truetype.h" />
     <ClInclude Include="src\Boilerplate\Cube.h" />
+    <ClInclude Include="src\Boilerplate\Shadow.h" />
     <ClInclude Include="src\Boilerplate\Mesh.h" />
     <ClInclude Include="src\Boilerplate\Model.h" />
     <ClInclude Include="src\Boilerplate\Text.h" />
@@ -227,8 +229,6 @@
   <ItemGroup>
     <Text Include="src\Boilerplate\shaderBasicFragment.txt" />
     <Text Include="src\Boilerplate\shaderBasicVertex.txt" />
-    <Text Include="src\Boilerplate\shaderTextFragment.txt" />
-    <Text Include="src\Boilerplate\shaderTextVertex.txt" />
     <Text Include="src\Cel Shader\shaderCelFragment.txt" />
     <Text Include="src\Cel Shader\shaderCelVertex.txt" />
     <Text Include="src\Cel Shader\shaderOutlineFragment.txt" />

@@ -4,6 +4,7 @@
 #include <Boilerplate/Timer.h>
 #include <Boilerplate/Text.h>
 #include <Boilerplate/Model.h>
+#include <Boilerplate/Shadow.h>
 //#include <Boilerplate/Input.h>
 class RenderingSystem {
 
@@ -26,6 +27,8 @@ public:
 	GLFWwindow* window;
 
 private:
+	Shadow shadowMap;
+
 	// Shaders
 	Shader textShader;
 	Shader worldShader;
@@ -35,6 +38,8 @@ private:
 	glm::mat4 model;
 	glm::mat4 view;
 	glm::mat4 projection;
+
+	glm::vec3 lightPos;
 
 	float lightRotation = 0.f;
 	float band = 0.15f;

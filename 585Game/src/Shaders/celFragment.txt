@@ -1,0 +1,60 @@
+#version 330 core
+out vec4 FragColor;
+
+in vec3 FragPos;
+in vec3 normal;
+in vec2 TexCoords;
+in vec4 FragPosLightSpace;
+
+uniform sampler2D texture_diffuse1;
+uniform sampler2D shadowMap;
+
+uniform vec3 lightColor;
+uniform vec3 shadowColor;
+uniform vec3 sun;
+uniform float band;
+uniform float gradient;
+
+float ShadowCalculation(vec4 fragPosLightSpace)
+{
+    // perform perspective divide
+    vec3 projCoords = fragPosLightSpace.xyz / fragPosLightSpace.w;
+    // transform to [0,1] range
+    projCoords = projCoords * 0.5 + 0.5;
+    // get closest depth value from light's perspective (using [0,1] range fragPosLight as coords)
+    float closestDepth = texture(shadowMap, projCoords.xy).r; 
+    // get depth of current fragment from light's perspective
+    float currentDepth = projCoords.z;
+    // check whether current frag pos is in shadow
+    float bias = max(0.05 * (1.0 - dot(normal, sun)), 0.005);
+    float shadow = currentDepth - bias > closestDepth  ? 1.0 : 0.0;
+
+    return shadow;
+}
+
+void main(){
+    float nl = dot(normal, normalize(sun));
+    vec3 light;
+    vec3 middleColor = (lightColor + shadowColor) / 2.0;
+
+    float shadow = ShadowCalculation(FragPosLightSpace);
+    if (shadow > 0.0) {
+        light = shadowColor;
+    }
+    else if (nl > band + gradient)
+        light = lightColor;
+    else if (nl > band - gradient) {
+        float i = (nl - (band - gradient)) / (2.0*gradient);
+        light = i*lightColor + (1-i)*middleColor;
+    }
+    else if (nl > -band + gradient)
+        light = middleColor;
+    else if (nl > -band - gradient) {
+        float i = (nl - (-band - gradient)) / (2.0*gradient);
+        light = i*middleColor + (1-i)*shadowColor;
+    }
+    else
+        light = shadowColor;
+
+    FragColor = vec4(texture(texture_diffuse1, TexCoords).xyz * light, 1.0);
+}

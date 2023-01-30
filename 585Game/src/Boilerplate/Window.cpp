@@ -178,8 +178,8 @@ void windowSizeMetaCallback(GLFWwindow* window, int width, int height) {
 std::shared_ptr<CallbackInterface> processInput(GLFWwindow* window) {
 	//glfwSetWindowUserPointer(window, callbacks_.get());
 	glfwSetKeyCallback(window, keyMetaCallback);
-	glfwSetMouseButtonCallback(window, mouseButtonMetaCallback);
-	glfwSetCursorPosCallback(window, cursorPosMetaCallback);
+	//glfwSetMouseButtonCallback(window, mouseButtonMetaCallback);		// These are just commented out to work with imgui, uncomment when merging with main
+	//glfwSetCursorPosCallback(window, cursorPosMetaCallback);			//
 	glfwSetScrollCallback(window, scrollMetaCallback);
 	glfwSetWindowSizeCallback(window, windowSizeMetaCallback);
 
