@@ -81,8 +81,7 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> callback
 
 // WORLD SHADER
 	// Use world shader, set scene background colour
-	glClearColor(0.65f, 0.5f, 0.4f, 1.0f);				// Orange sky
-	//glClearColor(0.72f, 0.78f, 0.84f, 1.0f);			// Blue sky
+	glClearColor(skyColor.r, skyColor.g, skyColor.b, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	// Create IMGUI Window
@@ -142,6 +141,7 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> callback
 	ImGui::SliderFloat("Middle Band Width", &band, 0.f, 0.2f);
 	ImGui::SliderFloat("Gradient Strength", &gradient, 0.0001f, 0.1f);
 	ImGui::SliderFloat("Middle band shift", &shift, -0.5f, 0.5f);
+	ImGui::ColorEdit3("Sky Color", (float*)&skyColor);
 	ImGui::ColorEdit3("Highlight Color", (float*)&lightColor);
 	ImGui::ColorEdit3("Shadow Color", (float*)&shadowColor);
 	ImGui::SliderFloat("Min bias", &minBias, 0.0f, 0.1f);

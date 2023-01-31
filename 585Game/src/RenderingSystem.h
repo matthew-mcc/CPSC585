@@ -48,8 +48,9 @@ private:
 	float band = 0.166f;
 	float gradient = 0.02f;
 	float shift = 0.111f;
+	glm::vec3 skyColor = glm::vec3(0.94f, 0.90f, 0.88f);
 	glm::vec3 lightPos = glm::vec3(sin(lightRotation), 0.5f, cos(lightRotation)) * 4.f;
-	glm::vec3 lightColor = glm::vec3(0.93f, 0.8f, 0.72f);
+	glm::vec3 lightColor = glm::vec3(0.96f, 0.87f, 0.82f);
 	glm::vec3 shadowColor = glm::vec3(0.82f, 0.59f, 0.44f);
 
 	// Text
