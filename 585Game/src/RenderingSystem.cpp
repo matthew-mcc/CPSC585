@@ -94,7 +94,7 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> callback
 	}*/
 
 // FIRST PASS: SHADOWMAP RENDER
-	lightPos = glm::vec3(sin(lightRotation), 0.5f, cos(lightRotation)) * 4.f;
+	lightPos = glm::vec3(sin(lightRotation) * cos(lightAngle), sin(lightAngle), cos(lightRotation) * cos(lightAngle)) * 4.f;
 	shadowMap.update(lightPos);
 	glCullFace(GL_FRONT);
 	for (int i = 0; i < models.size(); i++) {
@@ -138,7 +138,8 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> callback
 	// Imgui Window
 	ImGui::Begin("Super Space Salvagers");
 	ImGui::Text("Cel Shader Parameters");
-	ImGui::SliderFloat("Light Angle", &lightRotation, 0.f, 6.f);
+	ImGui::SliderFloat("Light Rotation", &lightRotation, 0.f, 6.28f);
+	ImGui::SliderFloat("Light Angle", &lightAngle, 0.f, 1.57f);
 	ImGui::SliderFloat("Middle Band Width", &band, 0.f, 0.2f);
 	ImGui::SliderFloat("Gradient Strength", &gradient, 0.0001f, 0.1f);
 	ImGui::SliderFloat("Middle band shift", &shift, -0.5f, 0.5f);

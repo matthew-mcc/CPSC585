@@ -44,12 +44,13 @@ private:
 	// Shader Parameters
 	float minBias = 0.001f;
 	float maxBias = 0.007f;
-	float lightRotation = 0.f;
+	float lightRotation = 5.f;
+	float lightAngle = 0.3f;
 	float band = 0.166f;
 	float gradient = 0.02f;
 	float shift = 0.111f;
 	glm::vec3 skyColor = glm::vec3(0.99f, 0.84f, 0.80f);
-	glm::vec3 lightPos = glm::vec3(sin(lightRotation), 0.5f, cos(lightRotation)) * 4.f;
+	glm::vec3 lightPos = glm::vec3(sin(lightRotation)*cos(lightAngle), sin(lightAngle), cos(lightRotation)*cos(lightAngle)) * 4.f;
 	glm::vec3 lightColor = glm::vec3(1.0f, 0.88f, 0.84f);
 	glm::vec3 shadowColor = glm::vec3(0.86f, 0.69f, 0.64f);
 
