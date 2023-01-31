@@ -40,7 +40,7 @@ void RenderingSystem::initRenderer() {
 	// Coordinate transformations
 	model = glm::mat4(1.0f);																	// Transforms local coords to world coords
 	view = glm::mat4(1.0f);																		// Transforms world coords to camera coords
-	projection = glm::perspective(glm::radians(45.0f), 1440.0f / 1440.0f, 0.1f, 100.0f);			// Transforms camera coords to clip coords
+	projection = glm::perspective(glm::radians(45.0f), 1440.0f / 1440.0f, 0.1f, 1000.0f);		// Transforms camera coords to clip coords
 
 // SHADOW MAP INITIALIZATION
 	shadowMap = Shadow(4096, 4096);
@@ -67,6 +67,8 @@ void RenderingSystem::initRenderer() {
 	models.push_back(testModel);
 	testModel = Model("assets/models/test_tire1/test_tire1.obj");
 	models.push_back(testModel);
+	testModel = Model("assets/models/landscape1/landscape1.obj");
+	models.push_back(testModel);
 }
 
 // Update Renderer
@@ -79,7 +81,8 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> callback
 
 // WORLD SHADER
 	// Use world shader, set scene background colour
-	glClearColor(0.65f, 0.5f, 0.4f, 1.0f);
+	glClearColor(0.65f, 0.5f, 0.4f, 1.0f);				// Orange sky
+	//glClearColor(0.72f, 0.78f, 0.84f, 1.0f);			// Blue sky
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	// Create IMGUI Window
@@ -130,8 +133,8 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> callback
 	// Fetch and display FPS
 	int fpsTest = timer->getFPS(0.2);				// Get fps (WARNING: can be NULL!)
 	if (fpsTest != NULL) fps = fpsTest;				// Set fps if fpsTest isn't null
-	RenderText(textShader, textVAO, textVBO, "FPS: " + std::to_string(fps), 10.0f, 1015.0f, 1.0f, glm::vec3(0.5, 0.8f, 0.2f), textChars);
-
+	RenderText(textShader, textVAO, textVBO, "FPS: " + std::to_string(fps), 10.0f, 1015.0f, 1.0f, glm::vec3(0.95, 0.95f, 0.95f), textChars);
+	//glm::vec3(0.5, 0.8f, 0.2f)
 // IMGUI WINDOW
 	ImGui::Begin("Super Space Salvagers");
 	ImGui::Text("Cel Shader Parameters");

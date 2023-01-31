@@ -49,8 +49,8 @@ private:
 	float gradient = 0.02f;
 	float shift = 0.111f;
 	glm::vec3 lightPos = glm::vec3(sin(lightRotation), 0.5f, cos(lightRotation)) * 4.f;
-	glm::vec3 lightColor = glm::vec3(0.95f, 0.8f, 0.7f);
-	glm::vec3 shadowColor = glm::vec3(0.45f, 0.3f, 0.2f);
+	glm::vec3 lightColor = glm::vec3(0.93f, 0.8f, 0.72f);
+	glm::vec3 shadowColor = glm::vec3(0.82f, 0.59f, 0.44f);
 
 	// Text
 	std::map<char, Character> textChars;
