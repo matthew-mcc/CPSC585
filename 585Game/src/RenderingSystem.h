@@ -27,6 +27,8 @@ public:
 	GLFWwindow* window;
 
 private:
+	void setCelShaderUniforms();
+
 	Shadow shadowMap;
 
 	// Shaders
@@ -39,11 +41,14 @@ private:
 	glm::mat4 view;
 	glm::mat4 projection;
 
-	glm::vec3 lightPos;
-
+	// Shader Parameters
+	float minBias = 0.001f;
+	float maxBias = 0.007f;
 	float lightRotation = 0.f;
-	float band = 0.15f;
+	float band = 0.166f;
 	float gradient = 0.02f;
+	float shift = 0.111f;
+	glm::vec3 lightPos = glm::vec3(sin(lightRotation), 0.5f, cos(lightRotation)) * 4.f;
 	glm::vec3 lightColor = glm::vec3(0.95f, 0.8f, 0.7f);
 	glm::vec3 shadowColor = glm::vec3(0.45f, 0.3f, 0.2f);
 

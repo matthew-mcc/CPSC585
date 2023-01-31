@@ -43,8 +43,7 @@ void RenderingSystem::initRenderer() {
 	projection = glm::perspective(glm::radians(45.0f), 1440.0f / 1440.0f, 0.1f, 100.0f);			// Transforms camera coords to clip coords
 
 // SHADOW MAP INITIALIZATION
-	lightPos = glm::vec3(sin(lightRotation), 0.5f, cos(lightRotation)) * 4.f;
-	shadowMap = Shadow(14400, 14400);
+	shadowMap = Shadow(4096, 4096);
 
 // WORLD SHADER INITIALIZATION
 	// Bind vertex and fragment shaders to world shader object
@@ -117,17 +116,7 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> callback
 
 	// SECOND PASS: FINAL MODEL RENDER
 	worldShader.use();
-	worldShader.setMat4("model", model);
-	worldShader.setMat4("view", view);
-	worldShader.setMat4("projection", projection);
-	worldShader.setMat4("lightSpaceMatrix", shadowMap.lightSpaceMatrix);
-
-	worldShader.setInt("shadowMap", 1);
-	worldShader.setVec3("lightColor", lightColor);
-	worldShader.setVec3("shadowColor", shadowColor);
-	worldShader.setVec3("sun", lightPos);
-	worldShader.setFloat("band", band);
-	worldShader.setFloat("gradient", gradient);
+	setCelShaderUniforms();
 	glActiveTexture(GL_TEXTURE1);
 	glBindTexture(GL_TEXTURE_2D, shadowMap.depthMap);
 	for (int i = 0; i < models.size(); i ++) {
@@ -149,8 +138,11 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> callback
 	ImGui::SliderFloat("Light Angle", &lightRotation, 0.f, 6.f);
 	ImGui::SliderFloat("Middle Band Width", &band, 0.f, 0.2f);
 	ImGui::SliderFloat("Gradient Strength", &gradient, 0.0001f, 0.1f);
+	ImGui::SliderFloat("Middle band shift", &shift, -0.5f, 0.5f);
 	ImGui::ColorEdit3("Highlight Color", (float*)&lightColor);
 	ImGui::ColorEdit3("Shadow Color", (float*)&shadowColor);
+	ImGui::SliderFloat("Min bias", &minBias, 0.0f, 0.1f);
+	ImGui::SliderFloat("Max bias", &maxBias, 0.0f, 0.1f);
 	ImGui::End();
 
 	ImGui::Render();
@@ -168,4 +160,21 @@ void RenderingSystem::shutdownImgui() {
 	ImGui_ImplOpenGL3_Shutdown();
 	ImGui_ImplGlfw_Shutdown();
 	ImGui::DestroyContext();
+}
+
+void RenderingSystem::setCelShaderUniforms() {
+	worldShader.setMat4("model", model);
+	worldShader.setMat4("view", view);
+	worldShader.setMat4("projection", projection);
+	worldShader.setMat4("lightSpaceMatrix", shadowMap.lightSpaceMatrix);
+	worldShader.setInt("shadowMap", 1);
+
+	worldShader.setVec3("lightColor", lightColor);
+	worldShader.setVec3("shadowColor", shadowColor);
+	worldShader.setVec3("sun", lightPos);
+	worldShader.setFloat("band", band);
+	worldShader.setFloat("gradient", gradient);
+	worldShader.setFloat("shift", shift);
+	worldShader.setFloat("minBias", minBias);
+	worldShader.setFloat("maxBias", maxBias);
 }
