@@ -47,9 +47,9 @@ void Shadow::update(glm::vec3 lightPos) {
 	glActiveTexture(GL_TEXTURE0);
 }
 
-void Shadow::cleanUp() {
+void Shadow::cleanUp(std::shared_ptr<CallbackInterface> callback_ptr) {
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-	glViewport(0, 0, 1440, 1440);
+	glViewport(0, 0, callback_ptr->xres, callback_ptr->yres);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 

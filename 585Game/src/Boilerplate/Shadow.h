@@ -1,12 +1,13 @@
 #include <glad/glad.h>
 #include <Boilerplate/Shader.h>
+#include <Boilerplate/Window.h>
 
 class Shadow {
 public:
 	Shadow();
 	Shadow(unsigned int width, unsigned int height);
 	void update(glm::vec3 lightPos);
-	void cleanUp();
+	void cleanUp(std::shared_ptr<CallbackInterface> callback_ptr);
 	void render();
 
 	glm::mat4 lightSpaceMatrix;

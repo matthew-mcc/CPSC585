@@ -36,19 +36,13 @@ void RenderingSystem::initRenderer() {
 // TIMER INITIALIZATION
 	timer = &Timer::Instance();		// Create pointer to singleton timer instance
 	
-// INTIAL MODEL, VIEW, AND PROJECTION MATRICES
-	// Coordinate transformations
-	model = glm::mat4(1.0f);																	// Transforms local coords to world coords
-	view = glm::mat4(1.0f);																		// Transforms world coords to camera coords
-	projection = glm::perspective(glm::radians(45.0f), 1440.0f / 1440.0f, 0.1f, 1000.0f);		// Transforms camera coords to clip coords
-
 // SHADOW MAP INITIALIZATION
 	shadowMap = Shadow(4096, 4096);
 
 // WORLD SHADER INITIALIZATION
 	// Bind vertex and fragment shaders to world shader object
 	stbi_set_flip_vertically_on_load(true);
-	worldShader = Shader("src/Shaders/celVertex.txt", "src/Shaders/celFragment.txt");
+	celShader = Shader("src/Shaders/celVertex.txt", "src/Shaders/celFragment.txt");
 	outlineShader = Shader("src/Shaders/outlineVertex.txt", "src/Shaders/outlineFragment.txt");
 
 // FONT INITIALIZATION
@@ -58,9 +52,7 @@ void RenderingSystem::initRenderer() {
 	initTextVAO(&textVAO, &textVBO);
 	// Create text shader
 	textShader = Shader("src/Shaders/textVertex.txt", "src/Shaders/textFragment.txt");
-	glm::mat4 textProjection = glm::ortho(0.0f, static_cast<float>(1440), 0.0f, static_cast<float>(1440));
 	textShader.use();
-	textShader.setMat4("projection", textProjection);
 
 // MODEL INITIALIZATION
 	Model testModel = Model("assets/models/test_truck1/test_truck1.obj");
@@ -79,19 +71,16 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> callback
 	timer->update();								// Update time instance
 	double deltaTime = timer->getDeltaTime();		// Get delta time
 
-// WORLD SHADER
-	// Use world shader, set scene background colour
+// BACKGROUND
+	// Set Background (Sky) Color
 	glClearColor(skyColor.r, skyColor.g, skyColor.b, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+// IMGUI
 	// Create IMGUI Window
 	ImGui_ImplOpenGL3_NewFrame();
 	ImGui_ImplGlfw_NewFrame();
 	ImGui::NewFrame();
-
-	// TEMP: Simple camera look
-	view = glm::lookAt(callback_ptr->camera_pos, callback_ptr->camera_pos + callback_ptr->camera_front, callback_ptr->camera_up);
-
 
 	// Draw outlines
 	/*outlineShader.use();
@@ -103,7 +92,7 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> callback
 		models.at(i).Draw(outlineShader);
 	}*/
 
-	// FIRST PASS: SHADOWMAP RENDER
+// FIRST PASS: SHADOWMAP RENDER
 	lightPos = glm::vec3(sin(lightRotation), 0.5f, cos(lightRotation)) * 4.f;
 	shadowMap.update(lightPos);
 	glCullFace(GL_FRONT);
@@ -111,30 +100,41 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> callback
 		models.at(i).Draw(shadowMap.shader);
 	}
 	glCullFace(GL_BACK);
-	shadowMap.cleanUp();
+	shadowMap.cleanUp(callback_ptr);
 	//shadowMap.render();		//Uncomment to see the shadow map (scene rendered from light's point of view)
 
 	glClear(GL_DEPTH_BUFFER_BIT);
 
-	// SECOND PASS: FINAL MODEL RENDER
-	worldShader.use();
+// SECOND PASS: CEL SHADE RENDER
+	// Use world shader
+	celShader.use();
+
+	// Set Cel Shader Uniforms
+	view = glm::lookAt(callback_ptr->camera_pos, callback_ptr->camera_pos + callback_ptr->camera_front, callback_ptr->camera_up);
+	projection = glm::perspective(glm::radians(45.0f), (float)callback_ptr->xres / (float)callback_ptr->yres, 0.1f, 1000.0f);
 	setCelShaderUniforms();
+
+	// Bind Textures
 	glActiveTexture(GL_TEXTURE1);
 	glBindTexture(GL_TEXTURE_2D, shadowMap.depthMap);
+
+	// Iteratively Draw Models
 	for (int i = 0; i < models.size(); i ++) {
-		models.at(i).Draw(worldShader);
+		models.at(i).Draw(celShader);
 	}
 
-// TEXT SHADER
+// THIRD PASS: GUI RENDER
 	// Use text shader
 	textShader.use();
-	
+	glm::mat4 textProjection = glm::ortho(0.0f, static_cast<float>(callback_ptr->xres), 0.0f, static_cast<float>(callback_ptr->yres));
+	textShader.setMat4("projection", textProjection);
+
 	// Fetch and display FPS
 	int fpsTest = timer->getFPS(0.2);				// Get fps (WARNING: can be NULL!)
 	if (fpsTest != NULL) fps = fpsTest;				// Set fps if fpsTest isn't null
-	RenderText(textShader, textVAO, textVBO, "FPS: " + std::to_string(fps), 10.0f, 1015.0f, 1.0f, glm::vec3(0.95, 0.95f, 0.95f), textChars);
-	//glm::vec3(0.5, 0.8f, 0.2f)
-// IMGUI WINDOW
+	RenderText(textShader, textVAO, textVBO, "FPS: " + std::to_string(fps), 8.f, callback_ptr->yres - 32.f, 0.6f, glm::vec3(0.2, 0.2f, 0.2f), textChars);
+
+	// Imgui Window
 	ImGui::Begin("Super Space Salvagers");
 	ImGui::Text("Cel Shader Parameters");
 	ImGui::SliderFloat("Light Angle", &lightRotation, 0.f, 6.f);
@@ -166,18 +166,18 @@ void RenderingSystem::shutdownImgui() {
 }
 
 void RenderingSystem::setCelShaderUniforms() {
-	worldShader.setMat4("model", model);
-	worldShader.setMat4("view", view);
-	worldShader.setMat4("projection", projection);
-	worldShader.setMat4("lightSpaceMatrix", shadowMap.lightSpaceMatrix);
-	worldShader.setInt("shadowMap", 1);
+	celShader.setMat4("model", model);
+	celShader.setMat4("view", view);
+	celShader.setMat4("projection", projection);
+	celShader.setMat4("lightSpaceMatrix", shadowMap.lightSpaceMatrix);
+	celShader.setInt("shadowMap", 1);
 
-	worldShader.setVec3("lightColor", lightColor);
-	worldShader.setVec3("shadowColor", shadowColor);
-	worldShader.setVec3("sun", lightPos);
-	worldShader.setFloat("band", band);
-	worldShader.setFloat("gradient", gradient);
-	worldShader.setFloat("shift", shift);
-	worldShader.setFloat("minBias", minBias);
-	worldShader.setFloat("maxBias", maxBias);
+	celShader.setVec3("lightColor", lightColor);
+	celShader.setVec3("shadowColor", shadowColor);
+	celShader.setVec3("sun", lightPos);
+	celShader.setFloat("band", band);
+	celShader.setFloat("gradient", gradient);
+	celShader.setFloat("shift", shift);
+	celShader.setFloat("minBias", minBias);
+	celShader.setFloat("maxBias", maxBias);
 }

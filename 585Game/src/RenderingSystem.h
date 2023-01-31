@@ -33,13 +33,13 @@ private:
 
 	// Shaders
 	Shader textShader;
-	Shader worldShader;
+	Shader celShader;
 	Shader outlineShader;
 
 	// Coordinate Transformations
-	glm::mat4 model;
-	glm::mat4 view;
-	glm::mat4 projection;
+	glm::mat4 model = glm::mat4(1.0f);
+	glm::mat4 view = glm::mat4(1.0f);
+	glm::mat4 projection = glm::mat4(1.0f);
 
 	// Shader Parameters
 	float minBias = 0.001f;
@@ -48,10 +48,10 @@ private:
 	float band = 0.166f;
 	float gradient = 0.02f;
 	float shift = 0.111f;
-	glm::vec3 skyColor = glm::vec3(0.94f, 0.90f, 0.88f);
+	glm::vec3 skyColor = glm::vec3(0.99f, 0.84f, 0.80f);
 	glm::vec3 lightPos = glm::vec3(sin(lightRotation), 0.5f, cos(lightRotation)) * 4.f;
-	glm::vec3 lightColor = glm::vec3(0.96f, 0.87f, 0.82f);
-	glm::vec3 shadowColor = glm::vec3(0.82f, 0.59f, 0.44f);
+	glm::vec3 lightColor = glm::vec3(1.0f, 0.88f, 0.84f);
+	glm::vec3 shadowColor = glm::vec3(0.86f, 0.69f, 0.64f);
 
 	// Text
 	std::map<char, Character> textChars;

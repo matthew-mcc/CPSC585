@@ -3,9 +3,6 @@
 
 using namespace std;
 
-// Global Constants
-const int SCREEN_X = 1440;
-const int SCREEN_Y = 1440;
 
 // Framebuffer Size Callback
 	// Adjusts screen dimensions in response to window resizing
@@ -23,7 +20,7 @@ GLFWwindow* initWindow() {
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
 	// Create window, validate creation was successful
-	GLFWwindow* window = glfwCreateWindow(SCREEN_X, SCREEN_Y, "585 Game", NULL, NULL);
+	GLFWwindow* window = glfwCreateWindow(1920, 1080, "585 Game", NULL, NULL);
 	if (window == NULL) {
 		cout << "Failed To Create Window\n";
 		glfwTerminate();
@@ -92,8 +89,8 @@ public:
 
 	}
 	virtual void cursorPosCallback(double xpos, double ypos) {
-		current_pos.x = (2.f / (float)window_w) * xpos - 1.f;
-		current_pos.y = (2.f / (float)window_h) * ypos - 1.f;
+		current_pos.x = (2.f / (float)xres) * xpos - 1.f;
+		current_pos.y = (2.f / (float)yres) * ypos - 1.f;
 		current_pos.y *= -1.f;
 		//std::cout << current_pos.x << ',' << current_pos.y << std::endl;
 
@@ -127,9 +124,9 @@ public:
 	}
 	virtual void windowSizeCallback(int width, int height) {
 		// The CallbackInterface::windowSizeCallback will call glViewport for us
-		//std::cout << width << ' ' << height << std::endl;
-		window_w = width;
-		window_h = height;
+		std::cout << width << ' ' << height << std::endl;
+		xres = width;
+		yres = height;
 		CallbackInterface::windowSizeCallback(width, height);
 
 	}
@@ -138,8 +135,6 @@ public:
 	}
 	glm::vec2 current_pos;
 	bool view_3D = true;
-	int window_w = 1000;
-	int window_h = 1000;
 private:
 
 };
