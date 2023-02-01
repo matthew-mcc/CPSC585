@@ -23,7 +23,7 @@ void RenderingSystem::initRenderer() {
 
 // WORLD SHADER INITIALIZATION
 	// Bind vertex and fragment shaders to world shader object
-	worldShader = Shader("C:/GIT/CPSC585/585Game/src/Boilerplate/shaderBasicVertex.txt", "C:/GIT/CPSC585/585Game/src/Boilerplate/shaderBasicFragment.txt");
+	worldShader = Shader("src/Boilerplate/shaderBasicVertex.txt", "src/Boilerplate/shaderBasicFragment.txt");
 	stbi_set_flip_vertically_on_load(true);
 	worldShader.use();
 
@@ -35,11 +35,11 @@ void RenderingSystem::initRenderer() {
 
 // FONT INITIALIZATION
 	// Create character map based on font file
-	textChars = initFont("C:/GIT/CPSC585/585Game/assets/fonts/arial.ttf");
+	textChars = initFont("assets/fonts/arial.ttf");
 	// Create vertex array and buffer objects
 	initTextVAO(&textVAO, &textVBO);
 	// Create text shader
-	textShader = Shader("C:/GIT/CPSC585/585Game/src/Boilerplate/shaderTextVertex.txt", "C:/GIT/CPSC585/585Game/src/Boilerplate/shaderTextFragment.txt");
+	textShader = Shader("src/Boilerplate/shaderTextVertex.txt", "src/Boilerplate/shaderTextFragment.txt");
 	glm::mat4 textProjection = glm::ortho(0.0f, static_cast<float>(1440), 0.0f, static_cast<float>(1440));
 	textShader.use();
 	glUniformMatrix4fv(glGetUniformLocation(textShader.ID, "projection"), 1, GL_FALSE, glm::value_ptr(textProjection));
@@ -62,7 +62,7 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> callback
 
 	// TEMP: Simple camera look
 	view = glm::lookAt(callback_ptr->camera_pos, callback_ptr->camera_pos + callback_ptr->camera_front, callback_ptr->camera_up);
-
+	//std::cout << "CAM POS: " << callback_ptr->camera_front.x << " , " << callback_ptr->camera_front.y << " , " << callback_ptr->camera_front.z << std::endl;
 	// Set MVP matrices
 	//worldShader.setMat4("model", model);
 	worldShader.setMat4("view", view);

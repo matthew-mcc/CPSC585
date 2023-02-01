@@ -2,7 +2,7 @@
 
 
 /*
-Ideally all interaction with physX will happen in this class, we should just be passing transforms to here.
+Ideally all interaction with physX will happen in this class, we should just be passing tr	ansforms to here.
 */
 
 PhysicsSystem::PhysicsSystem() {
@@ -43,7 +43,7 @@ PhysicsSystem::PhysicsSystem() {
 
 	//Simulate Boxes
 	gMaterial = gPhysics->createMaterial(0.5f, 0.5f, 0.5f);
-	physx::PxRigidStatic* groundPlane = physx::PxCreatePlane(*gPhysics, physx::PxPlane(0, 1, 0, 50), *gMaterial);
+	physx::PxRigidStatic* groundPlane = physx::PxCreatePlane(*gPhysics, physx::PxPlane(0, 1, 0, 60), *gMaterial);
 	gScene->addActor(*groundPlane);
 
 
@@ -94,7 +94,7 @@ void PhysicsSystem::updateTransforms(std::vector<Entity> entityList) {
 		entityList.at(i).transform->position.z = rigidDynamicList[i]->getGlobalPose().p.z;
 
 	
-		std::cout  << " , " << tempPos << std::endl;
+		//std::cout  << " , " << tempPos << std::endl;
 
 		entityList.at(i).transform->rotation.x = rigidDynamicList[i]->getGlobalPose().q.x;
 		entityList.at(i).transform->rotation.y = rigidDynamicList[i]->getGlobalPose().q.y;
