@@ -56,18 +56,17 @@ void RenderingSystem::initRenderer() {
 	textShader.use();
 
 // MODEL INITIALIZATION
-	Model testModel = Model("assets/models/test_truck1/test_truck1.obj");
-	models.push_back(testModel);
-	testModel = Model("assets/models/test_tire1/test_tire1.obj");
-	models.push_back(testModel);
-	testModel = Model("assets/models/landscape1/landscape1_1.obj");
-	models.push_back(testModel);
-	testModel = Model("assets/models/landscape1/landscape1_2.obj");
-	models.push_back(testModel);
-	testModel = Model("assets/models/landscape1/landscape1_3.obj");
-	models.push_back(testModel);
-	testModel = Model("assets/models/landscape1/landscape1_4.obj");
-	models.push_back(testModel);
+	Model testTruck = Model();
+	testTruck.addMesh("assets/models/test_truck1/test_truck1.obj");
+	testTruck.addMesh("assets/models/test_tire1/test_tire1.obj");
+	models.push_back(testTruck);
+
+	Model landscape = Model();
+	landscape.addMesh("assets/models/landscape1/landscape1_1.obj");
+	landscape.addMesh("assets/models/landscape1/landscape1_2.obj");
+	landscape.addMesh("assets/models/landscape1/landscape1_3.obj");
+	landscape.addMesh("assets/models/landscape1/landscape1_4.obj");
+	models.push_back(landscape);
 }
 
 // Update Renderer
