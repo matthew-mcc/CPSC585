@@ -60,7 +60,13 @@ void RenderingSystem::initRenderer() {
 	models.push_back(testModel);
 	testModel = Model("assets/models/test_tire1/test_tire1.obj");
 	models.push_back(testModel);
-	testModel = Model("assets/models/landscape1/landscape1.obj");
+	testModel = Model("assets/models/landscape1/landscape1_1.obj");
+	models.push_back(testModel);
+	testModel = Model("assets/models/landscape1/landscape1_2.obj");
+	models.push_back(testModel);
+	testModel = Model("assets/models/landscape1/landscape1_3.obj");
+	models.push_back(testModel);
+	testModel = Model("assets/models/landscape1/landscape1_4.obj");
 	models.push_back(testModel);
 }
 
