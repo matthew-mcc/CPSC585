@@ -1,9 +1,9 @@
 #pragma once
 #include <Boilerplate/Window.h>
 #include <Boilerplate/Shader.h>
-#include <Boilerplate/Timer.h>
 #include <Boilerplate/Text.h>
 #include <Boilerplate/Model.h>
+#include <Boilerplate/Timer.h>
 #include <Entity.h>
 
 //#include <Boilerplate/Input.h>
@@ -17,7 +17,7 @@ public:
 	void initRenderer();
 
 	// Update Renderer
-	void updateRenderer(std::shared_ptr<CallbackInterface> callback_ptr, std::vector<Entity> entityList);
+	void updateRenderer(std::shared_ptr<CallbackInterface> callback_ptr, std::vector<Entity> entityList, Timer* timer);
 
 	// Window pointer
 	GLFWwindow* window;
@@ -37,8 +37,5 @@ private:
 	unsigned int textVAO;
 	unsigned int textVBO;
 	int fps;
-
-	// Time
-	Timer* timer;
 
 };

@@ -18,9 +18,6 @@ void RenderingSystem::initRenderer() {
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-// TIMER INITIALIZATION
-	timer = &Timer::Instance();		// Create pointer to singleton timer instance
-
 // WORLD SHADER INITIALIZATION
 	// Bind vertex and fragment shaders to world shader object
 	worldShader = Shader("src/Boilerplate/shaderBasicVertex.txt", "src/Boilerplate/shaderBasicFragment.txt");
@@ -47,13 +44,7 @@ void RenderingSystem::initRenderer() {
 
 
 // Update Renderer
-void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> callback_ptr, std::vector<Entity> entityList) {
-
-// TIME UPDATE
-	// Get deltaTime Update
-	timer->update();								// Update time instance
-	double deltaTime = timer->getDeltaTime();		// Get delta time
-
+void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> callback_ptr, std::vector<Entity> entityList, Timer* timer) {
 // WORLD SHADER
 	// Use world shader, set scene background colour
 	worldShader.use();
@@ -74,7 +65,6 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> callback
 		glm::quat rotation = entityList.at(i).transform->rotation;
 
 		//std::cout << entityList.at(i).transform->position.x << " , " << entityList.at(i).transform->position.y << "\n";
-
 
 		model = glm::mat4(1.0f);
 		model = glm::translate(model, position);

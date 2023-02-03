@@ -91,6 +91,7 @@
 #include "../snippetvehicle2common/SnippetVehicleHelpers.h"
 
 #include "../snippetcommon/SnippetPVD.h"
+#include "PhysicsSystem.h"
 
 using namespace physx;
 using namespace physx::vehicle2;
@@ -98,7 +99,6 @@ using namespace snippetvehicle2;
 
 
 //PhysX management class instances.
-
 PxDefaultAllocator		gAllocator;
 PxDefaultErrorCallback	gErrorCallback;
 PxFoundation* gFoundation = NULL;
@@ -131,8 +131,7 @@ PxReal gPhysXDefaultMaterialFriction = 1.0f;
 const char gVehicleName[] = "engineDrive";
 
 //Commands are issued to the vehicle in a pre-choreographed sequence.
-struct Command
-{
+struct Command {
 	PxF32 brake;
 	PxF32 throttle;
 	PxF32 steer;
@@ -140,8 +139,7 @@ struct Command
 	PxF32 duration;
 };
 const PxU32 gTargetGearCommand = PxVehicleEngineDriveTransmissionCommandState::eAUTOMATIC_GEAR;
-Command gCommands[] =
-{
+Command gCommands[] = {
 	{0.5f, 0.0f, 0.0f, gTargetGearCommand, 2.0f},	//brake on and come to rest for 2 seconds
 	{0.0f, 0.65f, 0.0f, gTargetGearCommand, 5.0f},	//throttle for 5 seconds
 	{0.5f, 0.0f, 0.0f, gTargetGearCommand, 5.0f},	//brake for 5 seconds
@@ -155,8 +153,7 @@ PxU32 gCommandProgress = 0;			//The id of the current command.
 //A ground plane to drive on.
 PxRigidStatic* gGroundPlane = NULL;
 
-void initPhysX()
-{
+void initPhysX() {
 	gFoundation = PxCreateFoundation(PX_PHYSICS_VERSION, gAllocator, gErrorCallback);
 	gPvd = PxCreatePvd(*gFoundation);
 	PxPvdTransport* transport = PxDefaultPvdSocketTransportCreate(PVD_HOST, 5425, 10);
@@ -184,8 +181,7 @@ void initPhysX()
 	PxInitVehicleExtension(*gFoundation);
 }
 
-void cleanupPhysX()
-{
+void cleanupPhysX() {
 	PxCloseVehicleExtension();
 
 	PX_RELEASE(gMaterial);
@@ -201,8 +197,7 @@ void cleanupPhysX()
 	PX_RELEASE(gFoundation);
 }
 
-void initGroundPlane()
-{
+void initGroundPlane() {
 	gGroundPlane = PxCreatePlane(*gPhysics, PxPlane(0, 1, 0, 0), *gMaterial);
 	for (PxU32 i = 0; i < gGroundPlane->getNbShapes(); i++)
 	{
@@ -215,13 +210,11 @@ void initGroundPlane()
 	gScene->addActor(*gGroundPlane);
 }
 
-void cleanupGroundPlane()
-{
+void cleanupGroundPlane() {
 	gGroundPlane->release();
 }
 
-void initMaterialFrictionTable()
-{
+void initMaterialFrictionTable() {
 	//Each physx material can be mapped to a tire friction value on a per tire basis.
 	//If a material is encountered that is not mapped to a friction value, the friction value used is the specified default value.
 	//In this snippet there is only a single material so there can only be a single mapping between material and friction.
@@ -232,19 +225,16 @@ void initMaterialFrictionTable()
 	gNbPhysXMaterialFrictions = 1;
 }
 
-bool initVehicles()
-{
+bool initVehicles() {
+	gVehicleDataPath = "assets/vehicledata";
+
 	//Load the params from json or set directly.
 	readBaseParamsFromJsonFile(gVehicleDataPath, "Base.json", gVehicle.mBaseParams);
-	setPhysXIntegrationParams(gVehicle.mBaseParams.axleDescription,
-		gPhysXMaterialFrictions, gNbPhysXMaterialFrictions, gPhysXDefaultMaterialFriction,
-		gVehicle.mPhysXParams);
-	readEngineDrivetrainParamsFromJsonFile(gVehicleDataPath, "EngineDrive.json",
-		gVehicle.mEngineDriveParams);
+	setPhysXIntegrationParams(gVehicle.mBaseParams.axleDescription, gPhysXMaterialFrictions, gNbPhysXMaterialFrictions, gPhysXDefaultMaterialFriction, gVehicle.mPhysXParams);
+	readEngineDrivetrainParamsFromJsonFile(gVehicleDataPath, "EngineDrive.json", gVehicle.mEngineDriveParams);
 
 	//Set the states to default.
-	if (!gVehicle.initialize(*gPhysics, PxCookingParams(PxTolerancesScale()), *gMaterial, EngineDriveVehicle::eDIFFTYPE_FOURWHEELDRIVE))
-	{
+	if (!gVehicle.initialize(*gPhysics, PxCookingParams(PxTolerancesScale()), *gMaterial, EngineDriveVehicle::eDIFFTYPE_FOURWHEELDRIVE)) {
 		return false;
 	}
 
@@ -276,13 +266,17 @@ bool initVehicles()
 	return true;
 }
 
-void cleanupVehicles()
-{
+void cleanupVehicles() {
 	gVehicle.destroy();
 }
 
-bool initPhysics()
-{
+void cleanupPhysics() {
+	cleanupVehicles();
+	cleanupGroundPlane();
+	cleanupPhysX();
+}
+
+bool initPhysicsSystem() {
 	initPhysX();
 	initGroundPlane();
 	initMaterialFrictionTable();
@@ -291,19 +285,12 @@ bool initPhysics()
 	return true;
 }
 
-void cleanupPhysics()
-{
-	cleanupVehicles();
-	cleanupGroundPlane();
-	cleanupPhysX();
-}
-
-void stepPhysics()
-{
+void PhysicsSystem::stepPhysics(std::vector<Entity> entityList, Timer* timer) {
 	if (gNbCommands == gCommandProgress)
 		return;
 
-	const PxReal timestep = 1.0f / 60.0f;
+	// Update timestep to deltaTime
+	const PxReal timestep = timer->getDeltaTime();
 
 	//Apply the brake, throttle and steer to the command state of the vehicle.
 	const Command& command = gCommands[gCommandProgress];
@@ -334,37 +321,19 @@ void stepPhysics()
 		gCommandProgress++;
 		gCommandTime = 0.0f;
 	}
+
+	for (int i = 0; i < entityList.size(); i++) {
+		entityList.at(i).transform->position.x = gVehicle.mPhysXState.physxActor.rigidBody->getGlobalPose().p.x;
+		entityList.at(i).transform->position.y = gVehicle.mPhysXState.physxActor.rigidBody->getGlobalPose().p.y;
+		entityList.at(i).transform->position.z = gVehicle.mPhysXState.physxActor.rigidBody->getGlobalPose().p.z;
+
+		entityList.at(i).transform->rotation.x = gVehicle.mPhysXState.physxActor.rigidBody->getGlobalPose().q.x;
+		entityList.at(i).transform->rotation.y = gVehicle.mPhysXState.physxActor.rigidBody->getGlobalPose().q.y;
+		entityList.at(i).transform->rotation.z = gVehicle.mPhysXState.physxActor.rigidBody->getGlobalPose().q.z;
+		entityList.at(i).transform->rotation.w = gVehicle.mPhysXState.physxActor.rigidBody->getGlobalPose().q.w;
+	}
 }
 
-int snippetMain(int argc, const char* const* argv)
-{
-	if (!parseVehicleDataPath(argc, argv, "SnippetVehicle2FourWheelDrive", gVehicleDataPath))
-		return 1;
-
-	//Check that we can read from the json file before continuing.
-	BaseVehicleParams baseParams;
-	if (!readBaseParamsFromJsonFile(gVehicleDataPath, "Base.json", baseParams))
-		return 1;
-
-	//Check that we can read from the json file before continuing.
-	EngineDrivetrainParams engineDrivetrainParams;
-	if (!readEngineDrivetrainParamsFromJsonFile(gVehicleDataPath, "EngineDrive.json",
-		engineDrivetrainParams))
-		return 1;
-
-#ifdef RENDER_SNIPPET
-	extern void renderLoop();
-	renderLoop();
-#else
-	if (initPhysics())
-	{
-		while (gCommandProgress != gNbCommands)
-		{
-			stepPhysics();
-		}
-		cleanupPhysics();
-	}
-#endif
-
-	return 0;
+PhysicsSystem::PhysicsSystem() {
+	initPhysicsSystem();
 }
