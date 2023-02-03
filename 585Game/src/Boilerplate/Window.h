@@ -74,6 +74,8 @@ public:
 	float lastX = 0.f;
 	float lastY = 0.f;
 	float fov = 45.f;
+	int xres = 1920;
+	int yres = 1080;
 
 	void XboxUpdate(XboxInput x) {
 		if (x.data.LThumb_magnitude != 0) {

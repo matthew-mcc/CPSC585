@@ -30,14 +30,20 @@ public:
     bool gammaCorrection;
 
     // constructor, expects a filepath to a 3D model.
-    Model(string const& path, bool gamma = false) : gammaCorrection(gamma){
+    /*Model(string const& path, bool gamma = false) : gammaCorrection(gamma) {
         loadModel(path);
-    }
+    }*/
+
+    Model(bool gamma = false) : gammaCorrection(gamma) {}
 
     // draws the model, and thus all its meshes
     void Draw(Shader& shader){
         for (unsigned int i = 0; i < meshes.size(); i++)
             meshes[i].Draw(shader);
+    }
+
+    void addMesh(string const& path) {
+        loadModel(path);
     }
 
 private:

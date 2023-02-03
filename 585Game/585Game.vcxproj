@@ -121,7 +121,7 @@
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
-      <AdditionalIncludeDirectories>$(SolutionDir)libraries\assimp\include;$(SolutionDir)src;$(SolutionDir)libraries\glm;$(SolutionDir)libraries\opengl\glfw-3.3.8.bin.WIN64\include;$(SolutionDir)libraries\physx\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)libraries\assimp\include;$(SolutionDir)src;$(SolutionDir)libraries\glm;$(SolutionDir)libraries\opengl\glfw-3.3.8.bin.WIN64\include;$(SolutionDir)libraries\physx\include;$(SolutionDir)\libraries\imgui-1.89.2;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -138,7 +138,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)libraries\assimp\include;$(SolutionDir)src;$(SolutionDir)libraries\glm;$(SolutionDir)libraries\opengl\glfw-3.3.8.bin.WIN64\include;$(SolutionDir)libraries\physx\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)libraries\assimp\include;$(SolutionDir)src;$(SolutionDir)libraries\glm;$(SolutionDir)libraries\opengl\glfw-3.3.8.bin.WIN64\include;$(SolutionDir)libraries\physx\include;$(SolutionDir)libraries\imgui-1.89.2%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>
     <Link>
@@ -160,13 +160,37 @@
     <ClCompile Include="snippetvehicle2common\serialization\EngineDrivetrainSerialization.cpp" />
     <ClCompile Include="snippetvehicle2common\serialization\SerializationCommon.cpp" />
     <ClCompile Include="snippetvehicle2common\SnippetVehicleHelpers.cpp" />
+    <ClCompile Include="snippetvehicle2common\base\Base.cpp" />
+    <ClCompile Include="snippetvehicle2common\directdrivetrain\DirectDrivetrain.cpp" />
+    <ClCompile Include="snippetvehicle2common\enginedrivetrain\EngineDrivetrain.cpp" />
+    <ClCompile Include="snippetvehicle2common\physxintegration\PhysXIntegration.cpp" />
+    <ClCompile Include="snippetvehicle2common\serialization\BaseSerialization.cpp" />
+    <ClCompile Include="snippetvehicle2common\serialization\DirectDrivetrainSerialization.cpp" />
+    <ClCompile Include="snippetvehicle2common\serialization\EngineDrivetrainSerialization.cpp" />
+    <ClCompile Include="snippetvehicle2common\serialization\SerializationCommon.cpp" />
+    <ClCompile Include="snippetvehicle2common\SnippetVehicleHelpers.cpp" />
+    <ClCompile Include="libraries\imgui-1.89.2\imgui.cpp" />
+    <ClCompile Include="libraries\imgui-1.89.2\imgui_demo.cpp" />
+    <ClCompile Include="libraries\imgui-1.89.2\imgui_draw.cpp" />
+    <ClCompile Include="libraries\imgui-1.89.2\imgui_impl_glfw.cpp" />
+    <ClCompile Include="libraries\imgui-1.89.2\imgui_impl_opengl3.cpp" />
+    <ClCompile Include="libraries\imgui-1.89.2\imgui_tables.cpp" />
+    <ClCompile Include="libraries\imgui-1.89.2\imgui_widgets.cpp" />
     <ClCompile Include="src\Boilerplate\Mesh.cpp" />
     <ClCompile Include="src\Boilerplate\Shader.cpp" />
+    <ClCompile Include="src\Boilerplate\Shadow.cpp" />
     <ClCompile Include="src\Boilerplate\Text.cpp" />
     <ClCompile Include="src\Boilerplate\Texture.cpp" />
     <ClCompile Include="src\Boilerplate\stb_image.cpp" />
     <ClCompile Include="src\Boilerplate\Window.cpp" />
     <ClCompile Include="src\Boilerplate\glad.c" />
+    <ClCompile Include="src\imgui\imgui.cpp" />
+    <ClCompile Include="src\imgui\imgui_demo.cpp" />
+    <ClCompile Include="src\imgui\imgui_draw.cpp" />
+    <ClCompile Include="src\imgui\imgui_impl_glfw.cpp" />
+    <ClCompile Include="src\imgui\imgui_impl_opengl3.cpp" />
+    <ClCompile Include="src\imgui\imgui_tables.cpp" />
+    <ClCompile Include="src\imgui\imgui_widgets.cpp" />
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\PhysicsSystem.cpp" />
     <ClCompile Include="src\RenderingSystem.cpp" />
@@ -187,7 +211,17 @@
     <ClInclude Include="snippetvehicle2common\serialization\EngineDrivetrainSerialization.h" />
     <ClInclude Include="snippetvehicle2common\serialization\SerializationCommon.h" />
     <ClInclude Include="snippetvehicle2common\SnippetVehicleHelpers.h" />
+    <ClInclude Include="libraries\imgui-1.89.2\imconfig.h" />
+    <ClInclude Include="libraries\imgui-1.89.2\imgui.h" />
+    <ClInclude Include="libraries\imgui-1.89.2\imgui_impl_glfw.h" />
+    <ClInclude Include="libraries\imgui-1.89.2\imgui_impl_opengl3.h" />
+    <ClInclude Include="libraries\imgui-1.89.2\imgui_impl_opengl3_loader.h" />
+    <ClInclude Include="libraries\imgui-1.89.2\imgui_internal.h" />
+    <ClInclude Include="libraries\imgui-1.89.2\imstb_rectpack.h" />
+    <ClInclude Include="libraries\imgui-1.89.2\imstb_textedit.h" />
+    <ClInclude Include="libraries\imgui-1.89.2\imstb_truetype.h" />
     <ClInclude Include="src\Boilerplate\Cube.h" />
+    <ClInclude Include="src\Boilerplate\Shadow.h" />
     <ClInclude Include="src\Boilerplate\Mesh.h" />
     <ClInclude Include="src\Boilerplate\Model.h" />
     <ClInclude Include="src\Boilerplate\Text.h" />
@@ -197,6 +231,15 @@
     <ClInclude Include="src\Boilerplate\Timer.h" />
     <ClInclude Include="src\Boilerplate\Window.h" />
     <ClInclude Include="src\Entity.h" />
+    <ClInclude Include="src\imgui\imconfig.h" />
+    <ClInclude Include="src\imgui\imgui.h" />
+    <ClInclude Include="src\imgui\imgui_impl_glfw.h" />
+    <ClInclude Include="src\imgui\imgui_impl_opengl3.h" />
+    <ClInclude Include="src\imgui\imgui_impl_opengl3_loader.h" />
+    <ClInclude Include="src\imgui\imgui_internal.h" />
+    <ClInclude Include="src\imgui\imstb_rectpack.h" />
+    <ClInclude Include="src\imgui\imstb_textedit.h" />
+    <ClInclude Include="src\imgui\imstb_truetype.h" />
     <ClInclude Include="src\Model.h" />
     <ClInclude Include="src\PhysicsSystem.h" />
     <ClInclude Include="src\RenderingSystem.h" />
@@ -215,8 +258,10 @@
   <ItemGroup>
     <Text Include="src\Boilerplate\shaderBasicFragment.txt" />
     <Text Include="src\Boilerplate\shaderBasicVertex.txt" />
-    <Text Include="src\Boilerplate\shaderTextFragment.txt" />
-    <Text Include="src\Boilerplate\shaderTextVertex.txt" />
+    <Text Include="src\Cel Shader\shaderCelFragment.txt" />
+    <Text Include="src\Cel Shader\shaderCelVertex.txt" />
+    <Text Include="src\Cel Shader\shaderOutlineFragment.txt" />
+    <Text Include="src\Cel Shader\shaderOutlineVertex.txt" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

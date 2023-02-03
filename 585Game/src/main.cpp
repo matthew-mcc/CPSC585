@@ -41,7 +41,9 @@ int main() {
 
 
 	}
+  
 	// Terminate program
+  renderer.shutdownImgui();
 	xInput.stop();
 	glfwTerminate();
 	return 0;

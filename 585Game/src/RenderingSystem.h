@@ -5,10 +5,10 @@
 #include <Boilerplate/Model.h>
 #include <Boilerplate/Timer.h>
 #include <Entity.h>
-
+#include <Boilerplate/Shadow.h>
 //#include <Boilerplate/Input.h>
-class RenderingSystem {
 
+class RenderingSystem {
 public:
 	// Constructor
 	RenderingSystem();
@@ -19,18 +19,45 @@ public:
 	// Update Renderer
 	void updateRenderer(std::shared_ptr<CallbackInterface> callback_ptr, std::vector<Entity> entityList, Timer* timer);
 
+	void shutdownImgui();
+
+	// Models vector
+	vector<Model> models;
+
 	// Window pointer
 	GLFWwindow* window;
 
 private:
+	void setCelShaderUniforms();
+
+	Shadow nearShadowMap;
+	Shadow farShadowMap;
+
 	// Shaders
 	Shader textShader;
-	Shader worldShader;
+	Shader celShader;
+	Shader outlineShader;
 
 	// Coordinate Transformations
-	glm::mat4 model;
-	glm::mat4 view;
-	glm::mat4 projection;
+	glm::mat4 model = glm::mat4(1.0f);
+	glm::mat4 view = glm::mat4(1.0f);
+	glm::mat4 projection = glm::mat4(1.0f);
+
+	// World Debug
+	float altitude = 0.f;
+
+	// Shader Parameters
+	float minBias = 0.001f;
+	float maxBias = 0.012f;
+	float lightRotation = 5.f;
+	float lightAngle = 0.3f;
+	float band = 0.166f;
+	float gradient = 0.02f;
+	float shift = 0.111f;
+	glm::vec3 skyColor = glm::vec3(0.99f, 0.84f, 0.80f);
+	glm::vec3 lightPos = glm::vec3(sin(lightRotation)*cos(lightAngle), sin(lightAngle), cos(lightRotation)*cos(lightAngle)) * 4.f;
+	glm::vec3 lightColor = glm::vec3(1.0f, 0.88f, 0.84f);
+	glm::vec3 shadowColor = glm::vec3(0.86f, 0.69f, 0.64f);
 
 	// Text
 	std::map<char, Character> textChars;
