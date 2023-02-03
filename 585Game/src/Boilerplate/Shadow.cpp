@@ -7,9 +7,14 @@
 
 Shadow::Shadow() {}
 
-Shadow::Shadow(unsigned int width, unsigned int height) {
+Shadow::Shadow(unsigned int width, unsigned int height, float x, float y, float near_plane, float far_plane) {
 	WIDTH = width;
 	HEIGHT = height;
+	mapX = x;
+	mapY = y;
+	nearPlane = near_plane;
+	farPlane = far_plane;
+
 	glGenFramebuffers(1, &depthMapFBO);
 	glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
 
@@ -63,8 +68,7 @@ void Shadow::render() {
 }
 
 void Shadow::ConfigureShaderAndMatrices(glm::vec3 lightPos) {
-	float near_plane = 1.0f, far_plane = 7.5f;
-	glm::mat4 lightProjection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, near_plane, far_plane);
+	glm::mat4 lightProjection = glm::ortho(-mapX, mapX, -mapY, mapY, nearPlane, farPlane);
 	glm::mat4 lightView = glm::lookAt(lightPos,
 		glm::vec3(0.0f, 0.0f, 0.0f),
 		glm::vec3(0.0f, 1.0f, 0.0f));

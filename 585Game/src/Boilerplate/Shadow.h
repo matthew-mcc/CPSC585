@@ -5,7 +5,7 @@
 class Shadow {
 public:
 	Shadow();
-	Shadow(unsigned int width, unsigned int height);
+	Shadow(unsigned int width, unsigned int height, float x, float y, float near, float far);
 	void update(glm::vec3 lightPos);
 	void cleanUp(std::shared_ptr<CallbackInterface> callback_ptr);
 	void render();
@@ -20,6 +20,11 @@ private:
 	Shader debugShader;
 	void ConfigureShaderAndMatrices(glm::vec3 lightPos);
 	void renderQuad();
+
+	float mapX;
+	float mapY;
+	float nearPlane;
+	float farPlane;
 
 	unsigned int WIDTH;
 	unsigned int HEIGHT;

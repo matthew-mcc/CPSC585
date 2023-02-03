@@ -29,7 +29,8 @@ public:
 private:
 	void setCelShaderUniforms();
 
-	Shadow shadowMap;
+	Shadow nearShadowMap;
+	Shadow farShadowMap;
 
 	// Shaders
 	Shader textShader;
@@ -41,9 +42,12 @@ private:
 	glm::mat4 view = glm::mat4(1.0f);
 	glm::mat4 projection = glm::mat4(1.0f);
 
+	// World Debug
+	float altitude = 0.f;
+
 	// Shader Parameters
 	float minBias = 0.001f;
-	float maxBias = 0.007f;
+	float maxBias = 0.012f;
 	float lightRotation = 5.f;
 	float lightAngle = 0.3f;
 	float band = 0.166f;
