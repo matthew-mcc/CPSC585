@@ -7,7 +7,7 @@
 // Runs the primary game loop
 int main() {
 	RenderingSystem renderer = RenderingSystem();
-	PhysicsSystem physics;
+	//PhysicsSystem physics;
 	XboxInput x;
 	x.run();
 
@@ -31,9 +31,9 @@ int main() {
 		callback_ptr->XboxUpdate(x);
 		
 		// ONLY WORKS IN PVD RN
-		physics.gScene->simulate(1.f / 60.f);
+		/*physics.gScene->simulate(1.f / 60.f);
 		physics.gScene->fetchResults(true);
-		physics.updateTransforms(entityList);
+		physics.updateTransforms(entityList);*/
 
 		// Update Rendering System
 		renderer.updateRenderer(callback_ptr, entityList);
