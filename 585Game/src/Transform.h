@@ -12,5 +12,10 @@ public:
 	glm::vec3 position;
 	glm::quat rotation;
 
+	Transform() {
+		this->position = glm::vec3();
+		this->rotation = glm::quat();
+	};
+
 
 };

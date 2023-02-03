@@ -63,7 +63,9 @@ public:
 	virtual void cursorPosCallback(double xpos, double ypos) {}
 	virtual void scrollCallback(double xoffset, double yoffset) {}
 	virtual void windowSizeCallback(int width, int height) { glViewport(0, 0, width, height); }
-	glm::vec3 camera_pos = glm::vec3(0.f, 0.f, 3.f);
+	//glm::vec3 camera_pos = glm::vec3(0.f, 0.f, 3.f);
+	glm::vec3 camera_pos = glm::vec3(-3.76605, -31.4349f, 51.97f);
+	// glm::vec3 camera_front = glm::vec3(0.039f, -0.361f, -0.910f);
 	glm::vec3 camera_front = glm::vec3(0.0f, 0.0f, -1.0f);
 	glm::vec3 camera_up = glm::vec3(0.0f, 1.0f, 0.0f);
 	float cameraSpeed = 1.0f;

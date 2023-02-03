@@ -1,13 +1,14 @@
 #pragma once
 #include <Boilerplate/Window.h>
 #include <Boilerplate/Shader.h>
-#include <Boilerplate/Timer.h>
 #include <Boilerplate/Text.h>
 #include <Boilerplate/Model.h>
+#include <Boilerplate/Timer.h>
+#include <Entity.h>
 #include <Boilerplate/Shadow.h>
 //#include <Boilerplate/Input.h>
-class RenderingSystem {
 
+class RenderingSystem {
 public:
 	// Constructor
 	RenderingSystem();
@@ -16,7 +17,7 @@ public:
 	void initRenderer();
 
 	// Update Renderer
-	void updateRenderer(std::shared_ptr<CallbackInterface> callback_ptr);
+	void updateRenderer(std::shared_ptr<CallbackInterface> callback_ptr, std::vector<Entity> entityList, Timer* timer);
 
 	void shutdownImgui();
 
@@ -63,8 +64,5 @@ private:
 	unsigned int textVAO;
 	unsigned int textVBO;
 	int fps;
-
-	// Time
-	Timer* timer;
 
 };

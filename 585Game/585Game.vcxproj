@@ -151,6 +151,24 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="snippetvehicle2common\base\Base.cpp" />
+    <ClCompile Include="snippetvehicle2common\directdrivetrain\DirectDrivetrain.cpp" />
+    <ClCompile Include="snippetvehicle2common\enginedrivetrain\EngineDrivetrain.cpp" />
+    <ClCompile Include="snippetvehicle2common\physxintegration\PhysXIntegration.cpp" />
+    <ClCompile Include="snippetvehicle2common\serialization\BaseSerialization.cpp" />
+    <ClCompile Include="snippetvehicle2common\serialization\DirectDrivetrainSerialization.cpp" />
+    <ClCompile Include="snippetvehicle2common\serialization\EngineDrivetrainSerialization.cpp" />
+    <ClCompile Include="snippetvehicle2common\serialization\SerializationCommon.cpp" />
+    <ClCompile Include="snippetvehicle2common\SnippetVehicleHelpers.cpp" />
+    <ClCompile Include="snippetvehicle2common\base\Base.cpp" />
+    <ClCompile Include="snippetvehicle2common\directdrivetrain\DirectDrivetrain.cpp" />
+    <ClCompile Include="snippetvehicle2common\enginedrivetrain\EngineDrivetrain.cpp" />
+    <ClCompile Include="snippetvehicle2common\physxintegration\PhysXIntegration.cpp" />
+    <ClCompile Include="snippetvehicle2common\serialization\BaseSerialization.cpp" />
+    <ClCompile Include="snippetvehicle2common\serialization\DirectDrivetrainSerialization.cpp" />
+    <ClCompile Include="snippetvehicle2common\serialization\EngineDrivetrainSerialization.cpp" />
+    <ClCompile Include="snippetvehicle2common\serialization\SerializationCommon.cpp" />
+    <ClCompile Include="snippetvehicle2common\SnippetVehicleHelpers.cpp" />
     <ClCompile Include="libraries\imgui-1.89.2\imgui.cpp" />
     <ClCompile Include="libraries\imgui-1.89.2\imgui_demo.cpp" />
     <ClCompile Include="libraries\imgui-1.89.2\imgui_draw.cpp" />
@@ -182,6 +200,17 @@
     <None Include=".gitignore" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="snippetcommon\SnippetPrint.h" />
+    <ClInclude Include="snippetcommon\SnippetPVD.h" />
+    <ClInclude Include="snippetvehicle2common\base\Base.h" />
+    <ClInclude Include="snippetvehicle2common\directdrivetrain\DirectDrivetrain.h" />
+    <ClInclude Include="snippetvehicle2common\enginedrivetrain\EngineDrivetrain.h" />
+    <ClInclude Include="snippetvehicle2common\physxintegration\PhysXIntegration.h" />
+    <ClInclude Include="snippetvehicle2common\serialization\BaseSerialization.h" />
+    <ClInclude Include="snippetvehicle2common\serialization\DirectDrivetrainSerialization.h" />
+    <ClInclude Include="snippetvehicle2common\serialization\EngineDrivetrainSerialization.h" />
+    <ClInclude Include="snippetvehicle2common\serialization\SerializationCommon.h" />
+    <ClInclude Include="snippetvehicle2common\SnippetVehicleHelpers.h" />
     <ClInclude Include="libraries\imgui-1.89.2\imconfig.h" />
     <ClInclude Include="libraries\imgui-1.89.2\imgui.h" />
     <ClInclude Include="libraries\imgui-1.89.2\imgui_impl_glfw.h" />
