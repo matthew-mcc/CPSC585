@@ -1,4 +1,5 @@
 #pragma once
+#include <Boilerplate/Window.h>
 #include "PxPhysicsAPI.h"
 #include "Transform.h"
 #include <vector>
@@ -6,6 +7,7 @@
 #include "vehicle2/PxVehicleAPI.h"
 
 #include <Boilerplate/Timer.h>
+#include <Boilerplate/Window.h>
 #include <Entity.h>
 #include <GameState.h>
 
@@ -13,15 +15,9 @@
 class PhysicsSystem {
 
 public:
+	// Constructor
 	PhysicsSystem();
-	void stepPhysics(GameState* gameState, Timer* timer);
 
-	//void updateTransforms(std::vector<Entity> entityList);
-	//physx::PxVec3 getPosition();
-	
-	//PhysX management Class Instances.
-
-	// Storing all transforms in our simulation
-	//std::vector<Transform> transformList;
-
+	// Physics Update
+	void stepPhysics(std::shared_ptr<CallbackInterface> callback_ptr, GameState* gameState, Timer* timer);
 };

@@ -60,7 +60,7 @@ DWORD WINAPI update_controller_thread(LPVOID lpParameter) {
 			}
 			else
 			{
-				std::cout << "Warning! Warning! We lost him!" << std::endl;
+				std::cout << "Controller disconnected!" << std::endl;
 			}
 			//}
 
@@ -115,9 +115,9 @@ void checkLeftThumbBar(XINPUT_STATE state) {
 	controller_data.LThumb_X_direction = normalizedLX;
 	controller_data.LThumb_Y_direction = normalizedLY;
 	if (normalizedMagnitude > 0) { // FOR debug use, only shows the status when we push the bar
-		std::cout << "magnitude is:" << normalizedMagnitude << std::endl;
-		std::cout << "left bar direction in x axis is:" << normalizedLX << std::endl;
-		std::cout << "left bar direction in y axis is:" << normalizedLY << std::endl;
+		//std::cout << "magnitude is:" << normalizedMagnitude << std::endl;
+		//std::cout << "left bar direction in x axis is:" << normalizedLX << std::endl;
+		//std::cout << "left bar direction in y axis is:" << normalizedLY << std::endl;
 		//repeat for right thumb stick
 	}
 
@@ -159,9 +159,9 @@ void checkRightThumbBar(XINPUT_STATE state) {
 	controller_data.RThumb_X_direction = normalizedRX;
 	controller_data.RThumb_Y_direction = normalizedRY;
 	if (normalizedMagnitude > 0) { // FOR debug use, only shows the status when we push the bar
-		std::cout << "right magnitude is:" << normalizedMagnitude << std::endl;
-		std::cout << "right bar direction in x axis is:" << normalizedRX << std::endl;
-		std::cout << "right bar direction in y axis is:" << normalizedRY << std::endl;
+		//std::cout << "right magnitude is:" << normalizedMagnitude << std::endl;
+		//std::cout << "right bar direction in x axis is:" << normalizedRX << std::endl;
+		//std::cout << "right bar direction in y axis is:" << normalizedRY << std::endl;
 		//repeat for right thumb stick
 	}
 }

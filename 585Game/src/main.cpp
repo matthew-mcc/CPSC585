@@ -31,16 +31,14 @@ int main() {
 		timer->update();
 		
 		// Update Physics System
-		physics.stepPhysics(gameState, timer);
+		physics.stepPhysics(callback_ptr, gameState, timer);
 
 		// Update Rendering System
 		renderer.updateRenderer(callback_ptr, gameState, timer);
-
-
 	}
   
 	// Terminate program
-  renderer.shutdownImgui();
+	renderer.shutdownImgui();
 	xInput.stop();
 	glfwTerminate();
 	return 0;

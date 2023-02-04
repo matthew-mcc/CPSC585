@@ -43,43 +43,63 @@ GLFWwindow* initWindow() {
 using namespace std;
 
 
-// some camera code 
+// some camera code
 
-class Assignment3 : public CallbackInterface {
+class KeyCallbacks : public CallbackInterface {
 
 public:
-	Assignment3()
-	{
-	}
+	//KeyCallbacks(){}
+
+	// KEYBOARD VEHICLE INPUT
 	virtual void keyCallback(int key, int scancode, int action, int mods) {
-
-		//MOVE CAMERA
-		/*
-		if (key == GLFW_KEY_C && action == GLFW_PRESS) {
-			if (view_3D == false) {
-				view_3D = true;
+		// THROTTLE (W)
+		if (key == GLFW_KEY_W) {
+			if (action == GLFW_PRESS) {
+				throttle = 1.f;
+				keys_pressed++;
 			}
-			else {
-				view_3D = false;
+			if (action == GLFW_RELEASE) {
+				throttle = 0.f;
+				keys_pressed--;
 			}
-		}*/
-
-		if (key == GLFW_KEY_W && (action == GLFW_REPEAT || action == GLFW_PRESS) && view_3D == true) {
-			camera_pos += cameraSpeed * camera_front;
 		}
-		if (key == GLFW_KEY_A && (action == GLFW_REPEAT || action == GLFW_PRESS) && view_3D == true) {
-			camera_pos -= cameraSpeed * (glm::normalize(glm::cross(camera_front, camera_up)));
+		// BRAKE (S)
+		if (key == GLFW_KEY_S) {
+			if (action == GLFW_PRESS) {
+				brake = 1.f;
+				keys_pressed++;
+			}
+			if (action == GLFW_RELEASE) {
+				brake = 0.f;
+				keys_pressed--;
+			}
 		}
-		if (key == GLFW_KEY_S && (action == GLFW_REPEAT || action == GLFW_PRESS) && view_3D == true) {
-			camera_pos -= cameraSpeed * camera_front;
+		// STEER LEFT (A)
+		if (key == GLFW_KEY_A) {
+			if (action == GLFW_PRESS) {
+				steer = 1.f;
+				keys_pressed++;
+			}
+			if (action == GLFW_RELEASE) {
+				steer = 0.f;
+				keys_pressed--;
+			}
 		}
-		if (key == GLFW_KEY_D && (action == GLFW_REPEAT || action == GLFW_PRESS) && view_3D == true) {
-			camera_pos += cameraSpeed * (glm::normalize(glm::cross(camera_front, camera_up)));
+		// STEER RIGHT (D)
+		if (key == GLFW_KEY_D) {
+			if (action == GLFW_PRESS) {
+				steer = -1.f;
+				keys_pressed++;
+			}
+			if (action == GLFW_RELEASE) {
+				steer = 0.f;
+				keys_pressed--;
+			}
 		}
 
 	}
-	virtual void mouseButtonCallback(int button, int action, int mods) {
 
+	virtual void mouseButtonCallback(int button, int action, int mods) {
 		if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS) {
 			cout << "Mouse Left clicked" << endl;
 		}
@@ -87,8 +107,8 @@ public:
 		if (button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_PRESS) {
 			cout << "Mouse Right clicked" << endl;
 		}
-
 	}
+
 	virtual void cursorPosCallback(double xpos, double ypos) {
 		current_pos.x = (2.f / (float)xres) * xpos - 1.f;
 		current_pos.y = (2.f / (float)yres) * ypos - 1.f;
@@ -116,13 +136,9 @@ public:
 		front.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
 		camera_front = glm::normalize(front);
 	}
-	virtual void scrollCallback(double xoffset, double yoffset) {
-		fov -= (float)yoffset;
-		if (fov < 1.0f)
-			fov = 1.0f;
-		if (fov > 45.0f)
-			fov = 45.0f;
-	}
+
+	virtual void scrollCallback(double xoffset, double yoffset) {}
+
 	virtual void windowSizeCallback(int width, int height) {
 		// The CallbackInterface::windowSizeCallback will call glViewport for us
 		std::cout << width << ' ' << height << std::endl;
@@ -131,15 +147,14 @@ public:
 		CallbackInterface::windowSizeCallback(width, height);
 
 	}
-	void processXbox(XboxInput x) {
+	void processXbox(XboxInput x) {}
 
-	}
 	glm::vec2 current_pos;
-	bool view_3D = true;
+
 private:
 
 };
-std::shared_ptr<CallbackInterface> callbacks = std::make_shared<Assignment3>();
+std::shared_ptr<CallbackInterface> callbacks = std::make_shared<KeyCallbacks>();
 void keyMetaCallback(GLFWwindow* window, int key, int scancode, int action, int mods) {
 	//CallbackInterface* callbacks = static_cast<CallbackInterface*>(glfwGetWindowUserPointer(window));
 	callbacks->keyCallback(key, scancode, action, mods);

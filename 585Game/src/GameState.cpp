@@ -30,3 +30,11 @@ void GameState::addEntity(string name, bool bphysicsEntity, Transform transform,
 		entityList.back().model->addMesh(modelPaths.at(i));
 	}
 }
+
+Entity GameState::findEntity(string name) {
+	for (int i = 0; i < entityList.size(); i++) {
+		if (entityList.at(i).name == name) {
+			return entityList.at(i);
+		}
+	}
+}

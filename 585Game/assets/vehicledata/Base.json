@@ -86,7 +86,7 @@
                 -1.0,
                 0.0
             ],
-            "SuspensionTravelDist": 0.221110999584198,
+            "SuspensionTravelDist": 0.8,
             "WheelAttachment": {
                 "Pos": [
                     0.0,
@@ -121,7 +121,7 @@
                 -1.0,
                 0.0
             ],
-            "SuspensionTravelDist": 0.221110999584198,
+            "SuspensionTravelDist": 0.8,
             "WheelAttachment": {
                 "Pos": [
                     0.0,
@@ -156,7 +156,7 @@
                 -1.0,
                 0.0
             ],
-            "SuspensionTravelDist": 0.221110999584198,
+            "SuspensionTravelDist": 0.8,
             "WheelAttachment": {
                 "Pos": [
                     0.0,
@@ -191,7 +191,7 @@
                 -1.0,
                 0.0
             ],
-            "SuspensionTravelDist": 0.221110999584198,
+            "SuspensionTravelDist": 0.8,
             "WheelAttachment": {
                 "Pos": [
                     0.0,

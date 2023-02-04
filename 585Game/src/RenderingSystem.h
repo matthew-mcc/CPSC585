@@ -21,9 +21,6 @@ public:
 
 	void shutdownImgui();
 
-	// Models vector
-	//vector<Model> models;
-
 	// Window pointer
 	GLFWwindow* window;
 

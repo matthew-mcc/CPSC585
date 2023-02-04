@@ -63,10 +63,12 @@ public:
 	virtual void cursorPosCallback(double xpos, double ypos) {}
 	virtual void scrollCallback(double xoffset, double yoffset) {}
 	virtual void windowSizeCallback(int width, int height) { glViewport(0, 0, width, height); }
-	glm::vec3 camera_pos = glm::vec3(0.f, 0.f, 3.f);
-	//glm::vec3 camera_pos = glm::vec3(-3.76605, -31.4349f, 51.97f);
+	
+	// Camera
+	//glm::vec3 camera_pos = glm::vec3(0.f, 0.f, 3.f);
+	glm::vec3 camera_pos = glm::vec3(0.f, 25.f, 60.f);
 	// glm::vec3 camera_front = glm::vec3(0.039f, -0.361f, -0.910f);
-	glm::vec3 camera_front = glm::vec3(0.0f, 0.0f, -1.0f);
+	glm::vec3 camera_front = normalize(glm::vec3(0.0f, -0.3f, -1.0f));
 	glm::vec3 camera_up = glm::vec3(0.0f, 1.0f, 0.0f);
 	float cameraSpeed = 1.0f;
 	float yaw = -90.f;	// yaw is initialized to -90.0 degrees since a yaw of 0.0 results in a direction vector pointing to the right so we initially rotate a bit to the left.
@@ -74,13 +76,21 @@ public:
 	float lastX = 0.f;
 	float lastY = 0.f;
 	float fov = 45.f;
+	
+	// Window Dimensions
 	int xres = 1920;
 	int yres = 1080;
 
+	// Vehicle Control Inputs
+	int keys_pressed = 0;
+	float throttle = 0.f;
+	float brake = 0.f;
+	float steer = 0.f;
+
 	void XboxUpdate(XboxInput x) {
 		if (x.data.LThumb_magnitude != 0) {
-			camera_pos += (x.data.LThumb_Y_direction/10) * camera_front;
-			camera_pos += (x.data.LThumb_X_direction/10) * (glm::normalize(glm::cross(camera_front, camera_up)));
+			//camera_pos += (x.data.LThumb_Y_direction/10) * camera_front;
+			//camera_pos += (x.data.LThumb_X_direction/10) * (glm::normalize(glm::cross(camera_front, camera_up)));
 		}
 
 		if (x.data.RThumb_magnitude != 0) {
@@ -98,6 +108,12 @@ public:
 			camera_front = glm::normalize(front);
 		}
 
+		// GAMEPAD VEHICLE INPUT
+		if (keys_pressed <= 0) {
+			throttle = x.data.RT / 255.f;
+			brake = x.data.LT / 255.f;
+			steer = -x.data.LThumb_X_direction;
+		}
 	}
 };
 

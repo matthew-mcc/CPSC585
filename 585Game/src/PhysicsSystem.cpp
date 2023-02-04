@@ -130,26 +130,6 @@ PxReal gPhysXDefaultMaterialFriction = 1.0f;
 //Give the vehicle a name so it can be identified in PVD.
 const char gVehicleName[] = "engineDrive";
 
-//Commands are issued to the vehicle in a pre-choreographed sequence.
-struct Command {
-	PxF32 brake;
-	PxF32 throttle;
-	PxF32 steer;
-	PxU32 gear;
-	PxF32 duration;
-};
-const PxU32 gTargetGearCommand = PxVehicleEngineDriveTransmissionCommandState::eAUTOMATIC_GEAR;
-Command gCommands[] = {
-	{0.5f, 0.0f, 0.0f, gTargetGearCommand, 2.0f},	//brake on and come to rest for 2 seconds
-	{0.0f, 0.65f, 0.0f, gTargetGearCommand, 5.0f},	//throttle for 5 seconds
-	{0.5f, 0.0f, 0.0f, gTargetGearCommand, 5.0f},	//brake for 5 seconds
-	{0.0f, 0.75f, 0.0f, gTargetGearCommand, 5.0f},	//throttle for 5 seconds
-	{0.0f, 0.25f, 0.5f, gTargetGearCommand, 5.0f}	//light throttle and steer for 5 seconds.
-};
-const PxU32 gNbCommands = sizeof(gCommands) / sizeof(Command);
-PxReal gCommandTime = 0.0f;			//Time spent on current command
-PxU32 gCommandProgress = 0;			//The id of the current command.
-
 //A ground plane to drive on.
 PxRigidStatic* gGroundPlane = NULL;
 
@@ -198,6 +178,9 @@ void cleanupPhysX() {
 }
 
 void initGroundPlane() {
+	//PxTriangleMeshGeometry groundGeom = PxTriangleMeshGeometry(PxMeshScale(10));
+
+
 	gGroundPlane = PxCreatePlane(*gPhysics, PxPlane(0, 1, 0, 0), *gMaterial);
 	for (PxU32 i = 0; i < gGroundPlane->getNbShapes(); i++)
 	{
@@ -239,7 +222,7 @@ bool initVehicles() {
 	}
 
 	//Apply a start pose to the physx actor and add it to the physx scene.
-	PxTransform pose(PxVec3(0.f, 0.f, 0.f), PxQuat(PxIdentity));
+	PxTransform pose(PxVec3(0.f, 25.f, 0.f), PxQuat(PxIdentity));
 	gVehicle.setUpActor(*gScene, pose, gVehicleName);
 
 	//Set the vehicle in 1st gear.
@@ -285,24 +268,19 @@ bool initPhysicsSystem() {
 	return true;
 }
 
-void PhysicsSystem::stepPhysics(GameState* gameState, Timer* timer) {
-	//if (gNbCommands == gCommandProgress)
-		//return;
-
+void PhysicsSystem::stepPhysics(std::shared_ptr<CallbackInterface> callback_ptr, GameState* gameState, Timer* timer) {
 	// Update timestep to deltaTime
 	//const PxReal timestep = timer->getDeltaTime();
 	const PxReal timestep = (1 / 60.f);
 
-	//
+	// Store entity list
 	auto entityList = gameState->entityList;
 
-	//Apply the brake, throttle and steer to the command state of the vehicle.
-	const Command& command = gCommands[gCommandProgress];
-	gVehicle.mCommandState.brakes[0] = command.brake;
+	//Apply the brake, throttle and steer inputs to the vehicle's command state
+	gVehicle.mCommandState.brakes[0] = callback_ptr->brake;
 	gVehicle.mCommandState.nbBrakes = 1;
-	gVehicle.mCommandState.throttle = command.throttle;
-	gVehicle.mCommandState.steer = command.steer;
-	gVehicle.mTransmissionCommandState.targetGear = command.gear;
+	gVehicle.mCommandState.throttle = callback_ptr->throttle;
+	gVehicle.mCommandState.steer = callback_ptr->steer;
 
 	//Forward integrate the vehicle by a single timestep.
 	//Apply substepping at low forward speed to improve simulation fidelity.
@@ -316,15 +294,6 @@ void PhysicsSystem::stepPhysics(GameState* gameState, Timer* timer) {
 	//Forward integrate the phsyx scene by a single timestep.
 	gScene->simulate(timestep);
 	gScene->fetchResults(true);
-
-	//Increment the time spent on the current command.
-	//Move to the next command in the list if enough time has lapsed.
-	gCommandTime += timestep;
-	if (gCommandTime > gCommands[gCommandProgress].duration)
-	{
-		gCommandProgress++;
-		gCommandTime = 0.0f;
-	}
 
 	for (int i = 0; i < entityList.size(); i++) {
 		if (entityList.at(i).bphysicsEntity) {

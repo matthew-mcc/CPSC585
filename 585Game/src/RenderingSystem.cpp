@@ -71,11 +71,6 @@ void RenderingSystem::initRenderer() {
 // Update Renderer
 void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> callback_ptr, GameState* gameState, Timer* timer) {
 
-// TIME UPDATE
-	// Get deltaTime Update
-	timer->update();								// Update time instance
-	double deltaTime = timer->getDeltaTime();		// Get delta time
-
 // BACKGROUND
 	// Set Background (Sky) Color
 	glClearColor(skyColor.r, skyColor.g, skyColor.b, 1.0f);
@@ -135,7 +130,8 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> callback
 	// Use world shader
 	celShader.use();
 
-	// Set Cel Shader Uniforms
+	// Camera Angle
+	Entity playerEntity = gameState->findEntity("player_truck1");	// can use playerEntity.transform->position and playerEntity.transform->rotation
 	view = glm::lookAt(callback_ptr->camera_pos, callback_ptr->camera_pos + callback_ptr->camera_front, callback_ptr->camera_up);
 	projection = glm::perspective(glm::radians(45.0f), (float)callback_ptr->xres / (float)callback_ptr->yres, 0.1f, 1000.0f);
 	setCelShaderUniforms();
@@ -170,7 +166,7 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> callback
 	textShader.setMat4("projection", textProjection);
 
 	// Fetch and display FPS
-	int fpsTest = timer->getFPS(0.2);				// Get fps (WARNING: can be NULL!)
+	int fpsTest = timer->getFPS(0.5);				// Get fps (WARNING: can be NULL!)
 	if (fpsTest != NULL) fps = fpsTest;				// Set fps if fpsTest isn't null
 	RenderText(textShader, textVAO, textVBO, "FPS: " + std::to_string(fps), 8.f, callback_ptr->yres - 32.f, 0.6f, glm::vec3(0.2, 0.2f, 0.2f), textChars);
 
