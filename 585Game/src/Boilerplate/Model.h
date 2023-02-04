@@ -13,6 +13,7 @@
 #include <Boilerplate/Mesh.h>
 #include <Boilerplate/Shader.h>
 
+#include <iostream>
 #include <string>
 #include <map>
 #include <vector>

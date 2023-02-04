@@ -151,24 +151,6 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="snippetvehicle2common\base\Base.cpp" />
-    <ClCompile Include="snippetvehicle2common\directdrivetrain\DirectDrivetrain.cpp" />
-    <ClCompile Include="snippetvehicle2common\enginedrivetrain\EngineDrivetrain.cpp" />
-    <ClCompile Include="snippetvehicle2common\physxintegration\PhysXIntegration.cpp" />
-    <ClCompile Include="snippetvehicle2common\serialization\BaseSerialization.cpp" />
-    <ClCompile Include="snippetvehicle2common\serialization\DirectDrivetrainSerialization.cpp" />
-    <ClCompile Include="snippetvehicle2common\serialization\EngineDrivetrainSerialization.cpp" />
-    <ClCompile Include="snippetvehicle2common\serialization\SerializationCommon.cpp" />
-    <ClCompile Include="snippetvehicle2common\SnippetVehicleHelpers.cpp" />
-    <ClCompile Include="snippetvehicle2common\base\Base.cpp" />
-    <ClCompile Include="snippetvehicle2common\directdrivetrain\DirectDrivetrain.cpp" />
-    <ClCompile Include="snippetvehicle2common\enginedrivetrain\EngineDrivetrain.cpp" />
-    <ClCompile Include="snippetvehicle2common\physxintegration\PhysXIntegration.cpp" />
-    <ClCompile Include="snippetvehicle2common\serialization\BaseSerialization.cpp" />
-    <ClCompile Include="snippetvehicle2common\serialization\DirectDrivetrainSerialization.cpp" />
-    <ClCompile Include="snippetvehicle2common\serialization\EngineDrivetrainSerialization.cpp" />
-    <ClCompile Include="snippetvehicle2common\serialization\SerializationCommon.cpp" />
-    <ClCompile Include="snippetvehicle2common\SnippetVehicleHelpers.cpp" />
     <ClCompile Include="libraries\imgui-1.89.2\imgui.cpp" />
     <ClCompile Include="libraries\imgui-1.89.2\imgui_demo.cpp" />
     <ClCompile Include="libraries\imgui-1.89.2\imgui_draw.cpp" />
@@ -176,6 +158,15 @@
     <ClCompile Include="libraries\imgui-1.89.2\imgui_impl_opengl3.cpp" />
     <ClCompile Include="libraries\imgui-1.89.2\imgui_tables.cpp" />
     <ClCompile Include="libraries\imgui-1.89.2\imgui_widgets.cpp" />
+    <ClCompile Include="snippetvehicle2common\base\Base.cpp" />
+    <ClCompile Include="snippetvehicle2common\directdrivetrain\DirectDrivetrain.cpp" />
+    <ClCompile Include="snippetvehicle2common\enginedrivetrain\EngineDrivetrain.cpp" />
+    <ClCompile Include="snippetvehicle2common\physxintegration\PhysXIntegration.cpp" />
+    <ClCompile Include="snippetvehicle2common\serialization\BaseSerialization.cpp" />
+    <ClCompile Include="snippetvehicle2common\serialization\DirectDrivetrainSerialization.cpp" />
+    <ClCompile Include="snippetvehicle2common\serialization\EngineDrivetrainSerialization.cpp" />
+    <ClCompile Include="snippetvehicle2common\serialization\SerializationCommon.cpp" />
+    <ClCompile Include="snippetvehicle2common\SnippetVehicleHelpers.cpp" />
     <ClCompile Include="src\Boilerplate\Mesh.cpp" />
     <ClCompile Include="src\Boilerplate\Shader.cpp" />
     <ClCompile Include="src\Boilerplate\Shadow.cpp" />
@@ -184,6 +175,7 @@
     <ClCompile Include="src\Boilerplate\stb_image.cpp" />
     <ClCompile Include="src\Boilerplate\Window.cpp" />
     <ClCompile Include="src\Boilerplate\glad.c" />
+    <ClCompile Include="src\GameState.cpp" />
     <ClCompile Include="src\imgui\imgui.cpp" />
     <ClCompile Include="src\imgui\imgui_demo.cpp" />
     <ClCompile Include="src\imgui\imgui_draw.cpp" />
@@ -200,6 +192,15 @@
     <None Include=".gitignore" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="libraries\imgui-1.89.2\imconfig.h" />
+    <ClInclude Include="libraries\imgui-1.89.2\imgui.h" />
+    <ClInclude Include="libraries\imgui-1.89.2\imgui_impl_glfw.h" />
+    <ClInclude Include="libraries\imgui-1.89.2\imgui_impl_opengl3.h" />
+    <ClInclude Include="libraries\imgui-1.89.2\imgui_impl_opengl3_loader.h" />
+    <ClInclude Include="libraries\imgui-1.89.2\imgui_internal.h" />
+    <ClInclude Include="libraries\imgui-1.89.2\imstb_rectpack.h" />
+    <ClInclude Include="libraries\imgui-1.89.2\imstb_textedit.h" />
+    <ClInclude Include="libraries\imgui-1.89.2\imstb_truetype.h" />
     <ClInclude Include="snippetcommon\SnippetPrint.h" />
     <ClInclude Include="snippetcommon\SnippetPVD.h" />
     <ClInclude Include="snippetvehicle2common\base\Base.h" />
@@ -211,15 +212,6 @@
     <ClInclude Include="snippetvehicle2common\serialization\EngineDrivetrainSerialization.h" />
     <ClInclude Include="snippetvehicle2common\serialization\SerializationCommon.h" />
     <ClInclude Include="snippetvehicle2common\SnippetVehicleHelpers.h" />
-    <ClInclude Include="libraries\imgui-1.89.2\imconfig.h" />
-    <ClInclude Include="libraries\imgui-1.89.2\imgui.h" />
-    <ClInclude Include="libraries\imgui-1.89.2\imgui_impl_glfw.h" />
-    <ClInclude Include="libraries\imgui-1.89.2\imgui_impl_opengl3.h" />
-    <ClInclude Include="libraries\imgui-1.89.2\imgui_impl_opengl3_loader.h" />
-    <ClInclude Include="libraries\imgui-1.89.2\imgui_internal.h" />
-    <ClInclude Include="libraries\imgui-1.89.2\imstb_rectpack.h" />
-    <ClInclude Include="libraries\imgui-1.89.2\imstb_textedit.h" />
-    <ClInclude Include="libraries\imgui-1.89.2\imstb_truetype.h" />
     <ClInclude Include="src\Boilerplate\Cube.h" />
     <ClInclude Include="src\Boilerplate\Shadow.h" />
     <ClInclude Include="src\Boilerplate\Mesh.h" />
@@ -231,6 +223,7 @@
     <ClInclude Include="src\Boilerplate\Timer.h" />
     <ClInclude Include="src\Boilerplate\Window.h" />
     <ClInclude Include="src\Entity.h" />
+    <ClInclude Include="src\GameState.h" />
     <ClInclude Include="src\imgui\imconfig.h" />
     <ClInclude Include="src\imgui\imgui.h" />
     <ClInclude Include="src\imgui\imgui_impl_glfw.h" />
@@ -240,7 +233,6 @@
     <ClInclude Include="src\imgui\imstb_rectpack.h" />
     <ClInclude Include="src\imgui\imstb_textedit.h" />
     <ClInclude Include="src\imgui\imstb_truetype.h" />
-    <ClInclude Include="src\Model.h" />
     <ClInclude Include="src\PhysicsSystem.h" />
     <ClInclude Include="src\RenderingSystem.h" />
     <ClInclude Include="src\Transform.h" />

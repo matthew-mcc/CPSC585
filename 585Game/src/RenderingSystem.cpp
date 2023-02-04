@@ -33,9 +33,6 @@ void RenderingSystem::initRenderer() {
 	ImGui::StyleColorsDark();
 	ImGui_ImplGlfw_InitForOpenGL(window, true);
 	ImGui_ImplOpenGL3_Init("#version 330");
-
-// TIMER INITIALIZATION
-	timer = &Timer::Instance();		// Create pointer to singleton timer instance
 	
 // SHADOW MAP INITIALIZATION
 	//shadowMap = Shadow(16384, 4096);
@@ -58,21 +55,21 @@ void RenderingSystem::initRenderer() {
 	textShader.use();
 
 // MODEL INITIALIZATION
-	Model testTruck = Model();
-	testTruck.addMesh("assets/models/test_truck1/test_truck1.obj");
-	testTruck.addMesh("assets/models/test_tire1/test_tire1.obj");
-	models.push_back(testTruck);
+	//Model testTruck = Model();
+	//testTruck.addMesh("assets/models/test_truck1/test_truck1.obj");
+	//testTruck.addMesh("assets/models/test_tire1/test_tire1.obj");
+	//models.push_back(testTruck);
 
-	Model landscape = Model();
-	landscape.addMesh("assets/models/landscape1/landscape1_1.obj");
-	landscape.addMesh("assets/models/landscape1/landscape1_2.obj");
-	landscape.addMesh("assets/models/landscape1/landscape1_3.obj");
-	landscape.addMesh("assets/models/landscape1/landscape1_4.obj");
-	models.push_back(landscape);
+	//Model landscape = Model();
+	//landscape.addMesh("assets/models/landscape1/landscape1_1.obj");
+	//landscape.addMesh("assets/models/landscape1/landscape1_2.obj");
+	//landscape.addMesh("assets/models/landscape1/landscape1_3.obj");
+	//landscape.addMesh("assets/models/landscape1/landscape1_4.obj");
+	//models.push_back(landscape);
 }
 
 // Update Renderer
-void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> callback_ptr) {
+void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> callback_ptr, GameState* gameState, Timer* timer) {
 
 // TIME UPDATE
 	// Get deltaTime Update
@@ -116,21 +113,22 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> callback
 	glClear(GL_DEPTH_BUFFER_BIT);*/
 
 // SECOND PASS: NEAR SHADOWMAP RENDER
+	
 	lightPos = glm::vec3(sin(lightRotation) * cos(lightAngle), sin(lightAngle), cos(lightRotation) * cos(lightAngle)) * 40.f;
 	nearShadowMap.update(lightPos);
 	glCullFace(GL_FRONT);
-	for (int i = 0; i < models.size(); i++) {
-		if (i == models.size() - 1) {
+	for (int i = 0; i < gameState->entityList.size(); i++) {
+		if (gameState->entityList.at(i).name == "landscape") {
 			nearShadowMap.shader.setMat4("model", glm::translate(model, glm::vec3(0.f, altitude, 0.f)));
 		}
-		models.at(i).Draw(nearShadowMap.shader);
+		gameState->entityList.at(i).model->Draw(nearShadowMap.shader);
 	}
 	glCullFace(GL_BACK);
 	nearShadowMap.cleanUp(callback_ptr);
 
 	//farShadowMap.render();		//Uncomment to see the shadow map (scene rendered from light's point of view)
 	//nearShadowMap.render();		//Uncomment to see the shadow map (scene rendered from light's point of view)
-
+	
 	glClear(GL_DEPTH_BUFFER_BIT);
 
 // THIRD PASS: CEL SHADE RENDER
@@ -149,11 +147,20 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> callback
 	//glBindTexture(GL_TEXTURE_2D, farShadowMap.depthMap);
 
 	// Iteratively Draw Models
-	for (int i = 0; i < models.size(); i ++) {
-		if (i == models.size()-1) {
-			celShader.setMat4("model", glm::translate(model, glm::vec3(0.f, altitude, 0.f)));
-		}
-		models.at(i).Draw(celShader);
+	for (int i = 0; i < gameState->entityList.size(); i ++) {
+		// Retrieve position and rotation
+		glm::vec3 position = gameState->entityList.at(i).transform->position;
+		glm::quat rotation = gameState->entityList.at(i).transform->rotation;
+
+		// Set model matrix
+		model = glm::mat4(1.0f);
+		model = glm::translate(model, position);
+		model = model * glm::toMat4(rotation);
+		model = glm::scale(model, glm::vec3(1.0f));
+		celShader.setMat4("model", model);
+
+		// Draw entity
+		gameState->entityList.at(i).model->Draw(celShader);
 	}
 
 // FOURTH PASS: GUI RENDER

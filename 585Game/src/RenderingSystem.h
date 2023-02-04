@@ -4,8 +4,8 @@
 #include <Boilerplate/Text.h>
 #include <Boilerplate/Model.h>
 #include <Boilerplate/Timer.h>
-#include <Entity.h>
 #include <Boilerplate/Shadow.h>
+#include <GameState.h>
 //#include <Boilerplate/Input.h>
 
 class RenderingSystem {
@@ -17,12 +17,12 @@ public:
 	void initRenderer();
 
 	// Update Renderer
-	void updateRenderer(std::shared_ptr<CallbackInterface> callback_ptr, std::vector<Entity> entityList, Timer* timer);
+	void updateRenderer(std::shared_ptr<CallbackInterface> callback_ptr, GameState* gameState, Timer* timer);
 
 	void shutdownImgui();
 
 	// Models vector
-	vector<Model> models;
+	//vector<Model> models;
 
 	// Window pointer
 	GLFWwindow* window;

@@ -12,7 +12,8 @@ An entity will be composed of a name (identifier), a Model (what we are renderin
 */
 class Entity {
 public:
-	std::string name;
-	Model* model;
+	std::string name = "unnamed_entity";
+	bool bphysicsEntity = false;
 	Transform* transform;
+	Model* model;
 };

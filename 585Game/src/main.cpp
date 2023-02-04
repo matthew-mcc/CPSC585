@@ -1,6 +1,7 @@
 #pragma once
 #include <RenderingSystem.h>
 #include <PhysicsSystem.h>
+#include <GameState.h>
 #include <Boilerplate/Timer.h>
 
 
@@ -8,20 +9,16 @@
 // Handles program initialization
 // Runs the primary game loop
 int main() {
-	// System Initialization
+	// Systems Creation
 	Timer* timer = &Timer::Instance();
 	RenderingSystem renderer = RenderingSystem();
 	PhysicsSystem physics = PhysicsSystem();
+	GameState* gameState = new GameState();
 	XboxInput xInput;
+
+	// Initialize Systems
 	xInput.run();
-
-	std::vector<Entity> entityList;
-	
-
-	entityList.emplace_back();
-	entityList.back().transform = new Transform();
-	entityList.back().model = new Model("assets/models/tire1/tire1.obj");
-
+	gameState->initGameState();
 
 	// PRIMARY GAME LOOP
 	while (!glfwWindowShouldClose(renderer.window)) {
@@ -34,10 +31,10 @@ int main() {
 		timer->update();
 		
 		// Update Physics System
-		physics.stepPhysics(entityList, timer);
+		physics.stepPhysics(gameState, timer);
 
 		// Update Rendering System
-		renderer.updateRenderer(callback_ptr, entityList, timer);
+		renderer.updateRenderer(callback_ptr, gameState, timer);
 
 
 	}

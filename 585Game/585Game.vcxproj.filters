@@ -90,6 +90,9 @@
     <ClCompile Include="src\testInput.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\Boilerplate\Shadow.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="snippetvehicle2common\base\Base.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -115,7 +118,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="snippetvehicle2common\SnippetVehicleHelpers.cpp">
-    <ClCompile Include="src\Boilerplate\Shadow.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\GameState.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -162,40 +167,6 @@
     <ClInclude Include="src\Entity.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\Model.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="snippetcommon\SnippetPrint.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="snippetcommon\SnippetPVD.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="snippetvehicle2common\base\Base.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="snippetvehicle2common\directdrivetrain\DirectDrivetrain.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="snippetvehicle2common\enginedrivetrain\EngineDrivetrain.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="snippetvehicle2common\physxintegration\PhysXIntegration.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="snippetvehicle2common\serialization\BaseSerialization.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="snippetvehicle2common\serialization\DirectDrivetrainSerialization.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="snippetvehicle2common\serialization\EngineDrivetrainSerialization.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="snippetvehicle2common\serialization\SerializationCommon.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="snippetvehicle2common\SnippetVehicleHelpers.h">
     <ClInclude Include="libraries\imgui-1.89.2\imgui.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -251,6 +222,42 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\Boilerplate\Shadow.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="snippetcommon\SnippetPrint.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="snippetcommon\SnippetPVD.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="snippetvehicle2common\base\Base.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="snippetvehicle2common\directdrivetrain\DirectDrivetrain.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="snippetvehicle2common\enginedrivetrain\EngineDrivetrain.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="snippetvehicle2common\physxintegration\PhysXIntegration.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="snippetvehicle2common\serialization\BaseSerialization.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="snippetvehicle2common\serialization\DirectDrivetrainSerialization.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="snippetvehicle2common\serialization\EngineDrivetrainSerialization.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="snippetvehicle2common\serialization\SerializationCommon.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="snippetvehicle2common\SnippetVehicleHelpers.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\GameState.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

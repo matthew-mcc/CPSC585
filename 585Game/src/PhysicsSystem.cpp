@@ -239,7 +239,7 @@ bool initVehicles() {
 	}
 
 	//Apply a start pose to the physx actor and add it to the physx scene.
-	PxTransform pose(PxVec3(0.000000000f, -0.0500000119f, -1.59399998f), PxQuat(PxIdentity));
+	PxTransform pose(PxVec3(0.f, 0.f, 0.f), PxQuat(PxIdentity));
 	gVehicle.setUpActor(*gScene, pose, gVehicleName);
 
 	//Set the vehicle in 1st gear.
@@ -285,12 +285,16 @@ bool initPhysicsSystem() {
 	return true;
 }
 
-void PhysicsSystem::stepPhysics(std::vector<Entity> entityList, Timer* timer) {
-	if (gNbCommands == gCommandProgress)
-		return;
+void PhysicsSystem::stepPhysics(GameState* gameState, Timer* timer) {
+	//if (gNbCommands == gCommandProgress)
+		//return;
 
 	// Update timestep to deltaTime
-	const PxReal timestep = timer->getDeltaTime();
+	//const PxReal timestep = timer->getDeltaTime();
+	const PxReal timestep = (1 / 60.f);
+
+	//
+	auto entityList = gameState->entityList;
 
 	//Apply the brake, throttle and steer to the command state of the vehicle.
 	const Command& command = gCommands[gCommandProgress];
@@ -323,14 +327,16 @@ void PhysicsSystem::stepPhysics(std::vector<Entity> entityList, Timer* timer) {
 	}
 
 	for (int i = 0; i < entityList.size(); i++) {
-		entityList.at(i).transform->position.x = gVehicle.mPhysXState.physxActor.rigidBody->getGlobalPose().p.x;
-		entityList.at(i).transform->position.y = gVehicle.mPhysXState.physxActor.rigidBody->getGlobalPose().p.y;
-		entityList.at(i).transform->position.z = gVehicle.mPhysXState.physxActor.rigidBody->getGlobalPose().p.z;
+		if (entityList.at(i).bphysicsEntity) {
+			entityList.at(i).transform->position.x = gVehicle.mPhysXState.physxActor.rigidBody->getGlobalPose().p.x;
+			entityList.at(i).transform->position.y = gVehicle.mPhysXState.physxActor.rigidBody->getGlobalPose().p.y;
+			entityList.at(i).transform->position.z = gVehicle.mPhysXState.physxActor.rigidBody->getGlobalPose().p.z;
 
-		entityList.at(i).transform->rotation.x = gVehicle.mPhysXState.physxActor.rigidBody->getGlobalPose().q.x;
-		entityList.at(i).transform->rotation.y = gVehicle.mPhysXState.physxActor.rigidBody->getGlobalPose().q.y;
-		entityList.at(i).transform->rotation.z = gVehicle.mPhysXState.physxActor.rigidBody->getGlobalPose().q.z;
-		entityList.at(i).transform->rotation.w = gVehicle.mPhysXState.physxActor.rigidBody->getGlobalPose().q.w;
+			entityList.at(i).transform->rotation.x = gVehicle.mPhysXState.physxActor.rigidBody->getGlobalPose().q.x;
+			entityList.at(i).transform->rotation.y = gVehicle.mPhysXState.physxActor.rigidBody->getGlobalPose().q.y;
+			entityList.at(i).transform->rotation.z = gVehicle.mPhysXState.physxActor.rigidBody->getGlobalPose().q.z;
+			entityList.at(i).transform->rotation.w = gVehicle.mPhysXState.physxActor.rigidBody->getGlobalPose().q.w;
+		}
 	}
 }
 
