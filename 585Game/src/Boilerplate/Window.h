@@ -88,9 +88,16 @@ public:
 	float steer = 0.f;
 
 	void XboxUpdate(XboxInput x) {
+		// GAMEPAD VEHICLE INPUT
+		if (keys_pressed <= 0) {
+			throttle = x.data.RT / 255.f;
+			brake = x.data.LT / 255.f;
+			steer = -x.data.LThumb_X_direction;
+		}
+		/*
 		if (x.data.LThumb_magnitude != 0) {
-			//camera_pos += (x.data.LThumb_Y_direction/10) * camera_front;
-			//camera_pos += (x.data.LThumb_X_direction/10) * (glm::normalize(glm::cross(camera_front, camera_up)));
+			camera_pos += (x.data.LThumb_Y_direction/10) * camera_front;
+			camera_pos += (x.data.LThumb_X_direction/10) * (glm::normalize(glm::cross(camera_front, camera_up)));
 		}
 
 		if (x.data.RThumb_magnitude != 0) {
@@ -107,13 +114,7 @@ public:
 			front.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
 			camera_front = glm::normalize(front);
 		}
-
-		// GAMEPAD VEHICLE INPUT
-		if (keys_pressed <= 0) {
-			throttle = x.data.RT / 255.f;
-			brake = x.data.LT / 255.f;
-			steer = -x.data.LThumb_X_direction;
-		}
+		*/
 	}
 };
 

@@ -130,9 +130,29 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> callback
 	// Use world shader
 	celShader.use();
 
-	// Camera Angle
+	// Chase Camera
 	Entity playerEntity = gameState->findEntity("player_truck1");	// can use playerEntity.transform->position and playerEntity.transform->rotation
-	view = glm::lookAt(callback_ptr->camera_pos, callback_ptr->camera_pos + callback_ptr->camera_front, callback_ptr->camera_up);
+	glm::mat4 m = toMat4(playerEntity.transform->rotation);
+	glm::vec4 tempVec;
+
+	// Player vehicle's up vector
+	tempVec = m * glm::vec4(0.f, 1.f, 0.f, 0.f);
+	glm::vec3 player_up = (glm::vec3)tempVec;
+
+	// Player vehicle's forward vector
+	tempVec = m * glm::vec4(0.f, 0.f, 1.f, 0.f);
+	glm::vec3 player_forward = (glm::vec3)tempVec;
+
+	// Player vehicle's right vector
+	tempVec = m * glm::vec4(1.f, 0.f, 0.f, 0.f);
+	glm::vec3 player_right = (glm::vec3)tempVec;
+
+	// Compute eye and target offsets for lookat view matrix
+	glm::vec3 eye_offset = (camera_position_forward * player_forward) + (camera_position_right * player_right) + (camera_position_up * player_up);
+	glm::vec3 target_offset = (camera_target_forward * player_forward) + (camera_target_right * player_right) + (camera_target_up * player_up);
+	
+	// Set view and projection matrices
+	view = glm::lookAt(playerEntity.transform->position + eye_offset, playerEntity.transform->position + target_offset, callback_ptr->camera_up);
 	projection = glm::perspective(glm::radians(45.0f), (float)callback_ptr->xres / (float)callback_ptr->yres, 0.1f, 1000.0f);
 	setCelShaderUniforms();
 
