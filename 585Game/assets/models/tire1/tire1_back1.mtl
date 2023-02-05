@@ -1,7 +1,7 @@
-# Blender 3.1.0 MTL File: 'Truck1.blend'
+# Blender 3.1.0 MTL File: 'Vehicles.blend'
 # www.blender.org
 
-newmtl tire1
+newmtl tire1_back
 Ns 360.000000
 Ka 1.000000 1.000000 1.000000
 Kd 0.020792 0.020792 0.020792
@@ -10,4 +10,4 @@ Ke 0.000000 0.000000 0.000000
 Ni 1.450000
 d 1.000000
 illum 1
-map_Kd  tire1_diffuse.jpg
+map_Kd  tire1_back_diffuse.jpg

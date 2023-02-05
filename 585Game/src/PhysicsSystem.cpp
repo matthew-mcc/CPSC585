@@ -305,6 +305,18 @@ void PhysicsSystem::stepPhysics(std::shared_ptr<CallbackInterface> callback_ptr,
 			entityList.at(i).transform->rotation.y = gVehicle.mPhysXState.physxActor.rigidBody->getGlobalPose().q.y;
 			entityList.at(i).transform->rotation.z = gVehicle.mPhysXState.physxActor.rigidBody->getGlobalPose().q.z;
 			entityList.at(i).transform->rotation.w = gVehicle.mPhysXState.physxActor.rigidBody->getGlobalPose().q.w;
+
+			// Iterate through all local transforms except the first (chassis)
+			for (int j = 1; j < entityList.at(i).localTransforms.size(); j++) {
+				entityList.at(i).localTransforms.at(j)->position.x = gVehicle.mPhysXState.physxActor.wheelShapes[j - 1]->getLocalPose().p.x;
+				entityList.at(i).localTransforms.at(j)->position.y = gVehicle.mPhysXState.physxActor.wheelShapes[j - 1]->getLocalPose().p.y;
+				entityList.at(i).localTransforms.at(j)->position.z = gVehicle.mPhysXState.physxActor.wheelShapes[j - 1]->getLocalPose().p.z;
+
+				entityList.at(i).localTransforms.at(j)->rotation.x = gVehicle.mPhysXState.physxActor.wheelShapes[j - 1]->getLocalPose().q.x;
+				entityList.at(i).localTransforms.at(j)->rotation.y = gVehicle.mPhysXState.physxActor.wheelShapes[j - 1]->getLocalPose().q.y;
+				entityList.at(i).localTransforms.at(j)->rotation.z = gVehicle.mPhysXState.physxActor.wheelShapes[j - 1]->getLocalPose().q.z;
+				entityList.at(i).localTransforms.at(j)->rotation.w = gVehicle.mPhysXState.physxActor.wheelShapes[j - 1]->getLocalPose().q.w;
+			}
 		}
 	}
 }

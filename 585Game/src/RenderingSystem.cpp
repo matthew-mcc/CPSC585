@@ -108,7 +108,6 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> callback
 	glClear(GL_DEPTH_BUFFER_BIT);*/
 
 // SECOND PASS: NEAR SHADOWMAP RENDER
-	
 	lightPos = glm::vec3(sin(lightRotation) * cos(lightAngle), sin(lightAngle), cos(lightRotation) * cos(lightAngle)) * 40.f;
 	nearShadowMap.update(lightPos);
 	glCullFace(GL_FRONT);
@@ -129,9 +128,13 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> callback
 // THIRD PASS: CEL SHADE RENDER
 	// Use world shader
 	celShader.use();
+	glActiveTexture(GL_TEXTURE1);
+	glBindTexture(GL_TEXTURE_2D, nearShadowMap.depthMap);
+	//glActiveTexture(GL_TEXTURE2);
+	//glBindTexture(GL_TEXTURE_2D, farShadowMap.depthMap);
 
-	// Chase Camera
-	Entity playerEntity = gameState->findEntity("player_truck1");	// can use playerEntity.transform->position and playerEntity.transform->rotation
+	// Retrieve player entity
+	Entity playerEntity = gameState->findEntity("player_truck1");
 	glm::mat4 m = toMat4(playerEntity.transform->rotation);
 	glm::vec4 tempVec;
 
@@ -144,10 +147,10 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> callback
 	glm::vec3 player_forward = (glm::vec3)tempVec;
 
 	// Player vehicle's right vector
-	tempVec = m * glm::vec4(1.f, 0.f, 0.f, 0.f);
+	tempVec = m * glm::vec4(-1.f, 0.f, 0.f, 0.f);
 	glm::vec3 player_right = (glm::vec3)tempVec;
 
-	// Compute eye and target offsets for lookat view matrix
+	// Chase Camera: Compute eye and target offsets for lookat view matrix
 	glm::vec3 eye_offset = (camera_position_forward * player_forward) + (camera_position_right * player_right) + (camera_position_up * player_up);
 	glm::vec3 target_offset = (camera_target_forward * player_forward) + (camera_target_right * player_right) + (camera_target_up * player_up);
 	
@@ -156,27 +159,30 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> callback
 	projection = glm::perspective(glm::radians(45.0f), (float)callback_ptr->xres / (float)callback_ptr->yres, 0.1f, 1000.0f);
 	setCelShaderUniforms();
 
-	// Bind Textures
-	glActiveTexture(GL_TEXTURE1);
-	glBindTexture(GL_TEXTURE_2D, nearShadowMap.depthMap);
-	//glActiveTexture(GL_TEXTURE2);
-	//glBindTexture(GL_TEXTURE_2D, farShadowMap.depthMap);
-
 	// Iteratively Draw Models
 	for (int i = 0; i < gameState->entityList.size(); i ++) {
 		// Retrieve position and rotation
 		glm::vec3 position = gameState->entityList.at(i).transform->position;
 		glm::quat rotation = gameState->entityList.at(i).transform->rotation;
 
-		// Set model matrix
-		model = glm::mat4(1.0f);
-		model = glm::translate(model, position);
-		model = model * glm::toMat4(rotation);
-		model = glm::scale(model, glm::vec3(1.0f));
-		celShader.setMat4("model", model);
+		for (int j = 0; j < gameState->entityList.at(i).localTransforms.size(); j++) {
+			glm::vec3 localPosition = gameState->entityList.at(i).localTransforms.at(j)->position;
+			glm::quat localRotation = gameState->entityList.at(i).localTransforms.at(j)->rotation;
+
+			// Set model matrix
+			model = glm::mat4(1.0f);
+			model = glm::translate(model, position);
+			model = model * glm::toMat4(rotation);
+			model = glm::translate(model, localPosition);
+			model = model * glm::toMat4(localRotation);
+			model = scale(model, glm::vec3(1.0f));
+			celShader.setMat4("model", model);
+
+			gameState->entityList.at(i).model->meshes.at(j).Draw(celShader);
+		}
 
 		// Draw entity
-		gameState->entityList.at(i).model->Draw(celShader);
+		//gameState->entityList.at(i).model->Draw(celShader);
 	}
 
 // FOURTH PASS: GUI RENDER

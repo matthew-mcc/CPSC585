@@ -1,8 +1,9 @@
 #pragma once
-
 #include<string>
 #include "Boilerplate/Model.h"
 #include "Transform.h"
+
+using namespace std;
 
 /*
 This is similar to a GameObject in Unity - but much more simplified.
@@ -12,8 +13,9 @@ An entity will be composed of a name (identifier), a Model (what we are renderin
 */
 class Entity {
 public:
-	std::string name = "unnamed_entity";
+	string name = "unnamed_entity";
 	bool bphysicsEntity = false;
 	Transform* transform;
+	vector<Transform*> localTransforms;
 	Model* model;
 };

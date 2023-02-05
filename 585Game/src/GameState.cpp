@@ -5,8 +5,11 @@ using namespace std;
 void GameState::initGameState() {
 	// Player Truck
 	addEntity("player_truck1", true, new Transform(), vector<string>{
-		"assets/models/test_truck1/test_truck1.obj",
-		"assets/models/test_tire1/test_tire1.obj"});
+		"assets/models/truck1/truck1.obj",
+		"assets/models/tire1/tire1_front2.obj",
+		"assets/models/tire1/tire1_front1.obj",
+		"assets/models/tire1/tire1_back2.obj",
+		"assets/models/tire1/tire1_back1.obj"});
 
 	// Landscape
 	addEntity("landscape", false, new Transform(), vector<string>{
@@ -25,6 +28,10 @@ void GameState::addEntity(string name, bool bphysicsEntity, Transform* transform
 	entityList.back().bphysicsEntity = bphysicsEntity;
 	// Transform
 	entityList.back().transform = transform;
+	// Local Transforms
+	for (int i = 0; i < modelPaths.size(); i++) {
+		entityList.back().localTransforms.push_back(new Transform());
+	}
 	// Model
 	entityList.back().model = new Model();
 	for (int i = 0; i < modelPaths.size(); i++) {
