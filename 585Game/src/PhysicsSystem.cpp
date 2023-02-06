@@ -1,85 +1,4 @@
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions
-// are met:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of NVIDIA CORPORATION nor the names of its
-//    contributors may be used to endorse or promote products derived
-//    from this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS ''AS IS'' AND ANY
-// EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-// PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL THE COPYRIGHT OWNER OR
-// CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-// PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY
-// OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-// (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-// OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-//
-// Copyright (c) 2008-2022 NVIDIA Corporation. All rights reserved.
-// Copyright (c) 2004-2008 AGEIA Technologies, Inc. All rights reserved.
-// Copyright (c) 2001-2004 NovodeX AG. All rights reserved.  
 
-// ****************************************************************************
-// This snippet illustrates simple use of the physx vehicle sdk and demonstrates
-// how to simulate a vehicle with a fully featured drivetrain comprising engine,
-// clutch, differential and gears.  The snippet uses only parameters, states and 
-// components maintained by the PhysX Vehicle SDK.
-
-// Vehicles are made of parameters, states and components.
-
-// Parameters describe the configuration of a vehicle.  Examples are vehicle mass, wheel radius 
-// and suspension stiffness.
-
-// States describe the instantaneous dynamic state of a vehicle.  Examples are engine revs, wheel 
-// yaw angle and tire slip angles.
-
-// Components forward integrate the dynamic state of the vehicle, given the previous vehicle state 
-// and the vehicle's parameterisation.
-// Components update dynamic state by invoking reusable functions in a particular sequence. 
-// An example component is a rigid body component that updates the linear and angular velocity of 
-// the vehicle's rigid body given the instantaneous forces and torques of the suspension and tire 
-// states.
-
-// The pipeline of vehicle computation is a sequence of components that run in order.  For example, 
-// one component might compute the plane under the wheel by performing a scene query against the 
-// world geometry. The next component in the sequence might compute the suspension compression required 
-// to place the wheel on the surface of the hit plane. Following this, another component might compute 
-// the suspension force that arises from that compression.  The rigid body component, as discussed earlier, 
-// can then forward integrate the rigid body's linear velocity using the suspension force.
-
-// Custom combinations of parameter, state and component allow different behaviours to be simulated with 
-// different simulation fidelities.  For example, a suspension component that implements a linear force 
-// response with respect to its compression state could be replaced with one that imlements a non-linear
-// response.  The replacement component would consume the same suspension compression state data and 
-// would output the same suspension force data structure.  In this example, the change has been localised 
-// to the  component that converts suspension compression to force and to the parameterisation that governs 
-// that conversion.
-// Another combination example could be the replacement of the tire component from a low fidelity model to 
-// a high fidelty model such as Pacejka. The low and high fidelity components consume the same state data 
-// (tire slip, load, friction) and  output the same state data  for the tire forces. Again, the 
-// change has been localised to the component that converts slip angle to tire force and the 
-// parameterisation that governs the conversion.
-
-//The PhysX Vehicle SDK presents a maintained set of parameters, states and components.  The maintained 
-//set of parameters, states and components may be combined on their own or combined with custom parameters, 
-//states and components.
-
-//This snippet breaks the vehicle into into three distinct models:
-//1) a base vehicle model that describes the mechanical configuration of suspensions, tires, wheels and an 
-//   associated rigid body.
-//2) a drivetrain model that forwards input controls to wheel torques via a drivetrain model
-//   that includes engine, clutch, differential and gears.
-//3) a physx integration model that provides a representation of the vehicle in an associated physx scene.
-
-// It is a good idea to record and playback with pvd (PhysX Visual Debugger).
-// ****************************************************************************
 
 #include <ctype.h>
 
@@ -92,10 +11,32 @@
 
 #include "../snippetcommon/SnippetPVD.h"
 #include "PhysicsSystem.h"
+#include "OBJ_Loader.h"
 
 using namespace physx;
 using namespace physx::vehicle2;
 using namespace snippetvehicle2;
+
+class ContactReportCallback : public physx::PxSimulationEventCallback {
+	void onContact(const physx::PxContactPairHeader& pairHeader, const physx::PxContactPair* pairs, physx::PxU32 nbPairs) {
+		PX_UNUSED(pairHeader);
+		PX_UNUSED(pairs);
+		PX_UNUSED(nbPairs);
+
+		std::cout << "Stop touching me :(" << std::endl;
+	}
+	void onConstraintBreak(physx::PxConstraintInfo* constraints, physx::PxU32 count) {}
+	void onWake(physx::PxActor** actors, physx::PxU32 count) {}
+	void onSleep(physx::PxActor** actors, physx::PxU32 count) {}
+	void onTrigger(physx::PxTriggerPair* pairs, physx::PxU32 count) {}
+	void onAdvance(const physx::PxRigidBody* const* bodyBuffer,
+		const physx::PxTransform* poseBuffer,
+		const physx::PxU32 count) {}
+
+	//void onConstraintBreak(physx::PxConstraintInfo* constraints, physx::PxU32 count){}
+
+};
+
 
 
 //PhysX management class instances.
@@ -107,6 +48,10 @@ PxDefaultCpuDispatcher* gDispatcher = NULL;
 PxScene* gScene = NULL;
 PxMaterial* gMaterial = NULL;
 PxPvd* gPvd = NULL;
+
+// Cooking shit
+PxCooking* gCooking = NULL;
+PxCookingParams* gParams;
 
 //The path to the vehicle json files to be loaded.
 const char* gVehicleDataPath = NULL;
@@ -132,6 +77,12 @@ const char gVehicleName[] = "engineDrive";
 
 //A ground plane to drive on.
 PxRigidStatic* gGroundPlane = NULL;
+PxTriangleMesh* groundMesh = NULL;
+
+
+
+
+
 
 void initPhysX() {
 	gFoundation = PxCreateFoundation(PX_PHYSICS_VERSION, gAllocator, gErrorCallback);
@@ -148,6 +99,10 @@ void initPhysX() {
 	sceneDesc.cpuDispatcher = gDispatcher;
 	sceneDesc.filterShader = VehicleFilterShader;
 
+	// Not sure if we need this
+	ContactReportCallback* gContactReportCallback = new ContactReportCallback();
+	sceneDesc.simulationEventCallback = gContactReportCallback;
+
 	gScene = gPhysics->createScene(sceneDesc);
 	PxPvdSceneClient* pvdClient = gScene->getScenePvdClient();
 	if (pvdClient)
@@ -159,6 +114,17 @@ void initPhysX() {
 	gMaterial = gPhysics->createMaterial(0.5f, 0.5f, 0.6f);
 
 	PxInitVehicleExtension(*gFoundation);
+
+	// Cooking init
+	gCooking = PxCreateCooking(PX_PHYSICS_VERSION, *gFoundation, PxTolerancesScale());
+	if (!gCooking)
+		std::cout << "PxCreateCooking Failed!" << std::endl;
+	gParams = new PxCookingParams(PxTolerancesScale());
+	gParams->meshPreprocessParams |= PxMeshPreprocessingFlag::eDISABLE_CLEAN_MESH;
+	gParams->meshPreprocessParams |= PxMeshPreprocessingFlag::eDISABLE_ACTIVE_EDGES_PRECOMPUTE;
+	gCooking->setParams(*gParams);
+
+
 }
 
 void cleanupPhysX() {
@@ -179,7 +145,24 @@ void cleanupPhysX() {
 
 void initGroundPlane() {
 	//PxTriangleMeshGeometry groundGeom = PxTriangleMeshGeometry(PxMeshScale(10));
+	PxTriangleMeshGeometry groundGeo = PxTriangleMeshGeometry(groundMesh, PxMeshScale(1)); // Not sure what scale to put yet..
+	PxShape* groundShape = gPhysics->createShape(groundGeo, *gMaterial, true);
 
+	PxFilterData groundFilter(COLLISION_FLAG_GROUND, COLLISION_FLAG_GROUND_AGAINST, 0, 0);
+	//groundShape->setSimulationFilterData(groundFilter);
+
+	PxQuat initRot = PxQuat(PxIdentity);
+	
+
+	PxTransform groundTrans(physx::PxVec3(0, 0, 0), initRot);
+
+	
+	PxRigidStatic* ground = gPhysics->createRigidStatic(groundTrans);
+	
+	std::cout << "ground X: " <<  ground->getGlobalPose().p.x << "ground Y: " << ground->getGlobalPose().p.y << "ground Z: " << ground->getGlobalPose().p.z;
+
+	ground->attachShape(*groundShape);
+	gScene->addActor(*ground);
 
 	gGroundPlane = PxCreatePlane(*gPhysics, PxPlane(0, 1, 0, 0), *gMaterial);
 	for (PxU32 i = 0; i < gGroundPlane->getNbShapes(); i++)
@@ -190,7 +173,68 @@ void initGroundPlane() {
 		shape->setFlag(PxShapeFlag::eSIMULATION_SHAPE, false);
 		shape->setFlag(PxShapeFlag::eTRIGGER_SHAPE, false);
 	}
-	gScene->addActor(*gGroundPlane);
+	
+	
+	//gScene->addActor(*gGroundPlane);
+}
+
+void initStaticMeshes() {
+
+	objl::Loader loader;
+	
+	// start with the landscape
+	// We have 4 "chunks" for the landscape, so gonna have to make 4 meshes.
+	//Entity landscape = gameState->findEntity("landscape");
+	
+
+	std::string objPath = "assets/models/landscape1/landscape_one.obj";
+	loader.LoadFile(objPath);
+	//std::cout << loader.LoadedMeshes.size();
+
+	std::vector<PxVec3> vertexArr;
+	std::vector<PxU32> indicesArr;
+	for (int i = 0; i < loader.LoadedMeshes[0].Vertices.size(); i++) {
+		vertexArr.push_back(PxVec3(loader.LoadedMeshes[0].Vertices[i].Position.X, loader.LoadedMeshes[0].Vertices[i].Position.Y, loader.LoadedMeshes[0].Vertices[i].Position.Z));
+	}
+	for (int i = 0; i < loader.LoadedMeshes[0].Indices.size(); i++) {
+		indicesArr.push_back(loader.LoadedMeshes[0].Indices[i]);
+	}
+
+	////gLandscape = PxCreate
+	PxTriangleMeshDesc meshDesc;
+	meshDesc.setToDefault();
+
+	meshDesc.points.count = (PxU32) vertexArr.size();
+	meshDesc.points.stride = sizeof(PxVec3);
+	meshDesc.points.data = vertexArr.data();
+	
+	meshDesc.triangles.count = indicesArr.size() / 3;
+	meshDesc.triangles.stride = 3 * sizeof(PxU32);
+	meshDesc.triangles.data = indicesArr.data();
+
+	PxDefaultMemoryOutputStream writeBuffer;
+	PxTriangleMeshCookingResult::Enum result;
+	bool status = gCooking->cookTriangleMesh(meshDesc, writeBuffer);
+	std::cout << "Triangle Mesh Status: " << status << std::endl;
+	/*if (!status)
+		std::cout << "Mesh Creation Failed" << std::endl;*/
+
+	PxDefaultMemoryInputData readBuffer(writeBuffer.getData(), writeBuffer.getSize());
+	groundMesh = gPhysics->createTriangleMesh(readBuffer);
+	
+	
+	
+	
+
+
+	/*PxDefaultMemoryOutputStream writeBuffer;
+	PxTriangleMeshCookingResult::Enum result;
+	bool status = gCooking->cookTriangleMesh(meshDesc, writeBuffer, &result);
+	if (!status)
+		std::cout << "BROKEN";*/
+	
+	 
+	//gLandscape = PxCreateTriangleMesh()
 }
 
 void cleanupGroundPlane() {
@@ -235,7 +279,7 @@ bool initVehicles() {
 	//Set up the simulation context.
 	//The snippet is set up with
 	//a) z as the longitudinal axis
-	//b) x as the lateral axis
+	//b) x as the lateral axis 
 	//c) y as the vertical axis.
 	//d) metres  as the lengthscale.
 	gVehicleSimulationContext.setToDefault();
@@ -261,8 +305,11 @@ void cleanupPhysics() {
 
 bool initPhysicsSystem() {
 	initPhysX();
+	initStaticMeshes();
 	initGroundPlane();
 	initMaterialFrictionTable();
+
+	
 	if (!initVehicles())
 		return false;
 	return true;
@@ -281,6 +328,8 @@ void PhysicsSystem::stepPhysics(std::shared_ptr<CallbackInterface> callback_ptr,
 	gVehicle.mCommandState.nbBrakes = 1;
 	gVehicle.mCommandState.throttle = callback_ptr->throttle;
 	gVehicle.mCommandState.steer = callback_ptr->steer;
+
+	//std::cout << "Vehicle X: " << gVehicle.mPhysXState.physxActor.rigidBody->getGlobalPose().p.x << "Vehicle Y: " << gVehicle.mPhysXState.physxActor.rigidBody->getGlobalPose().p.y << "Vehicle Z: " << gVehicle.mPhysXState.physxActor.rigidBody->getGlobalPose().p.z << std::endl;
 
 	//Forward integrate the vehicle by a single timestep.
 	//Apply substepping at low forward speed to improve simulation fidelity.

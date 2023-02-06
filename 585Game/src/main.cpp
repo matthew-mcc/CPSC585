@@ -19,6 +19,7 @@ int main() {
 	// Initialize Systems
 	xInput.run();
 	gameState->initGameState();
+	//physics.initStaticMeshes(gameState);
 
 	// PRIMARY GAME LOOP
 	while (!glfwWindowShouldClose(renderer.window)) {
@@ -29,6 +30,7 @@ int main() {
 
 		// Update Delta Time
 		timer->update();
+		
 		
 		// Update Physics System
 		physics.stepPhysics(callback_ptr, gameState, timer);
