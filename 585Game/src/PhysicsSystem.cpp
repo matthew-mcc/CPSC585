@@ -75,7 +75,7 @@ PxReal gPhysXDefaultMaterialFriction = 1.0f;
 //Give the vehicle a name so it can be identified in PVD.
 const char gVehicleName[] = "engineDrive";
 
-//A ground plane to drive on.
+//A ground plane to drive on (this is our landscape stuff).
 PxRigidStatic* gGroundPlane = NULL;
 PxTriangleMesh* groundMesh = NULL;
 
@@ -144,52 +144,30 @@ void cleanupPhysX() {
 }
 
 void initGroundPlane() {
-	//PxTriangleMeshGeometry groundGeom = PxTriangleMeshGeometry(PxMeshScale(10));
-	PxTriangleMeshGeometry groundGeo = PxTriangleMeshGeometry(groundMesh, PxMeshScale(1)); // Not sure what scale to put yet..
+	
+	PxTriangleMeshGeometry groundGeo = PxTriangleMeshGeometry(groundMesh, PxMeshScale(1)); 
 	PxShape* groundShape = gPhysics->createShape(groundGeo, *gMaterial, true);
 
 	PxFilterData groundFilter(COLLISION_FLAG_GROUND, COLLISION_FLAG_GROUND_AGAINST, 0, 0);
-	//groundShape->setSimulationFilterData(groundFilter);
-
-	PxQuat initRot = PxQuat(PxIdentity);
-	
-
-	PxTransform groundTrans(physx::PxVec3(0, 0, 0), initRot);
 
 	
+
+	PxTransform groundTrans(physx::PxVec3(0, 0, 0), PxQuat(PxIdentity));
 	PxRigidStatic* ground = gPhysics->createRigidStatic(groundTrans);
 	
-	std::cout << "ground X: " <<  ground->getGlobalPose().p.x << "ground Y: " << ground->getGlobalPose().p.y << "ground Z: " << ground->getGlobalPose().p.z;
-
+	
 	ground->attachShape(*groundShape);
 	gScene->addActor(*ground);
-
-	gGroundPlane = PxCreatePlane(*gPhysics, PxPlane(0, 1, 0, 0), *gMaterial);
-	for (PxU32 i = 0; i < gGroundPlane->getNbShapes(); i++)
-	{
-		PxShape* shape = NULL;
-		gGroundPlane->getShapes(&shape, 1, i);
-		shape->setFlag(PxShapeFlag::eSCENE_QUERY_SHAPE, true);
-		shape->setFlag(PxShapeFlag::eSIMULATION_SHAPE, false);
-		shape->setFlag(PxShapeFlag::eTRIGGER_SHAPE, false);
-	}
 	
 	
-	//gScene->addActor(*gGroundPlane);
 }
 
 void initStaticMeshes() {
 
 	objl::Loader loader;
-	
-	// start with the landscape
-	// We have 4 "chunks" for the landscape, so gonna have to make 4 meshes.
-	//Entity landscape = gameState->findEntity("landscape");
-	
-
 	std::string objPath = "assets/models/landscape1/landscape_one.obj";
 	loader.LoadFile(objPath);
-	//std::cout << loader.LoadedMeshes.size();
+	
 
 	std::vector<PxVec3> vertexArr;
 	std::vector<PxU32> indicesArr;
@@ -200,7 +178,7 @@ void initStaticMeshes() {
 		indicesArr.push_back(loader.LoadedMeshes[0].Indices[i]);
 	}
 
-	////gLandscape = PxCreate
+	// Mesh Description for Triangle Mesh
 	PxTriangleMeshDesc meshDesc;
 	meshDesc.setToDefault();
 
@@ -212,29 +190,18 @@ void initStaticMeshes() {
 	meshDesc.triangles.stride = 3 * sizeof(PxU32);
 	meshDesc.triangles.data = indicesArr.data();
 
+	// Cooking stuff
 	PxDefaultMemoryOutputStream writeBuffer;
 	PxTriangleMeshCookingResult::Enum result;
 	bool status = gCooking->cookTriangleMesh(meshDesc, writeBuffer);
-	std::cout << "Triangle Mesh Status: " << status << std::endl;
-	/*if (!status)
-		std::cout << "Mesh Creation Failed" << std::endl;*/
+	if (!status)
+		std::cout << "Mesh Creation Failed" << std::endl;
 
+	// Cook it and set to groundMesh
 	PxDefaultMemoryInputData readBuffer(writeBuffer.getData(), writeBuffer.getSize());
 	groundMesh = gPhysics->createTriangleMesh(readBuffer);
 	
-	
-	
-	
 
-
-	/*PxDefaultMemoryOutputStream writeBuffer;
-	PxTriangleMeshCookingResult::Enum result;
-	bool status = gCooking->cookTriangleMesh(meshDesc, writeBuffer, &result);
-	if (!status)
-		std::cout << "BROKEN";*/
-	
-	 
-	//gLandscape = PxCreateTriangleMesh()
 }
 
 void cleanupGroundPlane() {

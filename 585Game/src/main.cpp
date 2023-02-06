@@ -19,7 +19,7 @@ int main() {
 	// Initialize Systems
 	xInput.run();
 	gameState->initGameState();
-	//physics.initStaticMeshes(gameState);
+	
 
 	// PRIMARY GAME LOOP
 	while (!glfwWindowShouldClose(renderer.window)) {

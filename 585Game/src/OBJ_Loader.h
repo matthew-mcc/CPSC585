@@ -1,5 +1,11 @@
 // OBJ_Loader.h - A Single Header OBJ Model Loader
 
+/*
+TAKEN FROM: https://github.com/Bly7/OBJ-Loader
+
+License Info: OBJ Loader uses the MIT license. The MIT license allows free use and modification of the software as long as they provide credit back to me and don't hold me liable for anything that may go wrong. If you want to read the license in full look into the file entitled: LICENSE
+
+*/
 #pragma once
 
 // Iostream - STD I/O Library
