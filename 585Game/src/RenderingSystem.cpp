@@ -197,9 +197,9 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> callback
 	RenderText(textShader, textVAO, textVBO, "FPS: " + std::to_string(fps), 8.f, callback_ptr->yres - 32.f, 0.6f, glm::vec3(0.2, 0.2f, 0.2f), textChars);
 
 	// Imgui Window
-	ImGui::Begin("Super Space Salvagers");
-	ImGui::Text("World Parameters");
-	ImGui::SliderFloat("Landscape Altitude", &altitude, 0.f, 10.f);
+	ImGui::Begin("Super Space Salvagers - Debug");
+	//ImGui::Text("World Parameters");
+	//ImGui::SliderFloat("Landscape Altitude", &altitude, 0.f, 10.f);
 
 	ImGui::Text("Cel Shader Parameters");
 	ImGui::SliderFloat("Light Rotation", &lightRotation, 0.f, 6.28f);
@@ -212,6 +212,14 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> callback
 	ImGui::ColorEdit3("Shadow Color", (float*)&shadowColor);
 	ImGui::SliderFloat("Min bias", &minBias, 0.0f, 0.1f);
 	ImGui::SliderFloat("Max bias", &maxBias, 0.0f, 0.1f);
+
+	ImGui::Text("Camera Parameters");
+	ImGui::SliderFloat("Camera Position Forward", &camera_position_forward, -30.f, 30.f);
+	ImGui::SliderFloat("Camera Position Up", &camera_position_up, -30.f, 30.f);
+	ImGui::SliderFloat("Camera Position Right", &camera_position_right, -30.f, 30.f);
+	ImGui::SliderFloat("Camera Target Forward", &camera_target_forward, -30.f, 30.f);
+	ImGui::SliderFloat("Camera Target Up", &camera_target_up, -30.f, 30.f);
+	ImGui::SliderFloat("Camera Target Right", &camera_target_right, -30.f, 30.f);
 	ImGui::End();
 
 	ImGui::Render();

@@ -9,7 +9,9 @@ void GameState::initGameState() {
 		"assets/models/tire1/tire1_front2.obj",
 		"assets/models/tire1/tire1_front1.obj",
 		"assets/models/tire1/tire1_back2.obj",
-		"assets/models/tire1/tire1_back1.obj"});
+		"assets/models/tire1/tire1_back1.obj",
+		"assets/models/tire1/tire1_back1.obj",
+		"assets/models/tire1/tire1_back2.obj"});
 
 	// Landscape
 	addEntity("landscape", false, new Transform(), vector<string>{
