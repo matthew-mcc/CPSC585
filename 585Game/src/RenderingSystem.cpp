@@ -150,13 +150,15 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> callback
 	tempVec = m * glm::vec4(-1.f, 0.f, 0.f, 0.f);
 	glm::vec3 player_right = (glm::vec3)tempVec;
 
+	camera_position_forward = camera_position_default-(callback_ptr->camera_acceleration)/15.f;
+
 	// Chase Camera: Compute eye and target offsets for lookat view matrix
-	glm::vec3 eye_offset = (camera_position_forward * player_forward) + (camera_position_right * player_right) + (camera_position_up * player_up);
+	glm::vec3 eye_offset = (camera_position_forward * player_forward) + (callback_ptr->camera_position_right * player_right) + (camera_position_up * player_up);
 	glm::vec3 target_offset = (camera_target_forward * player_forward) + (camera_target_right * player_right) + (camera_target_up * player_up);
 	
 	// Set view and projection matrices
 	view = glm::lookAt(playerEntity.transform->position + eye_offset, playerEntity.transform->position + target_offset, callback_ptr->camera_up);
-	projection = glm::perspective(glm::radians(45.0f), (float)callback_ptr->xres / (float)callback_ptr->yres, 0.1f, 1000.0f);
+	projection = glm::perspective(glm::radians(callback_ptr->fov), (float)callback_ptr->xres / (float)callback_ptr->yres, 0.1f, 1000.0f);
 	setCelShaderUniforms();
 
 	// Iteratively Draw Models
@@ -214,7 +216,7 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> callback
 	ImGui::SliderFloat("Max bias", &maxBias, 0.0f, 0.1f);
 
 	ImGui::Text("Camera Parameters");
-	ImGui::SliderFloat("Camera Position Forward", &camera_position_forward, -30.f, 30.f);
+	ImGui::SliderFloat("Camera Position Forward", &camera_position_default, -30.f, 30.f);
 	ImGui::SliderFloat("Camera Position Up", &camera_position_up, -30.f, 30.f);
 	ImGui::SliderFloat("Camera Position Right", &camera_position_right, -30.f, 30.f);
 	ImGui::SliderFloat("Camera Target Forward", &camera_target_forward, -30.f, 30.f);

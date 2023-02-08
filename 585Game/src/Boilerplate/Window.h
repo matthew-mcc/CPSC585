@@ -76,7 +76,9 @@ public:
 	float lastX = 0.f;
 	float lastY = 0.f;
 	float fov = 45.f;
-	
+	float camera_acceleration = 0.f;
+	float camera_position_right = 0.0f;
+
 	// Window Dimensions
 	int xres = 1920;
 	int yres = 1080;
@@ -94,6 +96,34 @@ public:
 			brake = x.data.LT / 255.f;
 			steer = -x.data.LThumb_X_direction;
 		}
+
+		if(throttle>0){
+			if (camera_acceleration < 30.f)
+				camera_acceleration+= 1.f;
+			if(fov<60.f)
+				fov += 1.f;
+		}
+		else {
+			if (camera_acceleration > 0)
+				camera_acceleration -= 0.2f;
+			if(fov>45.f)
+				fov -= 1.f;
+		}
+		if (steer != 0.f && throttle!=0 ) {
+			if (steer > 0.f && camera_position_right>-1.5f)
+				camera_position_right -= 0.1f;
+			else if (steer < 0.f && camera_position_right<1.5f)
+				camera_position_right += 0.1f;
+		}
+		else if ((steer == 0.f && camera_position_right!=0.f) || throttle==0.f ) {
+			if (camera_position_right > 0.f)
+				camera_position_right -= 0.1f;
+			else if (camera_position_right < 0.f)
+				camera_position_right += 0.1f;
+			if (camera_position_right >= -0.1f && camera_position_right <= 0.1f)
+				camera_position_right = 0.f;
+		}
+		
 		/*
 		if (x.data.LThumb_magnitude != 0) {
 			camera_pos += (x.data.LThumb_Y_direction/10) * camera_front;

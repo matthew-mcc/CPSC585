@@ -63,7 +63,8 @@ private:
 	int fps;
 
 	// Camera Parameters
-	float camera_position_forward = -7.0f;
+	float camera_position_default = -7.5f;
+	float camera_position_forward = -7.5f;
 	float camera_position_up = 2.5f;
 	float camera_position_right = 0.0f;
 	float camera_target_forward = 0.0f;
