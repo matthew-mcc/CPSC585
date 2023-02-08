@@ -14,6 +14,7 @@ public:
 	// List of all game entities
 	vector<Entity> entityList;
 
+
 private:
-	
+
 };

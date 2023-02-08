@@ -19,7 +19,7 @@ int main() {
 	// Initialize Systems
 	xInput.run();
 	gameState->initGameState();
-	
+	timer->startCountdown();
 
 	// PRIMARY GAME LOOP
 	while (!glfwWindowShouldClose(renderer.window)) {

@@ -171,6 +171,14 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> callback
 	if (fpsTest != NULL) fps = fpsTest;				// Set fps if fpsTest isn't null
 	RenderText(textShader, textVAO, textVBO, "FPS: " + std::to_string(fps), 8.f, callback_ptr->yres - 32.f, 0.6f, glm::vec3(0.2, 0.2f, 0.2f), textChars);
 
+	int countdownMins = timer->getCountdown();
+	countdownMins = countdownMins / 60;
+	int countdownSeconds = timer->getCountdown();
+	countdownSeconds = countdownSeconds % 60;
+
+	RenderText(textShader, textVAO, textVBO, std::to_string(countdownMins) + ":" + std::to_string(countdownSeconds), callback_ptr->xres / 2.f - 10.f, callback_ptr->yres - 32.f, 0.6f, glm::vec3(0.2, 0.2f, 0.2f), textChars);
+
+
 	// Imgui Window
 	ImGui::Begin("Super Space Salvagers - Debug");
 	//ImGui::Text("World Parameters");

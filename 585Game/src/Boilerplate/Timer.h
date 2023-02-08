@@ -21,6 +21,7 @@ public:
         deltaTime = currentTime - lastDeltaTime;
         lastDeltaTime = currentTime;
         frameCount++;
+        countdown = countdown - deltaTime;
     }
 
     // Get Delta Time
@@ -43,6 +44,14 @@ public:
         return NULL;
     }
 
+    void startCountdown() {
+        countdown = 300.f;
+    }
+
+    int getCountdown() {
+        return countdown;
+    }
+
 private:
     Timer() {};
     Timer(const Timer&);
@@ -52,4 +61,5 @@ private:
     double currentTime = glfwGetTime();
     double lastDeltaTime = glfwGetTime();
     double lastFPSTime = glfwGetTime();
+    double countdown;
 };
