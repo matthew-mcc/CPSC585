@@ -175,9 +175,14 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> callback
 	countdownMins = countdownMins / 60;
 	int countdownSeconds = timer->getCountdown();
 	countdownSeconds = countdownSeconds % 60;
+	
+	if (countdownSeconds > 10) {
+		RenderText(textShader, textVAO, textVBO, std::to_string(countdownMins) + ":" + std::to_string(countdownSeconds), callback_ptr->xres / 2.f - 10.f, callback_ptr->yres - 32.f, 0.6f, glm::vec3(0.2, 0.2f, 0.2f), textChars);
+	}
+	else {
+		RenderText(textShader, textVAO, textVBO, std::to_string(countdownMins) + ":0" + std::to_string(countdownSeconds), callback_ptr->xres / 2.f - 10.f, callback_ptr->yres - 32.f, 0.6f, glm::vec3(0.2, 0.2f, 0.2f), textChars);
 
-	RenderText(textShader, textVAO, textVBO, std::to_string(countdownMins) + ":" + std::to_string(countdownSeconds), callback_ptr->xres / 2.f - 10.f, callback_ptr->yres - 32.f, 0.6f, glm::vec3(0.2, 0.2f, 0.2f), textChars);
-
+	}
 
 	// Imgui Window
 	ImGui::Begin("Super Space Salvagers - Debug");
