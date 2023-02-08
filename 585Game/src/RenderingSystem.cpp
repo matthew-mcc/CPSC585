@@ -53,19 +53,6 @@ void RenderingSystem::initRenderer() {
 	// Create text shader
 	textShader = Shader("src/Shaders/textVertex.txt", "src/Shaders/textFragment.txt");
 	textShader.use();
-
-// MODEL INITIALIZATION
-	//Model testTruck = Model();
-	//testTruck.addMesh("assets/models/test_truck1/test_truck1.obj");
-	//testTruck.addMesh("assets/models/test_tire1/test_tire1.obj");
-	//models.push_back(testTruck);
-
-	//Model landscape = Model();
-	//landscape.addMesh("assets/models/landscape1/landscape1_1.obj");
-	//landscape.addMesh("assets/models/landscape1/landscape1_2.obj");
-	//landscape.addMesh("assets/models/landscape1/landscape1_3.obj");
-	//landscape.addMesh("assets/models/landscape1/landscape1_4.obj");
-	//models.push_back(landscape);
 }
 
 // Update Renderer
@@ -135,41 +122,30 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> callback
 
 	// Retrieve player entity
 	Entity playerEntity = gameState->findEntity("player_truck1");
-	glm::mat4 m = toMat4(playerEntity.transform->rotation);
-	glm::vec4 tempVec;
-
-	// Player vehicle's up vector
-	tempVec = m * glm::vec4(0.f, 1.f, 0.f, 0.f);
-	glm::vec3 player_up = (glm::vec3)tempVec;
-
-	// Player vehicle's forward vector
-	tempVec = m * glm::vec4(0.f, 0.f, 1.f, 0.f);
-	glm::vec3 player_forward = (glm::vec3)tempVec;
-
-	// Player vehicle's right vector
-	tempVec = m * glm::vec4(-1.f, 0.f, 0.f, 0.f);
-	glm::vec3 player_right = (glm::vec3)tempVec;
 
 	camera_position_forward = camera_position_default-(callback_ptr->camera_acceleration)/15.f;
+	glm::vec3 player_forward = playerEntity.transform->getForwardVector();
+	glm::vec3 player_right = playerEntity.transform->getRightVector();
+	glm::vec3 player_up = playerEntity.transform->getUpVector();
 
 	// Chase Camera: Compute eye and target offsets for lookat view matrix
 	glm::vec3 eye_offset = (camera_position_forward * player_forward) + (callback_ptr->camera_position_right * player_right) + (camera_position_up * player_up);
 	glm::vec3 target_offset = (camera_target_forward * player_forward) + (camera_target_right * player_right) + (camera_target_up * player_up);
 	
 	// Set view and projection matrices
-	view = glm::lookAt(playerEntity.transform->position + eye_offset, playerEntity.transform->position + target_offset, callback_ptr->camera_up);
+	view = glm::lookAt(playerEntity.transform->getPosition() + eye_offset, playerEntity.transform->getPosition() + target_offset, callback_ptr->camera_up);
 	projection = glm::perspective(glm::radians(callback_ptr->fov), (float)callback_ptr->xres / (float)callback_ptr->yres, 0.1f, 1000.0f);
 	setCelShaderUniforms();
 
 	// Iteratively Draw Models
 	for (int i = 0; i < gameState->entityList.size(); i ++) {
 		// Retrieve position and rotation
-		glm::vec3 position = gameState->entityList.at(i).transform->position;
-		glm::quat rotation = gameState->entityList.at(i).transform->rotation;
+		glm::vec3 position = gameState->entityList.at(i).transform->getPosition();
+		glm::quat rotation = gameState->entityList.at(i).transform->getRotation();
 
 		for (int j = 0; j < gameState->entityList.at(i).localTransforms.size(); j++) {
-			glm::vec3 localPosition = gameState->entityList.at(i).localTransforms.at(j)->position;
-			glm::quat localRotation = gameState->entityList.at(i).localTransforms.at(j)->rotation;
+			glm::vec3 localPosition = gameState->entityList.at(i).localTransforms.at(j)->getPosition();
+			glm::quat localRotation = gameState->entityList.at(i).localTransforms.at(j)->getRotation();
 
 			// Set model matrix
 			model = glm::mat4(1.0f);
@@ -182,9 +158,6 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> callback
 
 			gameState->entityList.at(i).model->meshes.at(j).Draw(celShader);
 		}
-
-		// Draw entity
-		//gameState->entityList.at(i).model->Draw(celShader);
 	}
 
 // FOURTH PASS: GUI RENDER

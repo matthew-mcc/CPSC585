@@ -2,20 +2,81 @@
 #include <glm.hpp>
 #include <gtx/quaternion.hpp>
 
-/*
-All relevant information that the physics engine needs - can be updated later but position + rotation is enough to begin simulations.
-*/
+using namespace glm;
+
+// Transform Information for Game Entities
 class Transform {
 
 
 public:
-	glm::vec3 position;
-	glm::quat rotation;
-
+// CONSTRUCTOR
 	Transform() {
-		this->position = glm::vec3();
-		this->rotation = glm::quat();
+		this->position = vec3();
+		this->rotation = quat();
+		this->linearVelocity = vec3();
+		update();
 	};
 
+// GETTERS
+	vec3 getPosition() {
+		return this->position;
+	}
 
+	quat getRotation() {
+		return this->rotation;
+	}
+
+	vec3 getLinearVelocity() {
+		return this->linearVelocity;
+	}
+
+	vec3 getForwardVector() {
+		return this->forwardVector;
+	}
+
+	vec3 getUpVector() {
+		return this->upVector;
+	}
+
+	vec3 getRightVector() {
+		return this->rightVector;
+	}
+
+// SETTERS
+	void setPosition(vec3 pos) {
+		this->position = pos;
+		update();
+	}
+
+	void setRotation(quat rot) {
+		this->rotation = rot;
+		update();
+	}
+
+	void setLinearVelocity(vec3 vel) {
+		this->linearVelocity = vel;
+		update();
+	}
+
+private:
+	// Transform
+	vec3 position;
+	quat rotation;
+
+	// Velocity
+	vec3 linearVelocity;
+
+	// Orientation
+	vec3 forwardVector;
+	vec3 upVector;
+	vec3 rightVector;
+
+	// Update Function
+	// Updates vectors based on position and rotation
+	void update() {
+		mat4 m = toMat4(this->rotation);
+		this->forwardVector = (vec3)(m * vec4(0.f, 0.f, 1.f, 0.f));
+		this->upVector = (vec3)(m * vec4(0.f, 1.f, 0.f, 0.f));
+		this->rightVector = (vec3)(m * vec4(-1.f, 0.f, 0.f, 0.f));
+	}
 };
