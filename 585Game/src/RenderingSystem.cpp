@@ -131,9 +131,15 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> callback
 	// Chase Camera: Compute eye and target offsets for lookat view matrix
 	glm::vec3 eye_offset = (camera_position_forward * player_forward) + (callback_ptr->camera_position_right * player_right) + (camera_position_up * player_up);
 	glm::vec3 target_offset = (camera_target_forward * player_forward) + (camera_target_right * player_right) + (camera_target_up * player_up);
-	
+
+	// Camera lag: Generate target_position - prev_position creating a vector. Do some scaling on it, then add to prev and update
+	glm::vec3 camera_target_position = playerEntity.transform->getPosition() + eye_offset;
+	glm::vec3 camera_track_vector = camera_target_position - camera_previous_position;
+	camera_track_vector * camera_lag;
+	camera_previous_position = camera_previous_position + camera_track_vector;
+
 	// Set view and projection matrices
-	view = glm::lookAt(playerEntity.transform->getPosition() + eye_offset, playerEntity.transform->getPosition() + target_offset, callback_ptr->camera_up);
+	view = glm::lookAt(camera_previous_position, playerEntity.transform->getPosition() + target_offset, callback_ptr->camera_up);
 	projection = glm::perspective(glm::radians(callback_ptr->fov), (float)callback_ptr->xres / (float)callback_ptr->yres, 0.1f, 1000.0f);
 	setCelShaderUniforms();
 
@@ -176,7 +182,7 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> callback
 	int countdownSeconds = timer->getCountdown();
 	countdownSeconds = countdownSeconds % 60;
 	
-	if (countdownSeconds > 10) {
+	if (countdownSeconds >= 10) {
 		RenderText(textShader, textVAO, textVBO, std::to_string(countdownMins) + ":" + std::to_string(countdownSeconds), callback_ptr->xres / 2.f - 10.f, callback_ptr->yres - 32.f, 0.6f, glm::vec3(0.2, 0.2f, 0.2f), textChars);
 	}
 	else {

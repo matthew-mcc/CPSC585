@@ -106,6 +106,7 @@ public:
 
 		if (button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_PRESS) {
 			cout << "Mouse Right clicked" << endl;
+
 		}
 	}
 
