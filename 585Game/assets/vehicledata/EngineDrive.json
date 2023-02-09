@@ -13,7 +13,7 @@
 	{
 		"TorqueCurve": [[0.0, 1.0], [0.33, 1.0], [1.0, 1.0]],
 		"MOI": 1.0,
-		"PeakTorque": 500.0,
+		"PeakTorque": 900.0,
 		"IdleOmega": 0.0,
 		"MaxOmega": 600.0,
 		"DampingRateFullThrottle": 0.15,
@@ -29,8 +29,8 @@
 	},
 	"MultiWheelDifferentialParams":
 	{
-		"TorqueRatios": [0.25, 0.25, 0.25, 0.25],
-		"AveWheelSpeedRatios": [0.25, 0.25, 0.25, 0.25]
+		"TorqueRatios": [0.16, 0.16, 0.16, 0.16, 0.16, 0.16],
+		"AveWheelSpeedRatios": [0.16, 0.16, 0.16, 0.16, 0.16, 0.16]
 	},
 	"FourWheelDifferentialParams":
 	{
