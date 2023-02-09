@@ -107,8 +107,18 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> callback
 	camera_track_vector = camera_track_vector * camera_lag;
 	camera_previous_position = vec3(translate(mat4(1.0f), camera_track_vector) * vec4(camera_previous_position, 1.0f));
 
-	// Set view and projection matrices
-	view = lookAt(camera_previous_position, playerEntity.transform->getPosition() + target_offset, world_up);
+	// If user is controlling camera, set view accordingly
+	vec3 camOffset = vec3(0.f);
+	if (callback_ptr->moveCamera) {
+		camOffset = camera_previous_position - playerEntity.transform->getPosition();
+		camOffset = vec4(camOffset, 0.f) * glm::rotate(glm::mat4(1.f), callback_ptr->xAngle, world_up);
+		camOffset += playerEntity.transform->getPosition();
+		view = lookAt(camOffset, playerEntity.transform->getPosition() + target_offset, world_up);
+	}
+	else {
+		view = lookAt(camera_previous_position + camOffset, playerEntity.transform->getPosition() + target_offset, world_up);
+	}
+	// Set projection and view matrices
 	projection = perspective(radians(fov), (float)callback_ptr->xres / (float)callback_ptr->yres, 0.1f, 1000.0f);
 
 // FIRST PASS: FAR SHADOWMAP RENDER

@@ -67,6 +67,7 @@ public:
 	// Mouse
 	float lastX = 0.f;
 	float lastY = 0.f;
+	float lastX_Controller = 0.f;
 
 	// Window Dimensions
 	int xres = 1920;
@@ -78,6 +79,11 @@ public:
 	float brake = 0.f;
 	float steer = 0.f;
 
+	// Camera Control
+	bool moveCamera = false;
+	float xAngle = 0.f;
+	glm::vec2 clickPos = glm::vec2(0.f, 0.f);
+
 	// GAMEPAD VEHICLE INPUT
 	void XboxUpdate(XboxInput x) {
 		if (keys_pressed <= 0) {
@@ -85,6 +91,15 @@ public:
 			brake = x.data.LT / 255.f;
 			steer = -x.data.LThumb_X_direction;
 		}
+		if (abs(x.data.RThumb_magnitude) > 0.01f) {
+			moveCamera = true;
+			xAngle = atan(x.data.RThumb_X_direction / x.data.RThumb_Y_direction);
+			if (x.data.RThumb_Y_direction < 0.f) xAngle = (atan(1)*4.f) + xAngle;
+		}
+		else if (abs(lastX_Controller) > 0.01f) {
+			moveCamera = false;
+		}
+		lastX_Controller = x.data.RThumb_magnitude;
 	}
 };
 

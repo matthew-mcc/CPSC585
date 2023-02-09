@@ -97,6 +97,14 @@ public:
 	virtual void mouseButtonCallback(int button, int action, int mods) {
 		if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS) {
 			cout << "Mouse Left clicked" << endl;
+			moveCamera = true;
+			clickPos = cursor_pos;
+			xAngle = 0.f;
+		}
+		if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_RELEASE) {
+			cout << "Mouse left released" << endl;
+			moveCamera = false;
+			clickPos = glm::vec2(0.f, 0.f);
 		}
 
 		if (button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_PRESS) {
@@ -110,14 +118,16 @@ public:
 		cursor_pos.x = (float)((2.f / xres) * xpos - 1.f);
 		cursor_pos.y = (float)((2.f / yres) * ypos - 1.f);
 		cursor_pos.y *= -1.f;
-
-		float xoffset = (cursor_pos.x - lastX) * 1000.f;
-		float yoffset = (lastY - cursor_pos.y) * 1000.f;
+		//float xoffset = (cursor_pos.x - lastX) * 1000.f;
+		//float yoffset = (lastY - cursor_pos.y) * 1000.f;
 		lastX = cursor_pos.x;
 		lastY = cursor_pos.y;
-		float sensitivity = 0.05f;
-		xoffset *= sensitivity;
-		yoffset *= sensitivity;
+		//float sensitivity = 0.05f;
+		//xoffset *= sensitivity;
+		//yoffset *= sensitivity;
+		if (moveCamera) {
+			xAngle = (clickPos.x - lastX) * atan(1)*4.f;
+		}
 	}
 
 	// SCROLL CALLBACK
@@ -173,8 +183,8 @@ void windowSizeMetaCallback(GLFWwindow* window, int width, int height) {
 std::shared_ptr<CallbackInterface> processInput(GLFWwindow* window) {
 	//glfwSetWindowUserPointer(window, callbacks_.get());
 	glfwSetKeyCallback(window, keyMetaCallback);
-	//glfwSetMouseButtonCallback(window, mouseButtonMetaCallback);		// Commented out to work with imgui (temporarily)
-	//glfwSetCursorPosCallback(window, cursorPosMetaCallback);
+	glfwSetMouseButtonCallback(window, mouseButtonMetaCallback);		// Commented out to work with imgui (temporarily)
+	glfwSetCursorPosCallback(window, cursorPosMetaCallback);
 	glfwSetScrollCallback(window, scrollMetaCallback);
 	glfwSetWindowSizeCallback(window, windowSizeMetaCallback);
 
