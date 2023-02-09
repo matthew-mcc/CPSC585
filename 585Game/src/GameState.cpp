@@ -47,4 +47,5 @@ Entity GameState::findEntity(string name) {
 			return entityList.at(i);
 		}
 	}
+	return Entity();
 }

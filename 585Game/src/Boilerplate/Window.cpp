@@ -10,6 +10,7 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
 	glViewport(0, 0, width, height);
 }
 
+
 // Initialize Window
 	// Creates a GLFW window and returns a pointer to it
 GLFWwindow* initWindow() {
@@ -21,7 +22,7 @@ GLFWwindow* initWindow() {
 	glfwWindowHint(GLFW_SAMPLES, 4);
 
 	// Create window, validate creation was successful
-	GLFWwindow* window = glfwCreateWindow(1920, 1080, "585 Game", NULL, NULL);
+	GLFWwindow* window = glfwCreateWindow(1920, 1080, "Super Space Salvagers", NULL, NULL);
 	if (window == NULL) {
 		cout << "Failed To Create Window\n";
 		glfwTerminate();
@@ -40,16 +41,9 @@ GLFWwindow* initWindow() {
 	return window;
 }
 
-using namespace std;
-
-
-// some camera code
 
 class KeyCallbacks : public CallbackInterface {
-
 public:
-	//KeyCallbacks(){}
-
 	// KEYBOARD VEHICLE INPUT
 	virtual void keyCallback(int key, int scancode, int action, int mods) {
 		// THROTTLE (W)
@@ -99,6 +93,7 @@ public:
 
 	}
 
+	// MOUSE BUTTON CALLBACK
 	virtual void mouseButtonCallback(int button, int action, int mods) {
 		if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS) {
 			cout << "Mouse Left clicked" << endl;
@@ -110,51 +105,39 @@ public:
 		}
 	}
 
+	// CURSOR POSITION CALLBACK
 	virtual void cursorPosCallback(double xpos, double ypos) {
-		current_pos.x = (2.f / (float)xres) * xpos - 1.f;
-		current_pos.y = (2.f / (float)yres) * ypos - 1.f;
-		current_pos.y *= -1.f;
-		//std::cout << current_pos.x << ',' << current_pos.y << std::endl;
+		cursor_pos.x = (2.f / (float)xres) * xpos - 1.f;
+		cursor_pos.y = (2.f / (float)yres) * ypos - 1.f;
+		cursor_pos.y *= -1.f;
 
-		float xoffset = (current_pos.x - lastX) * 1000.f;
-		float yoffset = (lastY - current_pos.y) * 1000.f; // reversed since y-coordinates go from bottom to top
-		lastX = current_pos.x;
-		lastY = current_pos.y;
-		float sensitivity = 0.05f; // change this value to your liking
+		float xoffset = (cursor_pos.x - lastX) * 1000.f;
+		float yoffset = (lastY - cursor_pos.y) * 1000.f;
+		lastX = cursor_pos.x;
+		lastY = cursor_pos.y;
+		float sensitivity = 0.05f;
 		xoffset *= sensitivity;
 		yoffset *= sensitivity;
-
-		yaw += xoffset;     //
-		pitch -= yoffset;  // REVERSE UP/DOWN DIRECTION 
-		if (pitch > 89.0f)
-			pitch = 89.0f;
-		if (pitch < -89.0f)
-			pitch = -89.0f;
-
-		glm::vec3 front;
-		front.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
-		front.y = sin(glm::radians(pitch));
-		front.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
-		camera_front = glm::normalize(front);
 	}
 
+	// SCROLL CALLBACK
 	virtual void scrollCallback(double xoffset, double yoffset) {}
 
+	// WINDOW SIZE CALLBACK
 	virtual void windowSizeCallback(int width, int height) {
 		// The CallbackInterface::windowSizeCallback will call glViewport for us
-		std::cout << width << ' ' << height << std::endl;
+		//std::cout << width << ' ' << height << std::endl;
 		xres = width;
 		yres = height;
 		CallbackInterface::windowSizeCallback(width, height);
 
 	}
+
 	void processXbox(XboxInput x) {}
-
-	glm::vec2 current_pos;
-
-private:
-
+	glm::vec2 cursor_pos;
 };
+
+
 std::shared_ptr<CallbackInterface> callbacks = std::make_shared<KeyCallbacks>();
 void keyMetaCallback(GLFWwindow* window, int key, int scancode, int action, int mods) {
 	//CallbackInterface* callbacks = static_cast<CallbackInterface*>(glfwGetWindowUserPointer(window));
@@ -190,8 +173,8 @@ void windowSizeMetaCallback(GLFWwindow* window, int width, int height) {
 std::shared_ptr<CallbackInterface> processInput(GLFWwindow* window) {
 	//glfwSetWindowUserPointer(window, callbacks_.get());
 	glfwSetKeyCallback(window, keyMetaCallback);
-	//glfwSetMouseButtonCallback(window, mouseButtonMetaCallback);		// These are just commented out to work with imgui, uncomment when merging with main
-	//glfwSetCursorPosCallback(window, cursorPosMetaCallback);			//
+	//glfwSetMouseButtonCallback(window, mouseButtonMetaCallback);		// Commented out to work with imgui (temporarily)
+	//glfwSetCursorPosCallback(window, cursorPosMetaCallback);
 	glfwSetScrollCallback(window, scrollMetaCallback);
 	glfwSetWindowSizeCallback(window, windowSizeMetaCallback);
 

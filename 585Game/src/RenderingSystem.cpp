@@ -12,10 +12,12 @@
 #define _USE_MATH_DEFINES
 #include <math.h>
 
+
 // Rendering System Constructor
 RenderingSystem::RenderingSystem() {
 	initRenderer();
 }
+
 
 // Initialize Renderer
 void RenderingSystem::initRenderer() {
@@ -55,18 +57,19 @@ void RenderingSystem::initRenderer() {
 	textShader.use();
 
 // CAMERA POSITION
-	camera_previous_position = glm::vec3(1.0f);
+	camera_previous_position = vec3(1.0f);
 }
+
 
 // Update Renderer
 void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> callback_ptr, GameState* gameState, Timer* timer) {
-
 // BACKGROUND
 	// Set Background (Sky) Color
 	glClearColor(skyColor.r, skyColor.g, skyColor.b, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-// IMGUI
+
+// IMGUI INITIALIZATION
 	// Create IMGUI Window
 	ImGui_ImplOpenGL3_NewFrame();
 	ImGui_ImplGlfw_NewFrame();
@@ -82,31 +85,39 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> callback
 		models.at(i).Draw(outlineShader);
 	}*/
 
-	// Retrieve player entity
+// CAMERA POSITION / LAG
+	// Find player entity
 	Entity playerEntity = gameState->findEntity("player_truck1");
+	
+	// Retrieve player direction vectors
+	//camera_position_forward = camera_position_forward - (callback_ptr->camera_acceleration) / 15.f;
+	vec3 player_forward = playerEntity.transform->getForwardVector();
+	vec3 player_right = playerEntity.transform->getRightVector();
+	vec3 player_up = playerEntity.transform->getUpVector();
 
-	camera_position_forward = camera_position_default - (callback_ptr->camera_acceleration) / 15.f;
-	glm::vec3 player_forward = playerEntity.transform->getForwardVector();
-	glm::vec3 player_right = playerEntity.transform->getRightVector();
-	glm::vec3 player_up = playerEntity.transform->getUpVector();
+	// Chase Camera: Compute eye and target offsets
+		// Eye Offset: Camera position (world space)
+		// Target Offset: Camera focus point (world space)
+	vec3 eye_offset = (camera_position_forward * player_forward) + (camera_position_right * player_right) + (camera_position_up * player_up);
+	vec3 target_offset = (camera_target_forward * player_forward) + (camera_target_right * player_right) + (camera_target_up * player_up);
 
-	// Chase Camera: Compute eye and target offsets for lookat view matrix
-	glm::vec3 eye_offset = (camera_position_forward * player_forward) + (callback_ptr->camera_position_right * player_right) + (camera_position_up * player_up);
-	glm::vec3 target_offset = (camera_target_forward * player_forward) + (camera_target_right * player_right) + (camera_target_up * player_up);
-
-	// Camera lag: Generate target_position - prev_position creating a vector. Do some scaling on it, then add to prev and update
-	glm::vec3 camera_target_position = playerEntity.transform->getPosition() + eye_offset;
-	glm::vec3 camera_track_vector = glm::vec3(camera_target_position.x - camera_previous_position.x, camera_target_position.y - camera_previous_position.y, camera_target_position.z - camera_previous_position.z);
+	// Camera lag: Generate target_position - prev_position creating a vector. Scale by constant factor, then add to prev and update
+	vec3 camera_target_position = playerEntity.transform->getPosition() + eye_offset;
+	vec3 camera_track_vector = camera_target_position - camera_previous_position;
 	camera_track_vector = camera_track_vector * camera_lag;
-	camera_previous_position = glm::vec3(glm::translate(glm::mat4(1.0f), camera_track_vector) * glm::vec4(camera_previous_position, 1.0f));
+	camera_previous_position = vec3(translate(mat4(1.0f), camera_track_vector) * vec4(camera_previous_position, 1.0f));
+
+	// Set view and projection matrices
+	view = lookAt(camera_previous_position, playerEntity.transform->getPosition() + target_offset, world_up);
+	projection = perspective(radians(fov), (float)callback_ptr->xres / (float)callback_ptr->yres, 0.1f, 1000.0f);
 
 // FIRST PASS: FAR SHADOWMAP RENDER
-	/*lightPos = glm::vec3(sin(lightRotation) * cos(lightAngle), sin(lightAngle), cos(lightRotation) * cos(lightAngle)) * 200.f;
+	/*lightPos = vec3(sin(lightRotation) * cos(lightAngle), sin(lightAngle), cos(lightRotation) * cos(lightAngle)) * 200.f;
 	farShadowMap.update(lightPos);
 	glCullFace(GL_FRONT);
 	for (int i = 0; i < models.size(); i++) {
 		if (i == models.size() - 1) {
-			farShadowMap.shader.setMat4("model", glm::translate(model, glm::vec3(0.f, altitude, 0.f)));
+			farShadowMap.shader.setMat4("model", translate(model, vec3(0.f, altitude, 0.f)));
 		}
 		models.at(i).Draw(farShadowMap.shader);
 	}
@@ -115,28 +126,31 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> callback
 
 	glClear(GL_DEPTH_BUFFER_BIT);*/
 
+
 // SECOND PASS: NEAR SHADOWMAP RENDER
-	lightPos = glm::vec3(sin(lightRotation) * cos(lightAngle), sin(lightAngle), cos(lightRotation) * cos(lightAngle)) * 40.f;
+	lightPos = vec3(sin(lightRotation) * cos(lightAngle), sin(lightAngle), cos(lightRotation) * cos(lightAngle)) * 40.f;
 	nearShadowMap.update(lightPos, playerEntity.transform->getPosition());
 	glCullFace(GL_FRONT);
 	for (int i = 0; i < gameState->entityList.size(); i++) {
-		// Retrieve position and rotation
-		glm::vec3 position = gameState->entityList.at(i).transform->getPosition();
-		glm::quat rotation = gameState->entityList.at(i).transform->getRotation();
+		// Retrieve global position and rotation
+		vec3 position = gameState->entityList.at(i).transform->getPosition();
+		quat rotation = gameState->entityList.at(i).transform->getRotation();
 
+		// Retrieve local positions and rotations of submeshes
 		for (int j = 0; j < gameState->entityList.at(i).localTransforms.size(); j++) {
-			glm::vec3 localPosition = gameState->entityList.at(i).localTransforms.at(j)->getPosition();
-			glm::quat localRotation = gameState->entityList.at(i).localTransforms.at(j)->getRotation();
+			vec3 localPosition = gameState->entityList.at(i).localTransforms.at(j)->getPosition();
+			quat localRotation = gameState->entityList.at(i).localTransforms.at(j)->getRotation();
 
 			// Set model matrix
-			model = glm::mat4(1.0f);
-			model = glm::translate(model, position);
-			model = model * glm::toMat4(rotation);
-			model = glm::translate(model, localPosition);
-			model = model * glm::toMat4(localRotation);
-			model = scale(model, glm::vec3(1.0f));
+			model = mat4(1.0f);
+			model = translate(model, position);
+			model = model * toMat4(rotation);
+			model = translate(model, localPosition);
+			model = model * toMat4(localRotation);
+			model = scale(model, vec3(1.0f));
 			nearShadowMap.shader.setMat4("model", model);
 
+			// Draw model's meshes
 			gameState->entityList.at(i).model->meshes.at(j).Draw(nearShadowMap.shader);
 		}
 	}
@@ -148,6 +162,7 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> callback
 	
 	glClear(GL_DEPTH_BUFFER_BIT);
 
+
 // THIRD PASS: CEL SHADE RENDER
 	// Use world shader
 	celShader.use();
@@ -155,41 +170,37 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> callback
 	glBindTexture(GL_TEXTURE_2D, nearShadowMap.depthMap);
 	//glActiveTexture(GL_TEXTURE2);
 	//glBindTexture(GL_TEXTURE_2D, farShadowMap.depthMap);
-
-	// Set view and projection matrices
-	view = glm::lookAt(camera_previous_position, playerEntity.transform->getPosition() + target_offset, callback_ptr->camera_up);
-	projection = glm::perspective(glm::radians(callback_ptr->fov), (float)callback_ptr->xres / (float)callback_ptr->yres, 0.1f, 1000.0f);
 	setCelShaderUniforms();
 
 	// Iteratively Draw Models
 	for (int i = 0; i < gameState->entityList.size(); i ++) {
-		// Retrieve position and rotation
-		glm::vec3 position = gameState->entityList.at(i).transform->getPosition();
-		glm::quat rotation = gameState->entityList.at(i).transform->getRotation();
+		// Retrieve global position and rotation
+		vec3 position = gameState->entityList.at(i).transform->getPosition();
+		quat rotation = gameState->entityList.at(i).transform->getRotation();
 
+		// Retrieve local positions and rotations of submeshes
 		for (int j = 0; j < gameState->entityList.at(i).localTransforms.size(); j++) {
-			glm::vec3 localPosition = gameState->entityList.at(i).localTransforms.at(j)->getPosition();
-			glm::quat localRotation = gameState->entityList.at(i).localTransforms.at(j)->getRotation();
+			vec3 localPosition = gameState->entityList.at(i).localTransforms.at(j)->getPosition();
+			quat localRotation = gameState->entityList.at(i).localTransforms.at(j)->getRotation();
 
 			// Set model matrix
-			model = glm::mat4(1.0f);
-			model = glm::translate(model, position);
-			model = model * glm::toMat4(rotation);
-			model = glm::translate(model, localPosition);
-			model = model * glm::toMat4(localRotation);
-			model = scale(model, glm::vec3(1.0f));
+			model = mat4(1.0f);
+			model = translate(model, position);
+			model = model * toMat4(rotation);
+			model = translate(model, localPosition);
+			model = model * toMat4(localRotation);
+			model = scale(model, vec3(1.0f));
 			celShader.setMat4("model", model);
 
-			glm::quat lightRotation = rotation;
-			glm::quat localLightRotation = localRotation;
+			// Update relative light position
+			quat lightRotation = rotation;
+			quat localLightRotation = localRotation;
 			lightRotation.w *= -1.f;
 			localLightRotation *= -1.f;
-			glm::vec4 newLightv4 = glm::toMat4(lightRotation) * glm::vec4(lightPos, 0.f);
-			newLightv4 = newLightv4 * glm::toMat4(localLightRotation);
-			
-			glm::vec3 newLightv3 = glm::vec3(newLightv4.x, newLightv4.y, newLightv4.z);
-			celShader.setVec3("sun", newLightv3);
+			vec3 newLight = (vec3)(toMat4(lightRotation) * vec4(lightPos, 0.f) * toMat4(localLightRotation));
+			celShader.setVec3("sun", newLight);
 
+			// Draw model's mesh
 			gameState->entityList.at(i).model->meshes.at(j).Draw(celShader);
 		}
 	}
@@ -197,32 +208,32 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> callback
 // FOURTH PASS: GUI RENDER
 	// Use text shader
 	textShader.use();
-	glm::mat4 textProjection = glm::ortho(0.0f, static_cast<float>(callback_ptr->xres), 0.0f, static_cast<float>(callback_ptr->yres));
+	mat4 textProjection = ortho(0.0f, static_cast<float>(callback_ptr->xres), 0.0f, static_cast<float>(callback_ptr->yres));
 	textShader.setMat4("projection", textProjection);
 
 	// Fetch and display FPS
 	int fpsTest = timer->getFPS(0.5);				// Get fps (WARNING: can be NULL!)
 	if (fpsTest != NULL) fps = fpsTest;				// Set fps if fpsTest isn't null
-	RenderText(textShader, textVAO, textVBO, "FPS: " + std::to_string(fps), 8.f, callback_ptr->yres - 32.f, 0.6f, glm::vec3(0.2, 0.2f, 0.2f), textChars);
+	RenderText(textShader, textVAO, textVBO, "FPS: " + std::to_string(fps), 8.f, callback_ptr->yres - 32.f, 0.6f, vec3(0.2, 0.2f, 0.2f), textChars);
 
-	int countdownMins = timer->getCountdown();
-	countdownMins = countdownMins / 60;
-	int countdownSeconds = timer->getCountdown();
-	countdownSeconds = countdownSeconds % 60;
-	
-	if (countdownSeconds >= 10) {
-		RenderText(textShader, textVAO, textVBO, std::to_string(countdownMins) + ":" + std::to_string(countdownSeconds), callback_ptr->xres / 2.f - 10.f, callback_ptr->yres - 32.f, 0.6f, glm::vec3(0.2, 0.2f, 0.2f), textChars);
+	// Display game timer / countdown
+	if (timer->getCountdownSecs() >= 10) {
+		RenderText(textShader, textVAO, textVBO, std::to_string(timer->getCountdownMins()) + ":" + std::to_string(timer->getCountdownSecs()),
+			callback_ptr->xres / 2.f - 10.f, 
+			callback_ptr->yres - 32.f, 0.6f, 
+			vec3(0.2, 0.2f, 0.2f), 
+			textChars);
 	}
 	else {
-		RenderText(textShader, textVAO, textVBO, std::to_string(countdownMins) + ":0" + std::to_string(countdownSeconds), callback_ptr->xres / 2.f - 10.f, callback_ptr->yres - 32.f, 0.6f, glm::vec3(0.2, 0.2f, 0.2f), textChars);
-
+		RenderText(textShader, textVAO, textVBO, std::to_string(timer->getCountdownMins()) + ":0" + std::to_string(timer->getCountdownSecs()),
+			callback_ptr->xres / 2.f - 10.f, 
+			callback_ptr->yres - 32.f, 0.6f, 
+			vec3(0.2, 0.2f, 0.2f), 
+			textChars);
 	}
 
 	// Imgui Window
-	ImGui::Begin("Super Space Salvagers - Debug");
-	//ImGui::Text("World Parameters");
-	//ImGui::SliderFloat("Landscape Altitude", &altitude, 0.f, 10.f);
-
+	ImGui::Begin("Super Space Salvagers - Debug Menu");
 	ImGui::Text("Cel Shader Parameters");
 	ImGui::SliderFloat("Light Rotation", &lightRotation, 0.f, 6.28f);
 	ImGui::SliderFloat("Light Angle", &lightAngle, 0.f, 1.57f);
@@ -236,7 +247,7 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> callback
 	ImGui::SliderFloat("Max bias", &maxBias, 0.0f, 0.1f);
 
 	ImGui::Text("Camera Parameters");
-	ImGui::SliderFloat("Camera Position Forward", &camera_position_default, -30.f, 30.f);
+	ImGui::SliderFloat("Camera Position Forward", &camera_position_forward, -30.f, 30.f);
 	ImGui::SliderFloat("Camera Position Up", &camera_position_up, -30.f, 30.f);
 	ImGui::SliderFloat("Camera Position Right", &camera_position_right, -30.f, 30.f);
 	ImGui::SliderFloat("Camera Target Forward", &camera_target_forward, -30.f, 30.f);
@@ -255,11 +266,13 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> callback
 
 }
 
+
 void RenderingSystem::shutdownImgui() {
 	ImGui_ImplOpenGL3_Shutdown();
 	ImGui_ImplGlfw_Shutdown();
 	ImGui::DestroyContext();
 }
+
 
 void RenderingSystem::setCelShaderUniforms() {
 	celShader.setMat4("model", model);

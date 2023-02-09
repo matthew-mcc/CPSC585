@@ -16,10 +16,12 @@ int main() {
 	GameState* gameState = new GameState();
 	XboxInput xInput;
 
+	// Flags
+	bool isLoaded = false;	// false if first render update hasn't finished, true otherwise
+
 	// Initialize Systems
 	xInput.run();
 	gameState->initGameState();
-	timer->startCountdown();
 
 	// PRIMARY GAME LOOP
 	while (!glfwWindowShouldClose(renderer.window)) {
@@ -28,15 +30,22 @@ int main() {
 		xInput.update();
 		callback_ptr->XboxUpdate(xInput);
 
-		// Update Delta Time
-		timer->update();
-		
-		
-		// Update Physics System
-		physics.stepPhysics(callback_ptr, gameState, timer);
+		if (isLoaded) {
+			// Update Timer
+			timer->update();
+
+			// Update Physics System
+			physics.stepPhysics(callback_ptr, gameState, timer);
+		}
 
 		// Update Rendering System
 		renderer.updateRenderer(callback_ptr, gameState, timer);
+		
+		// Post-Load Initialization
+		if (!isLoaded) {
+			timer->init();
+			isLoaded = true;
+		}
 	}
   
 	// Terminate program

@@ -80,10 +80,6 @@ PxRigidStatic* gGroundPlane = NULL;
 PxTriangleMesh* groundMesh = NULL;
 
 
-
-
-
-
 void initPhysX() {
 	gFoundation = PxCreateFoundation(PX_PHYSICS_VERSION, gAllocator, gErrorCallback);
 	gPvd = PxCreatePvd(*gFoundation);
@@ -283,9 +279,14 @@ bool initPhysicsSystem() {
 }
 
 void PhysicsSystem::stepPhysics(std::shared_ptr<CallbackInterface> callback_ptr, GameState* gameState, Timer* timer) {
-	// Update timestep to deltaTime
-	//const PxReal timestep = timer->getDeltaTime();
-	const PxReal timestep = (1 / 60.f);
+	// Update Timestep
+	PxReal timestep;
+	if (timer->getDeltaTime() > 0.1) {	// Safety check: If deltaTime gets too large, default it to (1 / 60)
+		timestep = (1 / 60.f);
+	}
+	else {	// Otherwise set as deltaTime as normal
+		timestep = (float)timer->getDeltaTime();
+	}
 
 	// Store entity list
 	auto entityList = gameState->entityList;
@@ -295,8 +296,6 @@ void PhysicsSystem::stepPhysics(std::shared_ptr<CallbackInterface> callback_ptr,
 	gVehicle.mCommandState.nbBrakes = 1;
 	gVehicle.mCommandState.throttle = callback_ptr->throttle;
 	gVehicle.mCommandState.steer = callback_ptr->steer;
-
-	//std::cout << "Vehicle X: " << gVehicle.mPhysXState.physxActor.rigidBody->getGlobalPose().p.x << "Vehicle Y: " << gVehicle.mPhysXState.physxActor.rigidBody->getGlobalPose().p.y << "Vehicle Z: " << gVehicle.mPhysXState.physxActor.rigidBody->getGlobalPose().p.z << std::endl;
 
 	//Forward integrate the vehicle by a single timestep.
 	//Apply substepping at low forward speed to improve simulation fidelity.
@@ -311,14 +310,17 @@ void PhysicsSystem::stepPhysics(std::shared_ptr<CallbackInterface> callback_ptr,
 	gScene->simulate(timestep);
 	gScene->fetchResults(true);
 
+	// Update Physics Entities
 	for (int i = 0; i < entityList.size(); i++) {
 		if (entityList.at(i).bphysicsEntity) {
+			// Global Position
 			glm::vec3 position = glm::vec3();
 			position.x = gVehicle.mPhysXState.physxActor.rigidBody->getGlobalPose().p.x;
 			position.y = gVehicle.mPhysXState.physxActor.rigidBody->getGlobalPose().p.y;
 			position.z = gVehicle.mPhysXState.physxActor.rigidBody->getGlobalPose().p.z;
 			entityList.at(i).transform->setPosition(position);
 
+			// Global Rotation
 			glm::quat rotation = glm::quat();
 			rotation.x = gVehicle.mPhysXState.physxActor.rigidBody->getGlobalPose().q.x;
 			rotation.y = gVehicle.mPhysXState.physxActor.rigidBody->getGlobalPose().q.y;
@@ -326,19 +328,22 @@ void PhysicsSystem::stepPhysics(std::shared_ptr<CallbackInterface> callback_ptr,
 			rotation.w = gVehicle.mPhysXState.physxActor.rigidBody->getGlobalPose().q.w;
 			entityList.at(i).transform->setRotation(rotation);
 
+			// Linear Velocity
 			glm::vec3 linearVelocity = glm::vec3();
 			linearVelocity.x = gVehicle.mPhysXState.physxActor.rigidBody->getLinearVelocity().x;
 			linearVelocity.y = gVehicle.mPhysXState.physxActor.rigidBody->getLinearVelocity().y;
 			linearVelocity.z = gVehicle.mPhysXState.physxActor.rigidBody->getLinearVelocity().z;
 			entityList.at(i).transform->setLinearVelocity(linearVelocity);
 
-			// Iterate through all local transforms except the first (chassis)
+			// Vehicle Specific: Update Local Wheel Transforms
 			for (int j = 1; j < entityList.at(i).localTransforms.size(); j++) {
+				// Local Wheel Position
 				position.x = gVehicle.mPhysXState.physxActor.wheelShapes[j - 1]->getLocalPose().p.x;
 				position.y = gVehicle.mPhysXState.physxActor.wheelShapes[j - 1]->getLocalPose().p.y;
 				position.z = gVehicle.mPhysXState.physxActor.wheelShapes[j - 1]->getLocalPose().p.z;
 				entityList.at(i).localTransforms.at(j)->setPosition(position);
 
+				// Local Wheel Rotation
 				rotation.x = gVehicle.mPhysXState.physxActor.wheelShapes[j - 1]->getLocalPose().q.x;
 				rotation.y = gVehicle.mPhysXState.physxActor.wheelShapes[j - 1]->getLocalPose().q.y;
 				rotation.z = gVehicle.mPhysXState.physxActor.wheelShapes[j - 1]->getLocalPose().q.z;

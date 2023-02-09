@@ -13,6 +13,12 @@ public:
         return timer;
     }
 
+    void init() {
+        currentTime = glfwGetTime();
+        lastDeltaTime = glfwGetTime();
+        lastFPSTime = glfwGetTime();
+    }
+
     // Update 
     // Should be called every frame
     // Updates delta time and frame counts
@@ -44,12 +50,22 @@ public:
         return NULL;
     }
 
-    void startCountdown() {
-        countdown = 300.f;
-    }
-
+    // Get Countdown
+    // Returns countdown as pure seconds
     int getCountdown() {
         return countdown;
+    }
+
+    // Get Countdown Minutes
+    // Returns the minutes component of a standard clock notation (M:SS)
+    int getCountdownMins() {
+        return countdown / 60;
+    }
+
+    // Get Countdown Seconds
+    // Returns the seconds component of a standard clock notation (M:SS)
+    int getCountdownSecs() {
+        return (int)countdown % 60;
     }
 
 private:
@@ -58,8 +74,8 @@ private:
 
     int frameCount = 0;						// Frames rendered since last fps update
     double deltaTime = 0.0;					// Time delta between last and current frame
-    double currentTime = glfwGetTime();
-    double lastDeltaTime = glfwGetTime();
-    double lastFPSTime = glfwGetTime();
-    double countdown;
+    double currentTime;
+    double lastDeltaTime;
+    double lastFPSTime;
+    double countdown = 300.f;
 };
