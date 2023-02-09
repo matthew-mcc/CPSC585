@@ -70,7 +70,7 @@ private:
 	float camera_target_forward = 0.0f;
 	float camera_target_up = 1.2f;
 	float camera_target_right = 0.0f;
-	glm::vec3 camera_previous_position = glm::vec3(0.0f);
-	float camera_lag = 0.2f;
+	glm::vec3 camera_previous_position;
+	float camera_lag = 0.05f;
 
 };

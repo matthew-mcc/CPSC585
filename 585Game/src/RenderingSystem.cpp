@@ -53,6 +53,9 @@ void RenderingSystem::initRenderer() {
 	// Create text shader
 	textShader = Shader("src/Shaders/textVertex.txt", "src/Shaders/textFragment.txt");
 	textShader.use();
+
+// CAMERA POSITION
+	camera_previous_position = glm::vec3(1.0f);
 }
 
 // Update Renderer
@@ -133,10 +136,21 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> callback
 	glm::vec3 target_offset = (camera_target_forward * player_forward) + (camera_target_right * player_right) + (camera_target_up * player_up);
 
 	// Camera lag: Generate target_position - prev_position creating a vector. Do some scaling on it, then add to prev and update
+	// std::cout << "target: X:" << camera_target_position.x << " Y:" << camera_target_position.y << " Z:" << camera_target_position.z << std::endl;
 	glm::vec3 camera_target_position = playerEntity.transform->getPosition() + eye_offset;
-	glm::vec3 camera_track_vector = camera_target_position - camera_previous_position;
-	camera_track_vector * camera_lag;
-	camera_previous_position = camera_previous_position + camera_track_vector;
+	glm::vec3 camera_track_vector = glm::vec3(camera_target_position.x - camera_previous_position.x, camera_target_position.y - camera_previous_position.y, camera_target_position.z - camera_previous_position.z);
+
+	std::cout << "track: X:" << camera_track_vector.x << " Y:" << camera_track_vector.y << " Z:" << camera_track_vector.z << std::endl;
+
+	camera_track_vector = camera_track_vector * camera_lag;
+	//camera_previous_position = camera_previous_position + camera_track_vector;
+	camera_previous_position = glm::vec3(glm::translate(glm::mat4(1.0f), camera_track_vector) * glm::vec4(camera_previous_position, 1.0f));
+
+
+
+	std::cout << "target: X:" << camera_target_position.x << " Y:" << camera_target_position.y << " Z:" << camera_target_position.z << std::endl;
+	std::cout << "prev: X:" << camera_previous_position.x << " Y:" << camera_previous_position.y << " Z:" << camera_previous_position.z << std::endl;
+
 
 	// Set view and projection matrices
 	view = glm::lookAt(camera_previous_position, playerEntity.transform->getPosition() + target_offset, callback_ptr->camera_up);
