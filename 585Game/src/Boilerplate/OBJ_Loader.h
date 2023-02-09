@@ -475,7 +475,7 @@ namespace objl
 #ifdef OBJL_CONSOLE_OUTPUT
 				if ((outputIndicator = ((outputIndicator + 1) % outputEveryNth)) == 1)
 				{
-					if (!meshname.empty())
+					/*if (!meshname.empty())
 					{
 						std::cout
 							<< "\r- " << meshname
@@ -484,7 +484,7 @@ namespace objl
 							<< "\t| normals > " << Normals.size()
 							<< "\t| triangles > " << (Vertices.size() / 3)
 							<< (!MeshMatNames.empty() ? "\t| material: " + MeshMatNames.back() : "");
-					}
+					} */
 				}
 #endif
 
@@ -537,7 +537,7 @@ namespace objl
 						}
 					}
 #ifdef OBJL_CONSOLE_OUTPUT
-					std::cout << std::endl;
+					//std::cout << std::endl;
 					outputIndicator = 0;
 #endif
 				}
@@ -665,7 +665,7 @@ namespace objl
 					pathtomat += algorithm::tail(curline);
 
 #ifdef OBJL_CONSOLE_OUTPUT
-					std::cout << std::endl << "- find materials in: " << pathtomat << std::endl;
+					//std::cout << std::endl << "- find materials in: " << pathtomat << std::endl;
 #endif
 
 					// Load Materials
@@ -674,7 +674,7 @@ namespace objl
 			}
 
 #ifdef OBJL_CONSOLE_OUTPUT
-			std::cout << std::endl;
+			//std::cout << std::endl;
 #endif
 
 			// Deal with last mesh
@@ -952,7 +952,7 @@ namespace objl
 					}
 
 					// If Vertex is not an interior vertex
-					float angle = math::AngleBetweenV3(pPrev.Position - pCur.Position, pNext.Position - pCur.Position) * (180 / 3.14159265359);
+					float angle = math::AngleBetweenV3(pPrev.Position - pCur.Position, pNext.Position - pCur.Position) * (float)(180 / 3.14159265359);
 					if (angle <= 0 && angle >= 180)
 						continue;
 

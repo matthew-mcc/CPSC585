@@ -107,8 +107,8 @@ public:
 
 	// CURSOR POSITION CALLBACK
 	virtual void cursorPosCallback(double xpos, double ypos) {
-		cursor_pos.x = (2.f / (float)xres) * xpos - 1.f;
-		cursor_pos.y = (2.f / (float)yres) * ypos - 1.f;
+		cursor_pos.x = (float)((2.f / xres) * xpos - 1.f);
+		cursor_pos.y = (float)((2.f / yres) * ypos - 1.f);
 		cursor_pos.y *= -1.f;
 
 		float xoffset = (cursor_pos.x - lastX) * 1000.f;

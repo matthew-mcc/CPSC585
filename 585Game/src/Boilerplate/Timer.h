@@ -53,13 +53,13 @@ public:
     // Get Countdown
     // Returns countdown as pure seconds
     int getCountdown() {
-        return countdown;
+        return (int)countdown;
     }
 
     // Get Countdown Minutes
     // Returns the minutes component of a standard clock notation (M:SS)
     int getCountdownMins() {
-        return countdown / 60;
+        return (int)(countdown / 60);
     }
 
     // Get Countdown Seconds

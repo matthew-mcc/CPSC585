@@ -11,7 +11,7 @@
 
 #include "../snippetcommon/SnippetPVD.h"
 #include "PhysicsSystem.h"
-#include "OBJ_Loader.h"
+#include "Boilerplate/OBJ_Loader.h"
 
 using namespace physx;
 using namespace physx::vehicle2;
@@ -182,13 +182,13 @@ void initStaticMeshes() {
 	meshDesc.points.stride = sizeof(PxVec3);
 	meshDesc.points.data = vertexArr.data();
 	
-	meshDesc.triangles.count = indicesArr.size() / 3;
+	meshDesc.triangles.count = (PxU32)(indicesArr.size() / 3);
 	meshDesc.triangles.stride = 3 * sizeof(PxU32);
 	meshDesc.triangles.data = indicesArr.data();
 
 	// Cooking stuff
 	PxDefaultMemoryOutputStream writeBuffer;
-	PxTriangleMeshCookingResult::Enum result;
+	//PxTriangleMeshCookingResult::Enum result;
 	bool status = gCooking->cookTriangleMesh(meshDesc, writeBuffer);
 	if (!status)
 		std::cout << "Mesh Creation Failed" << std::endl;
