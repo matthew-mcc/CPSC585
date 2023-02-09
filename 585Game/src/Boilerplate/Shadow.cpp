@@ -43,8 +43,8 @@ Shadow::Shadow(unsigned int width, unsigned int height, float x, float y, float 
 	quadVAO = 0;
 }
 
-void Shadow::update(glm::vec3 lightPos) {
-	ConfigureShaderAndMatrices(lightPos);
+void Shadow::update(glm::vec3 lightPos, glm::vec3 playerPos) {
+	ConfigureShaderAndMatrices(lightPos, playerPos);
 	shader.use();
 	shader.setMat4("lightSpaceMatrix", lightSpaceMatrix);
 	shader.setMat4("model", glm::mat4(1.0f));
@@ -67,10 +67,10 @@ void Shadow::render() {
 	renderQuad();
 }
 
-void Shadow::ConfigureShaderAndMatrices(glm::vec3 lightPos) {
+void Shadow::ConfigureShaderAndMatrices(glm::vec3 lightPos, glm::vec3 playerPos) {
 	glm::mat4 lightProjection = glm::ortho(-mapX, mapX, -mapY, mapY, nearPlane, farPlane);
-	glm::mat4 lightView = glm::lookAt(lightPos,
-		glm::vec3(0.0f, 0.0f, 0.0f),
+	glm::mat4 lightView = glm::lookAt(lightPos + playerPos,
+		playerPos,
 		glm::vec3(0.0f, 1.0f, 0.0f));
 	lightSpaceMatrix = lightProjection * lightView;
 }

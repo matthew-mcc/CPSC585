@@ -6,7 +6,7 @@ class Shadow {
 public:
 	Shadow();
 	Shadow(unsigned int width, unsigned int height, float x, float y, float near, float far);
-	void update(glm::vec3 lightPos);
+	void update(glm::vec3 lightPos, glm::vec3 playerPos);
 	void cleanUp(std::shared_ptr<CallbackInterface> callback_ptr);
 	void render();
 
@@ -18,7 +18,7 @@ public:
 
 private:
 	Shader debugShader;
-	void ConfigureShaderAndMatrices(glm::vec3 lightPos);
+	void ConfigureShaderAndMatrices(glm::vec3 lightPos, glm::vec3 playerPos);
 	void renderQuad();
 
 	float mapX;

@@ -82,6 +82,24 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> callback
 		models.at(i).Draw(outlineShader);
 	}*/
 
+	// Retrieve player entity
+	Entity playerEntity = gameState->findEntity("player_truck1");
+
+	camera_position_forward = camera_position_default - (callback_ptr->camera_acceleration) / 15.f;
+	glm::vec3 player_forward = playerEntity.transform->getForwardVector();
+	glm::vec3 player_right = playerEntity.transform->getRightVector();
+	glm::vec3 player_up = playerEntity.transform->getUpVector();
+
+	// Chase Camera: Compute eye and target offsets for lookat view matrix
+	glm::vec3 eye_offset = (camera_position_forward * player_forward) + (callback_ptr->camera_position_right * player_right) + (camera_position_up * player_up);
+	glm::vec3 target_offset = (camera_target_forward * player_forward) + (camera_target_right * player_right) + (camera_target_up * player_up);
+
+	// Camera lag: Generate target_position - prev_position creating a vector. Do some scaling on it, then add to prev and update
+	glm::vec3 camera_target_position = playerEntity.transform->getPosition() + eye_offset;
+	glm::vec3 camera_track_vector = glm::vec3(camera_target_position.x - camera_previous_position.x, camera_target_position.y - camera_previous_position.y, camera_target_position.z - camera_previous_position.z);
+	camera_track_vector = camera_track_vector * camera_lag;
+	camera_previous_position = glm::vec3(glm::translate(glm::mat4(1.0f), camera_track_vector) * glm::vec4(camera_previous_position, 1.0f));
+
 // FIRST PASS: FAR SHADOWMAP RENDER
 	/*lightPos = glm::vec3(sin(lightRotation) * cos(lightAngle), sin(lightAngle), cos(lightRotation) * cos(lightAngle)) * 200.f;
 	farShadowMap.update(lightPos);
@@ -99,13 +117,28 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> callback
 
 // SECOND PASS: NEAR SHADOWMAP RENDER
 	lightPos = glm::vec3(sin(lightRotation) * cos(lightAngle), sin(lightAngle), cos(lightRotation) * cos(lightAngle)) * 40.f;
-	nearShadowMap.update(lightPos);
+	nearShadowMap.update(lightPos, playerEntity.transform->getPosition());
 	glCullFace(GL_FRONT);
 	for (int i = 0; i < gameState->entityList.size(); i++) {
-		if (gameState->entityList.at(i).name == "landscape") {
-			nearShadowMap.shader.setMat4("model", glm::translate(model, glm::vec3(0.f, altitude, 0.f)));
+		// Retrieve position and rotation
+		glm::vec3 position = gameState->entityList.at(i).transform->getPosition();
+		glm::quat rotation = gameState->entityList.at(i).transform->getRotation();
+
+		for (int j = 0; j < gameState->entityList.at(i).localTransforms.size(); j++) {
+			glm::vec3 localPosition = gameState->entityList.at(i).localTransforms.at(j)->getPosition();
+			glm::quat localRotation = gameState->entityList.at(i).localTransforms.at(j)->getRotation();
+
+			// Set model matrix
+			model = glm::mat4(1.0f);
+			model = glm::translate(model, position);
+			model = model * glm::toMat4(rotation);
+			model = glm::translate(model, localPosition);
+			model = model * glm::toMat4(localRotation);
+			model = scale(model, glm::vec3(1.0f));
+			nearShadowMap.shader.setMat4("model", model);
+
+			gameState->entityList.at(i).model->meshes.at(j).Draw(nearShadowMap.shader);
 		}
-		gameState->entityList.at(i).model->Draw(nearShadowMap.shader);
 	}
 	glCullFace(GL_BACK);
 	nearShadowMap.cleanUp(callback_ptr);
@@ -122,24 +155,6 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> callback
 	glBindTexture(GL_TEXTURE_2D, nearShadowMap.depthMap);
 	//glActiveTexture(GL_TEXTURE2);
 	//glBindTexture(GL_TEXTURE_2D, farShadowMap.depthMap);
-
-	// Retrieve player entity
-	Entity playerEntity = gameState->findEntity("player_truck1");
-
-	camera_position_forward = camera_position_default-(callback_ptr->camera_acceleration)/15.f;
-	glm::vec3 player_forward = playerEntity.transform->getForwardVector();
-	glm::vec3 player_right = playerEntity.transform->getRightVector();
-	glm::vec3 player_up = playerEntity.transform->getUpVector();
-
-	// Chase Camera: Compute eye and target offsets for lookat view matrix
-	glm::vec3 eye_offset = (camera_position_forward * player_forward) + (callback_ptr->camera_position_right * player_right) + (camera_position_up * player_up);
-	glm::vec3 target_offset = (camera_target_forward * player_forward) + (camera_target_right * player_right) + (camera_target_up * player_up);
-
-	// Camera lag: Generate target_position - prev_position creating a vector. Do some scaling on it, then add to prev and update
-	glm::vec3 camera_target_position = playerEntity.transform->getPosition() + eye_offset;
-	glm::vec3 camera_track_vector = glm::vec3(camera_target_position.x - camera_previous_position.x, camera_target_position.y - camera_previous_position.y, camera_target_position.z - camera_previous_position.z);
-	camera_track_vector = camera_track_vector * camera_lag;
-	camera_previous_position = glm::vec3(glm::translate(glm::mat4(1.0f), camera_track_vector) * glm::vec4(camera_previous_position, 1.0f));
 
 	// Set view and projection matrices
 	view = glm::lookAt(camera_previous_position, playerEntity.transform->getPosition() + target_offset, callback_ptr->camera_up);
@@ -164,6 +179,16 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> callback
 			model = model * glm::toMat4(localRotation);
 			model = scale(model, glm::vec3(1.0f));
 			celShader.setMat4("model", model);
+
+			glm::quat lightRotation = rotation;
+			glm::quat localLightRotation = localRotation;
+			lightRotation.w *= -1.f;
+			localLightRotation *= -1.f;
+			glm::vec4 newLightv4 = glm::toMat4(lightRotation) * glm::vec4(lightPos, 0.f);
+			newLightv4 = newLightv4 * glm::toMat4(localLightRotation);
+			
+			glm::vec3 newLightv3 = glm::vec3(newLightv4.x, newLightv4.y, newLightv4.z);
+			celShader.setVec3("sun", newLightv3);
 
 			gameState->entityList.at(i).model->meshes.at(j).Draw(celShader);
 		}
