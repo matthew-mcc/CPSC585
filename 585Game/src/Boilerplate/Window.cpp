@@ -50,12 +50,12 @@ public:
 	virtual void keyCallback(int key, int scancode, int action, int mods) {
 		// THROTTLE (W)
 		if (key == GLFW_KEY_W) {
-		
+
 			if (action == GLFW_RELEASE) {
 				throttle = 0.f;
 				keys_pressed--;
 			}
-		
+		}
 		// BRAKE (S)
 		if (key == GLFW_KEY_S) {
 			if (action == GLFW_PRESS) {
@@ -136,13 +136,6 @@ public:
 		if (moveCamera) {
 			xAngle = (clickPos.x - lastX) * atan(1) * 4.f;
 		}
-	}
-	virtual void scrollCallback(double xoffset, double yoffset) {
-		fov -= (float)yoffset;
-		if (fov < 1.0f)
-			fov = 1.0f;
-		if (fov > 45.0f)
-			fov = 45.0f;
 	}
 
 	// SCROLL CALLBACK
