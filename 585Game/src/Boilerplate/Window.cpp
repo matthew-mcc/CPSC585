@@ -1,5 +1,6 @@
 
 #include <Boilerplate/Window.h>
+#include "imgui.h"
 
 using namespace std;
 
@@ -95,6 +96,10 @@ public:
 
 	// MOUSE BUTTON CALLBACK
 	virtual void mouseButtonCallback(int button, int action, int mods) {
+		
+		auto& io = ImGui::GetIO();
+
+		if (io.WantCaptureMouse) return;
 		if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS) {
 			cout << "Mouse Left clicked" << endl;
 			moveCamera = true;
@@ -115,6 +120,10 @@ public:
 
 	// CURSOR POSITION CALLBACK
 	virtual void cursorPosCallback(double xpos, double ypos) {
+		auto& io = ImGui::GetIO();
+
+		if (io.WantCaptureMouse) return;
+
 		cursor_pos.x = (float)((2.f / xres) * xpos - 1.f);
 		cursor_pos.y = (float)((2.f / yres) * ypos - 1.f);
 		cursor_pos.y *= -1.f;

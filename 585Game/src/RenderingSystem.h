@@ -27,7 +27,7 @@ public:
 
 	// Window Pointer
 	GLFWwindow* window;
-
+	void SetupImgui();
 private:
 	void setCelShaderUniforms();
 
