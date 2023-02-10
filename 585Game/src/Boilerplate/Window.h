@@ -85,6 +85,7 @@ public:
 	glm::vec2 clickPos = glm::vec2(0.f, 0.f);
 
 	// GAMEPAD VEHICLE INPUT
+
 	void XboxUpdate(XboxInput x) {
 		if (keys_pressed <= 0) {
 			throttle = x.data.RT / 255.f;

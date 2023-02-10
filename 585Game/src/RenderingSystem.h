@@ -19,6 +19,8 @@ public:
 	// Initialize Renderer
 	void initRenderer();
 
+	void SetupImgui();
+
 	// Update Renderer
 	void updateRenderer(shared_ptr<CallbackInterface> callback_ptr, GameState* gameState, Timer* timer);
 
@@ -27,7 +29,7 @@ public:
 
 	// Window Pointer
 	GLFWwindow* window;
-	void SetupImgui();
+	
 private:
 	void setCelShaderUniforms();
 
