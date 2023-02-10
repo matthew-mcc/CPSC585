@@ -6,7 +6,9 @@
 #include <gtc/type_ptr.hpp>
 #include <gtc/matrix_transform.hpp>
 #include <Boilerplate/stb_image.h>
-
+#include "imgui.h"
+#include "imgui_impl_glfw.h"
+#include "imgui_impl_opengl3.h"
 #define _USE_MATH_DEFINES
 #include <math.h>
 

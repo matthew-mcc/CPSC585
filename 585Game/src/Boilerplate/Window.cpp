@@ -50,7 +50,10 @@ public:
 	virtual void keyCallback(int key, int scancode, int action, int mods) {
 		// THROTTLE (W)
 		if (key == GLFW_KEY_W) {
-
+			if (action == GLFW_PRESS) {
+				throttle = 1.f;
+				keys_pressed++;
+			}
 			if (action == GLFW_RELEASE) {
 				throttle = 0.f;
 				keys_pressed--;

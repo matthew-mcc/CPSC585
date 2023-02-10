@@ -20,7 +20,9 @@ int main() {
 
 	// Initialize Systems
 	xInput.run();
-	gameState->initGameState();	std::shared_ptr<CallbackInterface> callback_ptr = processInput(renderer.window);
+
+	gameState->initGameState();	
+	std::shared_ptr<CallbackInterface> callback_ptr = processInput(renderer.window);
 	renderer.SetupImgui();
 	// PRIMARY GAME LOOP
 	while (!glfwWindowShouldClose(renderer.window)) {
@@ -29,7 +31,6 @@ int main() {
 		xInput.update();
 		callback_ptr->XboxUpdate(xInput);
 		// Update Rendering System
-		renderer.updateRenderer(callback_ptr, gameState, timer);
 		
 		// Post-Load Initialization
 		if (isLoaded) {
@@ -39,6 +40,15 @@ int main() {
 			// Update Physics System
 			physics.stepPhysics(callback_ptr, gameState, timer);
 		}
+		// Update Rendering System
+		renderer.updateRenderer(callback_ptr, gameState, timer);
+
+		// Post-Load Initialization
+		if (!isLoaded) {
+			timer->init();
+			isLoaded = true;
+		}
+
 	}
   
 	// Terminate program
