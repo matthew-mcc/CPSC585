@@ -23,7 +23,7 @@ class ContactReportCallback : public physx::PxSimulationEventCallback {
 		PX_UNUSED(pairs);
 		PX_UNUSED(nbPairs);
 
-		std::cout << "Stop touching me :(" << std::endl;
+		std::cout << "Collision Detected!" << std::endl;
 	}
 	void onConstraintBreak(physx::PxConstraintInfo* constraints, physx::PxU32 count) {}
 	void onWake(physx::PxActor** actors, physx::PxU32 count) {}
@@ -52,6 +52,9 @@ PxPvd* gPvd = NULL;
 // Cooking shit
 PxCooking* gCooking = NULL;
 PxCookingParams* gParams;
+
+// box
+PxRigidDynamic* boxBody;
 
 //The path to the vehicle json files to be loaded.
 const char* gVehicleDataPath = NULL;
@@ -109,6 +112,16 @@ void initPhysX() {
 	}
 	gMaterial = gPhysics->createMaterial(0.5f, 0.5f, 0.6f);
 
+	float halfLen = 0.5f;
+	PxShape* shape = gPhysics->createShape(PxBoxGeometry(halfLen, halfLen, halfLen), *gMaterial);
+	PxFilterData boxFilter(COLLISION_FLAG_OBSTACLE, COLLISION_FLAG_OBSTACLE_AGAINST, 0, 0);
+	shape->setSimulationFilterData(boxFilter);
+	PxTransform tran(PxVec3(0));
+	PxTransform localTran(PxVec3(10, 10, 10));
+	boxBody = gPhysics->createRigidDynamic(tran.transform(localTran));
+	boxBody->attachShape(*shape);
+	gScene->addActor(*boxBody);
+
 	PxInitVehicleExtension(*gFoundation);
 
 	// Cooking init
@@ -145,7 +158,7 @@ void initGroundPlane() {
 	PxShape* groundShape = gPhysics->createShape(groundGeo, *gMaterial, true);
 
 	PxFilterData groundFilter(COLLISION_FLAG_GROUND, COLLISION_FLAG_GROUND_AGAINST, 0, 0);
-
+	groundShape->setSimulationFilterData(groundFilter);
 	
 
 	PxTransform groundTrans(physx::PxVec3(0, 0, 0), PxQuat(PxIdentity));
@@ -218,6 +231,8 @@ void initMaterialFrictionTable() {
 bool initVehicles() {
 	gVehicleDataPath = "assets/vehicledata";
 
+	
+
 	//Load the params from json or set directly.
 	readBaseParamsFromJsonFile(gVehicleDataPath, "Base.json", gVehicle.mBaseParams);
 	setPhysXIntegrationParams(gVehicle.mBaseParams.axleDescription, gPhysXMaterialFrictions, gNbPhysXMaterialFrictions, gPhysXDefaultMaterialFriction, gVehicle.mPhysXParams);
@@ -229,7 +244,7 @@ bool initVehicles() {
 	}
 
 	//Apply a start pose to the physx actor and add it to the physx scene.
-	PxTransform pose(PxVec3(0.f, 25.f, 0.f), PxQuat(PxIdentity));
+	PxTransform pose(PxVec3(-10.f, -5.f, 0.f), PxQuat(PxIdentity));
 	gVehicle.setUpActor(*gScene, pose, gVehicleName);
 
 	//Set the vehicle in 1st gear.
@@ -253,6 +268,22 @@ bool initVehicles() {
 	gVehicleSimulationContext.gravity = gGravity;
 	gVehicleSimulationContext.physxScene = gScene;
 	gVehicleSimulationContext.physxActorUpdateMode = PxVehiclePhysXActorUpdateMode::eAPPLY_ACCELERATION;
+
+	// Vehicle flags
+	PxFilterData vehicleFilter(COLLISION_FLAG_CHASSIS, COLLISION_FLAG_CHASSIS_AGAINST, 0, 0);
+	//PxFilterData vehicleFilter(COLLISION_FLAG_WHEEL, COLLISION_FLAG_GROUND_AGAINST, 0, 0);
+	PxU32 shapes = gVehicle.mPhysXState.physxActor.rigidBody->getNbShapes();
+	for (PxU32 i = 0; i < 1; i++) {
+		PxShape* shape = NULL;
+		gVehicle.mPhysXState.physxActor.rigidBody->getShapes(&shape, 1, i);
+		shape->setSimulationFilterData(vehicleFilter);
+
+		shape->setFlag(PxShapeFlag::eSCENE_QUERY_SHAPE, true);
+		shape->setFlag(PxShapeFlag::eSIMULATION_SHAPE, true);
+		shape->setFlag(PxShapeFlag::eTRIGGER_SHAPE, false);
+
+	}
+
 	return true;
 }
 
@@ -280,6 +311,8 @@ bool initPhysicsSystem() {
 
 void PhysicsSystem::stepPhysics(std::shared_ptr<CallbackInterface> callback_ptr, GameState* gameState, Timer* timer) {
 	// Update Timestep
+
+	
 	PxReal timestep;
 	if (timer->getDeltaTime() > 0.1) {	// Safety check: If deltaTime gets too large, default it to (1 / 60)
 		timestep = (1 / 60.f);
@@ -290,6 +323,8 @@ void PhysicsSystem::stepPhysics(std::shared_ptr<CallbackInterface> callback_ptr,
 
 	// Store entity list
 	auto entityList = gameState->entityList;
+
+	
 
 	//Apply the brake, throttle and steer inputs to the vehicle's command state
 	gVehicle.mCommandState.brakes[0] = callback_ptr->brake;
@@ -310,8 +345,26 @@ void PhysicsSystem::stepPhysics(std::shared_ptr<CallbackInterface> callback_ptr,
 	gScene->simulate(timestep);
 	gScene->fetchResults(true);
 
+	
+
 	// Update Physics Entities
 	for (int i = 0; i < entityList.size(); i++) {
+		if (entityList.at(i).isRigidBody) {
+			//std::cout << entityList.at(i).name << std::endl;
+			glm::vec3 position = glm::vec3();
+			position.x = boxBody->getGlobalPose().p.x;
+			position.y = boxBody->getGlobalPose().p.y;
+			position.z = boxBody->getGlobalPose().p.z;
+			entityList.at(2).transform->setPosition(position);
+
+			glm::quat rotation = glm::quat();
+			rotation.x = boxBody->getGlobalPose().q.x;
+			rotation.y = boxBody->getGlobalPose().q.y;
+			rotation.z = boxBody->getGlobalPose().q.z;
+			rotation.w = boxBody->getGlobalPose().q.w;
+			entityList.at(2).transform->setRotation(rotation);
+		}
+
 		if (entityList.at(i).bphysicsEntity) {
 			// Global Position
 			glm::vec3 position = glm::vec3();

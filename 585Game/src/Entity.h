@@ -14,7 +14,8 @@ An entity will be composed of a name (identifier), a Model (what we are renderin
 class Entity {
 public:
 	string name = "unnamed_entity";
-	bool bphysicsEntity = false;
+	bool bphysicsEntity = false; 
+	bool isRigidBody = false;
 	Transform* transform;
 	vector<Transform*> localTransforms;
 	Model* model;
