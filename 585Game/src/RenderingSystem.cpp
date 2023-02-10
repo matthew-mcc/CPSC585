@@ -255,6 +255,8 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> callback
 	ImGui::ColorEdit3("Sky Color", (float*)&skyColor);
 	ImGui::ColorEdit3("Highlight Color", (float*)&lightColor);
 	ImGui::ColorEdit3("Shadow Color", (float*)&shadowColor);
+	ImGui::ColorEdit3("Fog Color", (float*)&fogColor);
+	ImGui::SliderFloat("Fog depth", &fogDepth, 0.f, 0.2f);
 	ImGui::SliderFloat("Min bias", &minBias, 0.0f, 0.1f);
 	ImGui::SliderFloat("Max bias", &maxBias, 0.0f, 0.1f);
 
@@ -296,6 +298,8 @@ void RenderingSystem::setCelShaderUniforms() {
 
 	celShader.setVec3("lightColor", lightColor);
 	celShader.setVec3("shadowColor", shadowColor);
+	celShader.setVec3("fogColor", fogColor);
+	celShader.setFloat("fogDepth", fogDepth);
 	celShader.setVec3("sun", lightPos);
 	celShader.setFloat("band", band);
 	celShader.setFloat("gradient", gradient);

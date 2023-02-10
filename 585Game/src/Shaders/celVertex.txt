@@ -7,11 +7,13 @@ out vec3 FragPos;
 out vec2 TexCoords;
 out vec3 normal;
 out vec4 FragPosLightSpace;
+out float depth;
 
 uniform mat4 model;
 uniform mat4 view;
 uniform mat4 projection;
 uniform mat4 lightSpaceMatrix;
+uniform float fogDepth;
 
 void main(){
     FragPos = vec3(model * vec4(aPos, 1.0));
@@ -19,4 +21,6 @@ void main(){
     TexCoords = aTexCoords;
     FragPosLightSpace = lightSpaceMatrix * vec4(FragPos, 1.0);
     gl_Position = projection * view * model * vec4(aPos, 1.0);
+    depth = length(view * model * vec4(aPos, 1.0)) * fogDepth;
+    if (depth > 1.0) depth = 1.0;
 }

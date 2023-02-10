@@ -6,12 +6,15 @@ in vec3 normal;
 in vec2 TexCoords;
 in vec4 FragPosLightSpace;
 
+in float depth;
+
 uniform sampler2D texture_diffuse1;
 uniform sampler2D nearShadowMap;
 uniform sampler2D farShadowMap;
 
 uniform vec3 lightColor;
 uniform vec3 shadowColor;
+uniform vec3 fogColor;
 uniform vec3 sun;
 uniform float band;
 uniform float gradient;
@@ -85,4 +88,5 @@ void main(){
         light = shadowColor;
 
     FragColor = vec4(texture(texture_diffuse1, TexCoords).xyz * light, 1.0);
+    FragColor = vec4((1.0-depth)*FragColor.xyz + (depth)*fogColor, 1.0);
 }
