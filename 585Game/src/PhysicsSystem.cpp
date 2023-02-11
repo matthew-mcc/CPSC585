@@ -256,7 +256,7 @@ bool initVehicles() {
 	}
 
 	//Apply a start pose to the physx actor and add it to the physx scene.
-	PxTransform pose(PxVec3(0.f, 20.f, 50.f), PxQuat(PxIdentity));
+	PxTransform pose(PxVec3(0.f, 0.f, 0.f), PxQuat(PxIdentity));
 	gVehicle.setUpActor(*gScene, pose, gVehicleName);
 
 	//Set the vehicle in 1st gear.

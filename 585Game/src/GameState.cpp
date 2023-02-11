@@ -18,8 +18,8 @@ void GameState::initGameState() {
 		"assets/models/landscape1/landscape1.obj"});
 
 	// Test Static Mesh
-	addEntity("test_staticmesh", PhysType::StaticMesh, new Transform(vec3(0.f, -10.f, 25.f)), vector<string>{
-		"assets/models/primitives/primitives_cube1.obj"});
+	addEntity("test_staticmesh", PhysType::StaticMesh, new Transform(vec3(0.f, 0.f, 50.f)), vector<string>{
+		"assets/models/primitives/primitives_cylinder1.obj"});
 
 	// Test RigidBody
 	addEntity("test_rigidbody", PhysType::RigidBody, new Transform(), vector<string>{
