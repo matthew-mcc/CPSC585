@@ -3,6 +3,7 @@
 using namespace std;
 
 void GameState::initGameState() {
+// DYNAMIC
 	// Player Truck
 	addEntity("player_truck1", PhysType::Vehicle, new Transform(), vector<string>{
 		"assets/models/truck1/truck1.obj",
@@ -13,17 +14,18 @@ void GameState::initGameState() {
 		"assets/models/tire1/tire1_back1.obj",
 		"assets/models/tire1/tire1_back2.obj"});
 
+	// Test RigidBody
+	addEntity("test_rigidbody", PhysType::RigidBody, new Transform(), vector<string>{
+		"assets/models/primitives/primitives_cube1.obj"});
+
+// STATIC
 	// Landscape
 	addEntity("landscape", PhysType::StaticMesh, new Transform(), vector<string>{
 		"assets/models/landscape1/landscape1.obj"});
 
-	// Test Static Mesh
-	addEntity("test_staticmesh", PhysType::StaticMesh, new Transform(vec3(0.f, 0.f, 50.f)), vector<string>{
-		"assets/models/primitives/primitives_cylinder1.obj"});
-
-	// Test RigidBody
-	addEntity("test_rigidbody", PhysType::RigidBody, new Transform(), vector<string>{
-		"assets/models/primitives/primitives_cube1.obj"});
+	// Center Oil Rig
+	addEntity("oil_rig_center", PhysType::StaticMesh, new Transform(vec3(0.f, 0.f, 25.f)), vector<string>{
+		"assets/models/oil_rig1/oil_rig1.obj"});
 }
 
 void GameState::addEntity(string name, PhysType type, Transform* transform, vector<string> modelPaths) {
