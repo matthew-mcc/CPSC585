@@ -80,8 +80,8 @@ PxReal gPhysXDefaultMaterialFriction = 1.0f;
 const char gVehicleName[] = "engineDrive";
 
 //A ground plane to drive on (this is our landscape stuff).
-PxRigidStatic* gGroundPlane = NULL;
-PxTriangleMesh* groundMesh = NULL;
+//PxRigidStatic* gGroundPlane = NULL;
+//PxTriangleMesh* groundMesh = NULL;
 
 
 vec3 toGLMVec3(PxVec3 pxTransform) {
@@ -122,15 +122,15 @@ void initPhysX() {
 
 	gScene = gPhysics->createScene(sceneDesc);
 	PxPvdSceneClient* pvdClient = gScene->getScenePvdClient();
-	if (pvdClient)
-	{
+	if (pvdClient){
 		pvdClient->setScenePvdFlag(PxPvdSceneFlag::eTRANSMIT_CONSTRAINTS, true);
 		pvdClient->setScenePvdFlag(PxPvdSceneFlag::eTRANSMIT_CONTACTS, true);
 		pvdClient->setScenePvdFlag(PxPvdSceneFlag::eTRANSMIT_SCENEQUERIES, true);
 	}
 	gMaterial = gPhysics->createMaterial(0.5f, 0.5f, 0.6f);
 
-	float halfLen = 0.5f;
+	
+	float halfLen = 1.0f;
 	PxShape* shape = gPhysics->createShape(PxBoxGeometry(halfLen, halfLen, halfLen), *gMaterial);
 	PxFilterData boxFilter(COLLISION_FLAG_OBSTACLE, COLLISION_FLAG_OBSTACLE_AGAINST, 0, 0);
 	shape->setSimulationFilterData(boxFilter);
@@ -150,8 +150,6 @@ void initPhysX() {
 	gParams->meshPreprocessParams |= PxMeshPreprocessingFlag::eDISABLE_CLEAN_MESH;
 	gParams->meshPreprocessParams |= PxMeshPreprocessingFlag::eDISABLE_ACTIVE_EDGES_PRECOMPUTE;
 	gCooking->setParams(*gParams);
-
-
 }
 
 void cleanupPhysX() {
@@ -170,7 +168,7 @@ void cleanupPhysX() {
 	PX_RELEASE(gFoundation);
 }
 
-void initStaticMeshes(GameState* gameState) {
+void initPhysXMeshes(GameState* gameState) {
 
 	// Loop through every entity, check if it's Physics Type is StaticMesh
 	for (int i = 0; i < gameState->entityList.size(); i++) {
@@ -217,17 +215,14 @@ void initStaticMeshes(GameState* gameState) {
 				PxDefaultMemoryInputData readBuffer(writeBuffer.getData(), writeBuffer.getSize());
 				PxTriangleMesh* mesh = gPhysics->createTriangleMesh(readBuffer);
 
-				// 
 				PxTriangleMeshGeometry meshGeo = PxTriangleMeshGeometry(mesh, PxMeshScale(1));
 				PxShape* meshShape = gPhysics->createShape(meshGeo, *gMaterial, true);
 
 				PxFilterData meshFilter(COLLISION_FLAG_GROUND, COLLISION_FLAG_GROUND_AGAINST, 0, 0);
 				meshShape->setSimulationFilterData(meshFilter);
 
-
 				PxTransform meshTrans(physx::PxVec3(0, 0, 0), PxQuat(PxIdentity));
 				PxRigidStatic* meshStatic = gPhysics->createRigidStatic(meshTrans);
-
 
 				meshStatic->attachShape(*meshShape);
 				gScene->addActor(*meshStatic);
@@ -236,18 +231,14 @@ void initStaticMeshes(GameState* gameState) {
 	}
 }
 
-void cleanupGroundPlane() {
-	gGroundPlane->release();
-}
-
 void initMaterialFrictionTable() {
 	//Each physx material can be mapped to a tire friction value on a per tire basis.
 	//If a material is encountered that is not mapped to a friction value, the friction value used is the specified default value.
 	//In this snippet there is only a single material so there can only be a single mapping between material and friction.
 	//In this snippet the same mapping is used by all tires.
-	gPhysXMaterialFrictions[0].friction = 1.0f;
+	gPhysXMaterialFrictions[0].friction = 2.0f;
 	gPhysXMaterialFrictions[0].material = gMaterial;
-	gPhysXDefaultMaterialFriction = 1.0f;
+	gPhysXDefaultMaterialFriction = 2.0f;
 	gNbPhysXMaterialFrictions = 1;
 }
 
@@ -265,7 +256,7 @@ bool initVehicles() {
 	}
 
 	//Apply a start pose to the physx actor and add it to the physx scene.
-	PxTransform pose(PxVec3(-10.f, -5.f, 0.f), PxQuat(PxIdentity));
+	PxTransform pose(PxVec3(0.f, 20.f, 50.f), PxQuat(PxIdentity));
 	gVehicle.setUpActor(*gScene, pose, gVehicleName);
 
 	//Set the vehicle in 1st gear.
@@ -314,13 +305,12 @@ void cleanupVehicles() {
 
 void cleanupPhysics() {
 	cleanupVehicles();
-	cleanupGroundPlane();
 	cleanupPhysX();
 }
 
 void PhysicsSystem::initPhysicsSystem(GameState* gameState) {
 	initPhysX();
-	initStaticMeshes(gameState);
+	initPhysXMeshes(gameState);
 	initMaterialFrictionTable();
 	initVehicles();
 }

@@ -15,10 +15,7 @@ void GameState::initGameState() {
 
 	// Landscape
 	addEntity("landscape", PhysType::StaticMesh, new Transform(), vector<string>{
-		"assets/models/landscape1/landscape1_1.obj",
-		"assets/models/landscape1/landscape1_2.obj",
-		"assets/models/landscape1/landscape1_3.obj",
-		"assets/models/landscape1/landscape1_4.obj"});
+		"assets/models/landscape1/landscape1.obj"});
 
 	// Test Static Mesh
 	addEntity("test_staticmesh", PhysType::StaticMesh, new Transform(vec3(0.f, -10.f, 25.f)), vector<string>{

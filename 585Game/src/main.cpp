@@ -23,8 +23,8 @@ int main() {
 	xInput.run();
 	gameState->initGameState();
 	physics.initPhysicsSystem(gameState);
-	renderer.SetupImgui();
 	std::shared_ptr<CallbackInterface> callback_ptr = processInput(renderer.window);
+	renderer.SetupImgui();
 
 	// PRIMARY GAME LOOP
 	while (!glfwWindowShouldClose(renderer.window)) {

@@ -58,9 +58,9 @@ private:
 	vec3 skyColor = vec3(0.99f, 0.84f, 0.80f);
 	vec3 lightPos = vec3(sin(lightRotation)*cos(lightAngle), sin(lightAngle), cos(lightRotation)*cos(lightAngle)) * 4.f;
 	vec3 lightColor = vec3(0.97f, 0.91f, 0.89f);
-	vec3 shadowColor = vec3(0.61f, 0.49f, 0.46f);
-	vec3 fogColor = vec3(1.f, 0.63f, 0.53f);
-	float fogDepth = 0.002f;
+	vec3 shadowColor = vec3(0.71f, 0.55f, 0.51f);
+	vec3 fogColor = vec3(1.f, 0.73f, 0.66f);
+	float fogDepth = 0.00125f;
 
 	// Text
 	map<char, Character> textChars;
