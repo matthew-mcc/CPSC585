@@ -1,5 +1,3 @@
-
-
 #include <ctype.h>
 
 #include "PxPhysicsAPI.h"
@@ -16,6 +14,9 @@
 using namespace physx;
 using namespace physx::vehicle2;
 using namespace snippetvehicle2;
+using namespace glm;
+using namespace std;
+
 
 class ContactReportCallback : public physx::PxSimulationEventCallback {
 	void onContact(const physx::PxContactPairHeader& pairHeader, const physx::PxContactPair* pairs, physx::PxU32 nbPairs) {
@@ -23,7 +24,7 @@ class ContactReportCallback : public physx::PxSimulationEventCallback {
 		PX_UNUSED(pairs);
 		PX_UNUSED(nbPairs);
 
-		std::cout << "Collision Detected!" << std::endl;
+		cout << "Collision Detected!" << endl;
 	}
 	void onConstraintBreak(physx::PxConstraintInfo* constraints, physx::PxU32 count) {}
 	void onWake(physx::PxActor** actors, physx::PxU32 count) {}
@@ -83,6 +84,23 @@ PxRigidStatic* gGroundPlane = NULL;
 PxTriangleMesh* groundMesh = NULL;
 
 
+vec3 toGLMVec3(PxVec3 pxTransform) {
+	vec3 vector = vec3();
+	vector.x = pxTransform.x;
+	vector.y = pxTransform.y;
+	vector.z = pxTransform.z;
+	return vector;
+}
+
+quat toGLMQuat(PxQuat pxTransform) {
+	quat quaternion = quat();
+	quaternion.x = pxTransform.x;
+	quaternion.y = pxTransform.y;
+	quaternion.z = pxTransform.z;
+	quaternion.w = pxTransform.w;
+	return quaternion;
+}
+
 void initPhysX() {
 	gFoundation = PxCreateFoundation(PX_PHYSICS_VERSION, gAllocator, gErrorCallback);
 	gPvd = PxCreatePvd(*gFoundation);
@@ -127,7 +145,7 @@ void initPhysX() {
 	// Cooking init
 	gCooking = PxCreateCooking(PX_PHYSICS_VERSION, *gFoundation, PxTolerancesScale());
 	if (!gCooking)
-		std::cout << "PxCreateCooking Failed!" << std::endl;
+		cout << "PxCreateCooking Failed!" << endl;
 	gParams = new PxCookingParams(PxTolerancesScale());
 	gParams->meshPreprocessParams |= PxMeshPreprocessingFlag::eDISABLE_CLEAN_MESH;
 	gParams->meshPreprocessParams |= PxMeshPreprocessingFlag::eDISABLE_ACTIVE_EDGES_PRECOMPUTE;
@@ -152,65 +170,70 @@ void cleanupPhysX() {
 	PX_RELEASE(gFoundation);
 }
 
-void initGroundPlane() {
-	
-	PxTriangleMeshGeometry groundGeo = PxTriangleMeshGeometry(groundMesh, PxMeshScale(1)); 
-	PxShape* groundShape = gPhysics->createShape(groundGeo, *gMaterial, true);
+void initStaticMeshes(GameState* gameState) {
 
-	PxFilterData groundFilter(COLLISION_FLAG_GROUND, COLLISION_FLAG_GROUND_AGAINST, 0, 0);
-	groundShape->setSimulationFilterData(groundFilter);
-	
+	// Loop through every entity, check if it's Physics Type is StaticMesh
+	for (int i = 0; i < gameState->entityList.size(); i++) {
+		if (gameState->entityList.at(i).type == PhysType::StaticMesh) {
 
-	PxTransform groundTrans(physx::PxVec3(0, 0, 0), PxQuat(PxIdentity));
-	PxRigidStatic* ground = gPhysics->createRigidStatic(groundTrans);
-	
-	
-	ground->attachShape(*groundShape);
-	gScene->addActor(*ground);
-	
-	
-}
+			// Loop through every mesh tied to the entity
+			for (int j = 0; j < gameState->entityList.at(i).model->modelPaths.size(); j++) {
+				// Load the .obj from a stored path
+				objl::Loader loader;
+				string objPath = gameState->entityList.at(i).model->modelPaths.at(j);
+				loader.LoadFile(objPath);
 
-void initStaticMeshes() {
+				// Populate vertex and index arrays
+				vector<PxVec3> vertexArr;
+				vector<PxU32> indicesArr;
+				for (int k = 0; k < loader.LoadedMeshes[0].Vertices.size(); k++) {
+					float x = loader.LoadedMeshes[0].Vertices[k].Position.X + gameState->entityList.at(i).transform->getPosition().x + gameState->entityList.at(i).localTransforms.at(j)->getPosition().x;
+					float y = loader.LoadedMeshes[0].Vertices[k].Position.Y + gameState->entityList.at(i).transform->getPosition().y + gameState->entityList.at(i).localTransforms.at(j)->getPosition().y;
+					float z = loader.LoadedMeshes[0].Vertices[k].Position.Z + gameState->entityList.at(i).transform->getPosition().z + gameState->entityList.at(i).localTransforms.at(j)->getPosition().z;
+					vertexArr.push_back(PxVec3(x, y, z));
+				}
+				for (int k = 0; k < loader.LoadedMeshes[0].Indices.size(); k++) {
+					indicesArr.push_back(loader.LoadedMeshes[0].Indices[k]);
+				}
 
-	objl::Loader loader;
-	std::string objPath = "assets/models/landscape1/landscape_one.obj";
-	loader.LoadFile(objPath);
-	
+				// Mesh description for triangle mesh
+				PxTriangleMeshDesc meshDesc;
+				meshDesc.setToDefault();
 
-	std::vector<PxVec3> vertexArr;
-	std::vector<PxU32> indicesArr;
-	for (int i = 0; i < loader.LoadedMeshes[0].Vertices.size(); i++) {
-		vertexArr.push_back(PxVec3(loader.LoadedMeshes[0].Vertices[i].Position.X, loader.LoadedMeshes[0].Vertices[i].Position.Y, loader.LoadedMeshes[0].Vertices[i].Position.Z));
+				meshDesc.points.count = (PxU32)vertexArr.size();
+				meshDesc.points.stride = sizeof(PxVec3);
+				meshDesc.points.data = vertexArr.data();
+
+				meshDesc.triangles.count = (PxU32)(indicesArr.size() / 3);
+				meshDesc.triangles.stride = 3 * sizeof(PxU32);
+				meshDesc.triangles.data = indicesArr.data();
+
+				// Cook triangle mesh
+				PxDefaultMemoryOutputStream writeBuffer;
+				bool status = gCooking->cookTriangleMesh(meshDesc, writeBuffer);
+				if (!status) cout << "Mesh Creation Failed!" << endl;
+
+				// Cook mesh and store pointer
+				PxDefaultMemoryInputData readBuffer(writeBuffer.getData(), writeBuffer.getSize());
+				PxTriangleMesh* mesh = gPhysics->createTriangleMesh(readBuffer);
+
+				// 
+				PxTriangleMeshGeometry meshGeo = PxTriangleMeshGeometry(mesh, PxMeshScale(1));
+				PxShape* meshShape = gPhysics->createShape(meshGeo, *gMaterial, true);
+
+				PxFilterData meshFilter(COLLISION_FLAG_GROUND, COLLISION_FLAG_GROUND_AGAINST, 0, 0);
+				meshShape->setSimulationFilterData(meshFilter);
+
+
+				PxTransform meshTrans(physx::PxVec3(0, 0, 0), PxQuat(PxIdentity));
+				PxRigidStatic* meshStatic = gPhysics->createRigidStatic(meshTrans);
+
+
+				meshStatic->attachShape(*meshShape);
+				gScene->addActor(*meshStatic);
+			}
+		}
 	}
-	for (int i = 0; i < loader.LoadedMeshes[0].Indices.size(); i++) {
-		indicesArr.push_back(loader.LoadedMeshes[0].Indices[i]);
-	}
-
-	// Mesh Description for Triangle Mesh
-	PxTriangleMeshDesc meshDesc;
-	meshDesc.setToDefault();
-
-	meshDesc.points.count = (PxU32) vertexArr.size();
-	meshDesc.points.stride = sizeof(PxVec3);
-	meshDesc.points.data = vertexArr.data();
-	
-	meshDesc.triangles.count = (PxU32)(indicesArr.size() / 3);
-	meshDesc.triangles.stride = 3 * sizeof(PxU32);
-	meshDesc.triangles.data = indicesArr.data();
-
-	// Cooking stuff
-	PxDefaultMemoryOutputStream writeBuffer;
-	//PxTriangleMeshCookingResult::Enum result;
-	bool status = gCooking->cookTriangleMesh(meshDesc, writeBuffer);
-	if (!status)
-		std::cout << "Mesh Creation Failed" << std::endl;
-
-	// Cook it and set to groundMesh
-	PxDefaultMemoryInputData readBuffer(writeBuffer.getData(), writeBuffer.getSize());
-	groundMesh = gPhysics->createTriangleMesh(readBuffer);
-	
-
 }
 
 void cleanupGroundPlane() {
@@ -230,8 +253,6 @@ void initMaterialFrictionTable() {
 
 bool initVehicles() {
 	gVehicleDataPath = "assets/vehicledata";
-
-	
 
 	//Load the params from json or set directly.
 	readBaseParamsFromJsonFile(gVehicleDataPath, "Base.json", gVehicle.mBaseParams);
@@ -297,22 +318,15 @@ void cleanupPhysics() {
 	cleanupPhysX();
 }
 
-bool initPhysicsSystem() {
+void PhysicsSystem::initPhysicsSystem(GameState* gameState) {
 	initPhysX();
-	initStaticMeshes();
-	initGroundPlane();
+	initStaticMeshes(gameState);
 	initMaterialFrictionTable();
-
-	
-	if (!initVehicles())
-		return false;
-	return true;
+	initVehicles();
 }
 
-void PhysicsSystem::stepPhysics(std::shared_ptr<CallbackInterface> callback_ptr, GameState* gameState, Timer* timer) {
+void PhysicsSystem::stepPhysics(shared_ptr<CallbackInterface> callback_ptr, GameState* gameState, Timer* timer) {
 	// Update Timestep
-
-	
 	PxReal timestep;
 	if (timer->getDeltaTime() > 0.1) {	// Safety check: If deltaTime gets too large, default it to (1 / 60)
 		timestep = (1 / 60.f);
@@ -323,8 +337,6 @@ void PhysicsSystem::stepPhysics(std::shared_ptr<CallbackInterface> callback_ptr,
 
 	// Store entity list
 	auto entityList = gameState->entityList;
-
-	
 
 	//Apply the brake, throttle and steer inputs to the vehicle's command state
 	gVehicle.mCommandState.brakes[0] = callback_ptr->brake;
@@ -345,68 +357,37 @@ void PhysicsSystem::stepPhysics(std::shared_ptr<CallbackInterface> callback_ptr,
 	gScene->simulate(timestep);
 	gScene->fetchResults(true);
 
-	
-
-	// Update Physics Entities
+	// Update Entities
 	for (int i = 0; i < entityList.size(); i++) {
-		if (entityList.at(i).isRigidBody) {
-			//std::cout << entityList.at(i).name << std::endl;
-			glm::vec3 position = glm::vec3();
-			position.x = boxBody->getGlobalPose().p.x;
-			position.y = boxBody->getGlobalPose().p.y;
-			position.z = boxBody->getGlobalPose().p.z;
-			entityList.at(2).transform->setPosition(position);
-
-			glm::quat rotation = glm::quat();
-			rotation.x = boxBody->getGlobalPose().q.x;
-			rotation.y = boxBody->getGlobalPose().q.y;
-			rotation.z = boxBody->getGlobalPose().q.z;
-			rotation.w = boxBody->getGlobalPose().q.w;
-			entityList.at(2).transform->setRotation(rotation);
+		vec3 p;		// Position Temp
+		vec3 v;		// Velocity Temp
+		quat q;		// Quaternion Temp
+		
+		// RIGID BODIES
+		if (entityList.at(i).type == PhysType::RigidBody) {
+			p = toGLMVec3(boxBody->getGlobalPose().p);
+			q = toGLMQuat(boxBody->getGlobalPose().q);
+			entityList.at(i).transform->setPosition(p);
+			entityList.at(i).transform->setRotation(q);
 		}
 
-		if (entityList.at(i).bphysicsEntity) {
-			// Global Position
-			glm::vec3 position = glm::vec3();
-			position.x = gVehicle.mPhysXState.physxActor.rigidBody->getGlobalPose().p.x;
-			position.y = gVehicle.mPhysXState.physxActor.rigidBody->getGlobalPose().p.y;
-			position.z = gVehicle.mPhysXState.physxActor.rigidBody->getGlobalPose().p.z;
-			entityList.at(i).transform->setPosition(position);
+		// VEHICLES
+		else if (entityList.at(i).type == PhysType::Vehicle) {
+			// Global Transform + Linear Velocity
+			p = toGLMVec3(gVehicle.mPhysXState.physxActor.rigidBody->getGlobalPose().p);
+			q = toGLMQuat(gVehicle.mPhysXState.physxActor.rigidBody->getGlobalPose().q);
+			v = toGLMVec3(gVehicle.mPhysXState.physxActor.rigidBody->getLinearVelocity());
+			entityList.at(i).transform->setPosition(p);
+			entityList.at(i).transform->setRotation(q);
+			entityList.at(i).transform->setLinearVelocity(v);
 
-			// Global Rotation
-			glm::quat rotation = glm::quat();
-			rotation.x = gVehicle.mPhysXState.physxActor.rigidBody->getGlobalPose().q.x;
-			rotation.y = gVehicle.mPhysXState.physxActor.rigidBody->getGlobalPose().q.y;
-			rotation.z = gVehicle.mPhysXState.physxActor.rigidBody->getGlobalPose().q.z;
-			rotation.w = gVehicle.mPhysXState.physxActor.rigidBody->getGlobalPose().q.w;
-			entityList.at(i).transform->setRotation(rotation);
-
-			// Linear Velocity
-			glm::vec3 linearVelocity = glm::vec3();
-			linearVelocity.x = gVehicle.mPhysXState.physxActor.rigidBody->getLinearVelocity().x;
-			linearVelocity.y = gVehicle.mPhysXState.physxActor.rigidBody->getLinearVelocity().y;
-			linearVelocity.z = gVehicle.mPhysXState.physxActor.rigidBody->getLinearVelocity().z;
-			entityList.at(i).transform->setLinearVelocity(linearVelocity);
-
-			// Vehicle Specific: Update Local Wheel Transforms
+			// Local Wheel Transforms
 			for (int j = 1; j < entityList.at(i).localTransforms.size(); j++) {
-				// Local Wheel Position
-				position.x = gVehicle.mPhysXState.physxActor.wheelShapes[j - 1]->getLocalPose().p.x;
-				position.y = gVehicle.mPhysXState.physxActor.wheelShapes[j - 1]->getLocalPose().p.y;
-				position.z = gVehicle.mPhysXState.physxActor.wheelShapes[j - 1]->getLocalPose().p.z;
-				entityList.at(i).localTransforms.at(j)->setPosition(position);
-
-				// Local Wheel Rotation
-				rotation.x = gVehicle.mPhysXState.physxActor.wheelShapes[j - 1]->getLocalPose().q.x;
-				rotation.y = gVehicle.mPhysXState.physxActor.wheelShapes[j - 1]->getLocalPose().q.y;
-				rotation.z = gVehicle.mPhysXState.physxActor.wheelShapes[j - 1]->getLocalPose().q.z;
-				rotation.w = gVehicle.mPhysXState.physxActor.wheelShapes[j - 1]->getLocalPose().q.w;
-				entityList.at(i).localTransforms.at(j)->setRotation(rotation);
+				p = toGLMVec3(gVehicle.mPhysXState.physxActor.wheelShapes[j - 1]->getLocalPose().p);
+				q = toGLMQuat(gVehicle.mPhysXState.physxActor.wheelShapes[j - 1]->getLocalPose().q);
+				entityList.at(i).localTransforms.at(j)->setPosition(p);
+				entityList.at(i).localTransforms.at(j)->setRotation(q);
 			}
 		}
 	}
-}
-
-PhysicsSystem::PhysicsSystem() {
-	initPhysicsSystem();
 }

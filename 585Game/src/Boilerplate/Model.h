@@ -27,6 +27,7 @@ public:
     // model data 
     vector<MTexture> textures_loaded;	// stores all the textures loaded so far, optimization to make sure textures aren't loaded more than once.
     vector<Mesh> meshes;
+    vector<string> modelPaths;
     string directory;
     bool gammaCorrection;
 
@@ -45,6 +46,7 @@ public:
 
     void addMesh(string const& path) {
         loadModel(path);
+        modelPaths.push_back(path);
     }
 
 private:

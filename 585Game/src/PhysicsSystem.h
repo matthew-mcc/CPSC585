@@ -16,9 +16,11 @@ class PhysicsSystem {
 
 public:
 	// Constructor
-	PhysicsSystem();
+	PhysicsSystem(){};
+
+	// Initializer
+	void initPhysicsSystem(GameState* gameState);
 
 	// Physics Update
 	void stepPhysics(std::shared_ptr<CallbackInterface> callback_ptr, GameState* gameState, Timer* timer);
-	//void initStaticMeshes();
 };

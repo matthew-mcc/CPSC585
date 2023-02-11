@@ -11,28 +11,29 @@
 int main() {
 	// Systems Creation
 	Timer* timer = &Timer::Instance();
+	GameState* gameState = new GameState();
 	RenderingSystem renderer = RenderingSystem();
 	PhysicsSystem physics = PhysicsSystem();
-	GameState* gameState = new GameState();
 	XboxInput xInput;
+
 	// Flags
 	bool isLoaded = false;	// false if first render update hasn't finished, true otherwise
 
 	// Initialize Systems
 	xInput.run();
-
-	gameState->initGameState();	
-	std::shared_ptr<CallbackInterface> callback_ptr = processInput(renderer.window);
+	gameState->initGameState();
+	physics.initPhysicsSystem(gameState);
 	renderer.SetupImgui();
+	std::shared_ptr<CallbackInterface> callback_ptr = processInput(renderer.window);
+
 	// PRIMARY GAME LOOP
 	while (!glfwWindowShouldClose(renderer.window)) {
 		
-
+		// Update Input Drivers
 		xInput.update();
 		callback_ptr->XboxUpdate(xInput);
-		// Update Rendering System
 		
-		// Post-Load Initialization
+		// Post-Load
 		if (isLoaded) {
 			// Update Timer
 			timer->update();
@@ -40,6 +41,7 @@ int main() {
 			// Update Physics System
 			physics.stepPhysics(callback_ptr, gameState, timer);
 		}
+
 		// Update Rendering System
 		renderer.updateRenderer(callback_ptr, gameState, timer);
 

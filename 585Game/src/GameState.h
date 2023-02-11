@@ -8,13 +8,9 @@ class GameState {
 public:
 	GameState() {}
 	void initGameState();
-	void addEntity(string name, bool bphysicsEntity, bool isRigidBody, Transform* transform, vector<string> modelPaths);
+	void addEntity(string name, PhysType type, Transform* transform, vector<string> modelPaths);
 	Entity findEntity(string name);
 
 	// List of all game entities
 	vector<Entity> entityList;
-
-
-private:
-
 };
