@@ -8,7 +8,7 @@ class GameState {
 public:
 	GameState() {}
 	void initGameState();
-	void addEntity(string name, PhysType type, Transform* transform, vector<string> modelPaths);
+	Entity* addEntity(string name, PhysType type, Transform* transform, vector<string> modelPaths);
 	Entity findEntity(string name);
 
 	// List of all game entities

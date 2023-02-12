@@ -3,6 +3,8 @@
 using namespace std;
 
 void GameState::initGameState() {
+	Entity* e;
+
 // DYNAMIC
 	// Player Truck
 	addEntity("player_truck1", PhysType::Vehicle, new Transform(), vector<string>{
@@ -15,8 +17,16 @@ void GameState::initGameState() {
 		"assets/models/tire1/tire1_back2.obj"});
 
 	// Test RigidBody
-	addEntity("test_rigidbody", PhysType::RigidBody, new Transform(), vector<string>{
-		"assets/models/primitives/primitives_cube1.obj"});
+	e = addEntity("test_rigidbody", PhysType::RigidBody, new Transform(), vector<string>{
+		"assets/models/trailer1/trailer1.obj",
+		"assets/models/tire1/tire1_back2.obj",
+		"assets/models/tire1/tire1_back1.obj",
+		"assets/models/tire1/tire1_back2.obj",
+		"assets/models/tire1/tire1_back1.obj"});
+	e->localTransforms.at(1)->setPosition(vec3(-0.88f, -0.17f, -0.70f));
+	e->localTransforms.at(2)->setPosition(vec3(0.88f, -0.17f, -0.70f));
+	e->localTransforms.at(3)->setPosition(vec3(-0.88f, -0.17f, 0.70f));
+	e->localTransforms.at(4)->setPosition(vec3(0.88f, -0.17f, 0.70f));
 
 // STATIC
 	// Landscape
@@ -28,7 +38,7 @@ void GameState::initGameState() {
 		"assets/models/oil_rig1/oil_rig1.obj"});
 }
 
-void GameState::addEntity(string name, PhysType type, Transform* transform, vector<string> modelPaths) {
+Entity* GameState::addEntity(string name, PhysType type, Transform* transform, vector<string> modelPaths) {
 	// Create new entity at end of list
 	entityList.emplace_back();
 	// Name
@@ -46,6 +56,8 @@ void GameState::addEntity(string name, PhysType type, Transform* transform, vect
 	for (int i = 0; i < modelPaths.size(); i++) {
 		entityList.back().model->addMesh(modelPaths.at(i));
 	}
+
+	return &entityList.back();
 }
 
 Entity GameState::findEntity(string name) {
