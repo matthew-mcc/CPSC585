@@ -315,10 +315,11 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> callback
 	ImGui::ColorEdit3("Shadow Color", (float*)&shadowColor);
 	ImGui::ColorEdit3("Fog Color", (float*)&fogColor);
 	ImGui::SliderFloat("Fog depth", &fogDepth, 0.f, 0.2f);
+	ImGui::SliderFloat("Outline Transparency", &outlineTransparency, 0.f, 1.f);
+	ImGui::SliderFloat("Outline Sensitivity", &outlineSensitivity, 0.f, 50.f);
 	//ImGui::SliderFloat("Min bias", &minBias, 0.0f, 0.1f);
 	ImGui::SliderFloat("Min bias", &minBias, 0.0f, 100.f);
 	ImGui::SliderFloat("Max bias", &maxBias, 0.0f, 0.1f);
-	ImGui::SliderFloat("Outline Sensitivity", &outlineSensitivity, 0.000f, 50.00f);
 
 	ImGui::Text("Camera Parameters");
 	ImGui::SliderFloat("Camera Position Forward", &camera_position_forward, -30.f, 30.f);
@@ -369,5 +370,6 @@ void RenderingSystem::setCelShaderUniforms() {
 	celShader.setFloat("shift", shift);
 	celShader.setFloat("minBias", minBias);
 	celShader.setFloat("maxBias", maxBias);
+	celShader.setFloat("outlineTransparency", outlineTransparency);
 	celShader.setFloat("outlineSensitivity", outlineSensitivity);
 }

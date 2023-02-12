@@ -27,6 +27,7 @@ uniform float band;
 uniform float gradient;
 uniform float shift;
 uniform float outlineSensitivity;
+uniform float outlineTransparency;
 uniform float minBias;
 uniform float maxBias;
 
@@ -120,15 +121,17 @@ void main(){
     float nl = dot(normal, normalize(sun));
     vec3 light;
     vec3 middleColor = (lightColor + shadowColor) / 2.0;
+    vec4 multiplier = vec4(1.0, 1.0, 1.0, 1.0);
 
     float shadow = ShadowCalculation(NearFragPosLightSpace, FarFragPosLightSpace, OutlineFragPosSpace);    //Calculate if point is in shadow
     if (shadow < 0.0) {
-        FragColor = vec4(0.0, 0.0, 0.0, 1.0);
-        FragColor = vec4((1.0+shadow)*FragColor.xyz - (shadow)*fogColor, 1.0);
-        return;
+        //FragColor = vec4(0.0, 0.0, 0.0, 1.0);
+        //FragColor = vec4((1.0+shadow)*FragColor.xyz - (shadow)*fogColor, 1.0);
+        multiplier = vec4(outlineTransparency, outlineTransparency, outlineTransparency, 1.0);
+        shadow = 0.0;
     }
 
-    else if (nl > shift + band + gradient) {
+    if (nl > shift + band + gradient) {
         light = (1.0 - shadow)*lightColor + (shadow)*middleColor;
     }
 
@@ -165,4 +168,5 @@ void main(){
 
     FragColor = vec4(texture(texture_diffuse1, TexCoords).xyz * light, 1.0);
     FragColor = vec4((1.0-depth)*FragColor.xyz + (depth)*fogColor, 1.0);
+    FragColor *= multiplier;
 }
