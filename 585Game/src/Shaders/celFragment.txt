@@ -6,12 +6,16 @@ in vec3 normal;
 in vec2 TexCoords;
 in vec4 NearFragPosLightSpace;
 in vec4 FarFragPosLightSpace;
+in vec4 OutlineFragPosSpace;
 
 in float depth;
+in mat4 projMatrixInv;
+in mat4 viewMatrixInv;
 
 uniform sampler2D texture_diffuse1;
 uniform sampler2D nearShadowMap;
 uniform sampler2D farShadowMap;
+uniform sampler2D outlineMap;
 
 uniform bool renderingLand;
 
@@ -22,17 +26,52 @@ uniform vec3 sun;
 uniform float band;
 uniform float gradient;
 uniform float shift;
-
+uniform float outlineSensitivity;
 uniform float minBias;
 uniform float maxBias;
 
-float ShadowCalculation(vec4 nearFragPosLightSpace, vec4 farFragPosLightSpace)
-{
+vec3 WorldPos(float depthPos, vec2 TexCoord) {
+    float z = depthPos * 2.0 - 1.0;
+
+    vec4 clipSpacePosition = vec4(TexCoord * 2.0 - 1.0, z, 1.0);
+    vec4 viewSpacePosition = projMatrixInv * clipSpacePosition;
+
+    // Perspective division
+    viewSpacePosition /= viewSpacePosition.w;
+
+    vec4 worldSpacePosition = viewMatrixInv * viewSpacePosition;
+
+    return worldSpacePosition.xyz;
+}
+
+float ShadowCalculation(vec4 nearFragPosLightSpace, vec4 farFragPosLightSpace, vec4 outlineFragPosSpace) {
+    float shadow = 0.0;
     // perform perspective divide
-    vec3 projCoords = nearFragPosLightSpace.xyz / nearFragPosLightSpace.w;
+    vec3 projCoords = outlineFragPosSpace.xyz / outlineFragPosSpace.w;
     // transform to [0,1] range
     projCoords = projCoords * 0.5 + 0.5;
-    float shadow = 0.0;
+    // get closest depth value from light's perspective (using [0,1] range fragPosLight as coords)
+    float closestDepth = texture(outlineMap, projCoords.xy).r; 
+    // get depth of current fragment from light's perspective
+    float currentDepth = projCoords.z;
+    // check whether current frag pos is in shadow
+    vec2 texelSize = 1.0 / textureSize(outlineMap, 0);
+    for(int x = -1; x <= 1; ++x) {
+        for(int y = -1; y <= 1; ++y) {
+            float pcfDepth = texture(outlineMap, projCoords.xy + vec2(x, y) * texelSize).r;
+            if (length(WorldPos(currentDepth, projCoords.xy) - WorldPos(pcfDepth, projCoords.xy + vec2(x, y) * texelSize)) > outlineSensitivity) {
+                shadow = -depth;
+            }
+        }    
+    }
+    if (shadow < 0.0) return shadow;
+    else shadow = 0.0;
+
+    /////////////////////////////////////////////
+    // perform perspective divide
+    projCoords = nearFragPosLightSpace.xyz / nearFragPosLightSpace.w;
+    // transform to [0,1] range
+    projCoords = projCoords * 0.5 + 0.5;
     if (projCoords.x <= 1.0 && projCoords.x >= 0.0 &&
         projCoords.y <= 1.0 && projCoords.y >= 0.0 &&
         projCoords.z <= 1.0 && projCoords.z >= 0.0) {
@@ -54,7 +93,7 @@ float ShadowCalculation(vec4 nearFragPosLightSpace, vec4 farFragPosLightSpace)
     }
     else {
         // perform perspective divide
-        vec3 projCoords = farFragPosLightSpace.xyz / farFragPosLightSpace.w;
+        projCoords = farFragPosLightSpace.xyz / farFragPosLightSpace.w;
         // transform to [0,1] range
         projCoords = projCoords * 0.5 + 0.5;
         // get closest depth value from light's perspective (using [0,1] range fragPosLight as coords)
@@ -62,8 +101,8 @@ float ShadowCalculation(vec4 nearFragPosLightSpace, vec4 farFragPosLightSpace)
         // get depth of current fragment from light's perspective
         float currentDepth = projCoords.z;
         // check whether current frag pos is in shadow
-        float bias = max(0.033 * (1.0 - dot(normal, normalize(sun))), minBias);
-        bias /= (100.0 - 0.1) / (7.5 - 1.0);
+        float bias = max(0.06 * (1.0 - dot(normal, normalize(sun))), 0.012);
+        bias /= (100.0 + 500.0) / (7.5 - 1.0);
         vec2 texelSize = 1.0 / textureSize(farShadowMap, 0);
         for(int x = -1; x <= 1; ++x) {
             for(int y = -1; y <= 1; ++y) {
@@ -82,9 +121,14 @@ void main(){
     vec3 light;
     vec3 middleColor = (lightColor + shadowColor) / 2.0;
 
-    float shadow = ShadowCalculation(NearFragPosLightSpace, FarFragPosLightSpace);    //Calculate if point is in shadow
+    float shadow = ShadowCalculation(NearFragPosLightSpace, FarFragPosLightSpace, OutlineFragPosSpace);    //Calculate if point is in shadow
+    if (shadow < 0.0) {
+        FragColor = vec4(0.0, 0.0, 0.0, 1.0);
+        FragColor = vec4((1.0+shadow)*FragColor.xyz - (shadow)*fogColor, 1.0);
+        return;
+    }
 
-    if (nl > shift + band + gradient) {
+    else if (nl > shift + band + gradient) {
         light = (1.0 - shadow)*lightColor + (shadow)*middleColor;
     }
 

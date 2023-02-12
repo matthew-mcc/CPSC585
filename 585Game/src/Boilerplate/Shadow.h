@@ -5,8 +5,10 @@
 class Shadow {
 public:
 	Shadow();
+	Shadow(int width, int height);
 	Shadow(unsigned int width, unsigned int height, float x, float y, float near, float far);
 	void update(glm::vec3 lightPos, glm::vec3 playerPos);
+	void update(glm::mat4 proj, glm::mat4 view);
 	void cleanUp(std::shared_ptr<CallbackInterface> callback_ptr);
 	void render();
 
@@ -14,7 +16,7 @@ public:
 	Shader shader = Shader();
 	unsigned int depthMapFBO;
 	unsigned int depthMap;
-	
+
 
 private:
 	Shader debugShader;

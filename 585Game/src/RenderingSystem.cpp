@@ -42,6 +42,7 @@ void RenderingSystem::initRenderer() {
 		//shadowMap = Shadow(16384, 4096);
 	nearShadowMap = Shadow(8192, 2048, 40.f, 10.f, -500.f, 100.f);
 	farShadowMap = Shadow(16384, 4096, 800.f, 300.f, -700.f, 1000.f);
+	outlineMap = Shadow(1920, 1080);
 
 	// WORLD SHADER INITIALIZATION
 		// Bind vertex and fragment shaders to world shader object
@@ -186,19 +187,53 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> callback
 	glCullFace(GL_BACK);
 	nearShadowMap.cleanUp(callback_ptr);
 
+	glClear(GL_DEPTH_BUFFER_BIT);
+
+	// THIRD PASS: TOON OUTLINE
+	outlineMap.update(projection, view);
+	glCullFace(GL_FRONT);
+	for (int i = 0; i < gameState->entityList.size(); i++) {
+		// Retrieve global position and rotation
+		vec3 position = gameState->entityList.at(i).transform->getPosition();
+		quat rotation = gameState->entityList.at(i).transform->getRotation();
+
+		// Retrieve local positions and rotations of submeshes
+		for (int j = 0; j < gameState->entityList.at(i).localTransforms.size(); j++) {
+			vec3 localPosition = gameState->entityList.at(i).localTransforms.at(j)->getPosition();
+			quat localRotation = gameState->entityList.at(i).localTransforms.at(j)->getRotation();
+
+			// Set model matrix
+			model = mat4(1.0f);
+			model = translate(model, position);
+			model = model * toMat4(rotation);
+			model = translate(model, localPosition);
+			model = model * toMat4(localRotation);
+			model = scale(model, vec3(1.0f));
+			outlineMap.shader.setMat4("model", model);
+
+			// Draw model's meshes
+			gameState->entityList.at(i).model->meshes.at(j).Draw(outlineMap.shader);
+		}
+	}
+	glCullFace(GL_BACK);
+	outlineMap.cleanUp(callback_ptr);
+
 	//farShadowMap.render();		//Uncomment to see the shadow map (scene rendered from light's point of view)
 	//nearShadowMap.render();		//Uncomment to see the shadow map (scene rendered from light's point of view)
+	//outlineMap.render();
 
 	glClear(GL_DEPTH_BUFFER_BIT);
 
 
-	// THIRD PASS: CEL SHADE RENDER
+	// FOURTH PASS: CEL SHADE RENDER
 		// Use world shader
 	celShader.use();
 	glActiveTexture(GL_TEXTURE1);
 	glBindTexture(GL_TEXTURE_2D, nearShadowMap.depthMap);
 	glActiveTexture(GL_TEXTURE2);
 	glBindTexture(GL_TEXTURE_2D, farShadowMap.depthMap);
+	glActiveTexture(GL_TEXTURE3);
+	glBindTexture(GL_TEXTURE_2D, outlineMap.depthMap);
 	setCelShaderUniforms();
 	celShader.setBool("renderingLand", false);
 
@@ -240,7 +275,7 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> callback
 		}
 	}
 
-	// FOURTH PASS: GUI RENDER
+	// FIFTH PASS: GUI RENDER
 		// Use text shader
 	textShader.use();
 	mat4 textProjection = ortho(0.0f, static_cast<float>(callback_ptr->xres), 0.0f, static_cast<float>(callback_ptr->yres));
@@ -280,8 +315,10 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> callback
 	ImGui::ColorEdit3("Shadow Color", (float*)&shadowColor);
 	ImGui::ColorEdit3("Fog Color", (float*)&fogColor);
 	ImGui::SliderFloat("Fog depth", &fogDepth, 0.f, 0.2f);
-	ImGui::SliderFloat("Min bias", &minBias, 0.0f, 0.5f);
-	ImGui::SliderFloat("Max bias", &maxBias, 0.0f, 0.5f);
+	//ImGui::SliderFloat("Min bias", &minBias, 0.0f, 0.1f);
+	ImGui::SliderFloat("Min bias", &minBias, 0.0f, 100.f);
+	ImGui::SliderFloat("Max bias", &maxBias, 0.0f, 0.1f);
+	ImGui::SliderFloat("Outline Sensitivity", &outlineSensitivity, 0.000f, 50.00f);
 
 	ImGui::Text("Camera Parameters");
 	ImGui::SliderFloat("Camera Position Forward", &camera_position_forward, -30.f, 30.f);
@@ -317,8 +354,10 @@ void RenderingSystem::setCelShaderUniforms() {
 	celShader.setMat4("projection", projection);
 	celShader.setMat4("nearLightSpaceMatrix", nearShadowMap.lightSpaceMatrix);
 	celShader.setMat4("farLightSpaceMatrix", farShadowMap.lightSpaceMatrix);
+	celShader.setMat4("outlineSpaceMatrix", outlineMap.lightSpaceMatrix);
 	celShader.setInt("nearShadowMap", 1);
 	celShader.setInt("farShadowMap", 2);
+	celShader.setInt("outlineMap", 3);
 
 	celShader.setVec3("lightColor", lightColor);
 	celShader.setVec3("shadowColor", shadowColor);
@@ -330,4 +369,5 @@ void RenderingSystem::setCelShaderUniforms() {
 	celShader.setFloat("shift", shift);
 	celShader.setFloat("minBias", minBias);
 	celShader.setFloat("maxBias", maxBias);
+	celShader.setFloat("outlineSensitivity", outlineSensitivity);
 }
