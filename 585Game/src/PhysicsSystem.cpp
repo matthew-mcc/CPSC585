@@ -85,6 +85,7 @@ const char gVehicleName[] = "engineDrive";
 //PxTriangleMesh* groundMesh = NULL;
 
 PxRigidDynamic* trailer1;
+PxRigidDynamic* trailer2;
 
 PxFixedJoint* joint;
 PxSphericalJoint* sJoint;
@@ -301,50 +302,87 @@ bool initVehicles() {
 	}
 
 	///Trailer1
-	PxTransform trailerTrans(PxVec3(0.f, -1.f, 3.f));
-	//cout << gVehicle.mPhysXState.physxActor.rigidBody->getGlobalPose().p.x << gVehicle.mPhysXState.physxActor.rigidBody->getGlobalPose().p.y << gVehicle.mPhysXState.physxActor.rigidBody->getGlobalPose().p.z;
-	trailer1 = gPhysics->createRigidDynamic(trailerTrans);
-	trailer1->setMass(5);
-	trailer1->setAngularDamping(5);
+	
+	//PxTransform trailerTrans(PxVec3(0.f, -1.f, 3.f));
+	//trailer1 = gPhysics->createRigidDynamic(trailerTrans);
+	//trailer1->setMass(5);
+	//trailer1->setAngularDamping(5);
 	//PxBoxGeometry trailerBox(1.f, 0.5f, 1.f);
-	float halfLen = 0.75f;
-	PxShape* trailerShape = gPhysics->createShape(PxBoxGeometry(halfLen, halfLen, halfLen), *trailerMat);
-	PxFilterData boxFilter(COLLISION_FLAG_OBSTACLE, COLLISION_FLAG_OBSTACLE_AGAINST, 0, 0);
-	trailerShape->setSimulationFilterData(boxFilter);
-	trailer1->attachShape(*trailerShape);
-	trailer1->setLinearDamping(10);
-	trailerShape->release();
-	
+	//float halfLen = 0.75f;
+	//PxShape* trailerShape = gPhysics->createShape(PxBoxGeometry(halfLen, halfLen, halfLen), *trailerMat);
+	//PxFilterData boxFilter(COLLISION_FLAG_OBSTACLE, COLLISION_FLAG_OBSTACLE_AGAINST, 0, 0);
+	//trailerShape->setSimulationFilterData(boxFilter);
+	//trailer1->attachShape(*trailerShape);
+	//trailer1->setLinearDamping(10);
+	//trailerShape->release();
+	//gScene->addActor(*trailer1);
 
-	
-	gScene->addActor(*trailer1);
-
-
-
-	//PxRevoluteJoint* revJoint;
-
-	//revJoint = PxRevoluteJointCreate(*gPhysics, gVehicle.mPhysXState.physxActor.rigidBody, gVehicle.mPhysXState.physxActor.rigidBody->getGlobalPose(), trailer, trailer->getGlobalPose());
-	
-	// NOW I WANT TO SET THE WAYS IT CAN MOVE
-	//joint = PxFixedJointCreate(gPhysics, gVehicle.mPhysXState.physxActor.rigidBody, gVehicle.mPhysXState.physxActor.rigidBody->getGlobalPose(), trailer, trailer->getGlobalPose());
-	//sJoint = PxSphericalJointCreate(*gPhysics, gVehicle.mPhysXState.physxActor.rigidBody, gVehicle.mPhysXState.physxActor.rigidBody->getGlobalPose(), trailer, trailer->getGlobalPose());
-	
+	/*
 	PxD6Joint* dJoint;
 	dJoint = PxD6JointCreate(*gPhysics, gVehicle.mPhysXState.physxActor.rigidBody, gVehicle.mPhysXState.physxActor.rigidBody->getGlobalPose(), trailer1, trailer1->getGlobalPose());
-	
-	
-	// ### SEMI WORKING PxD6
 	dJoint->setMotion(PxD6Axis::eTWIST, PxD6Motion::eLIMITED);
 	dJoint->setMotion(PxD6Axis::eSWING1, PxD6Motion::eLIMITED);
 	dJoint->setMotion(PxD6Axis::eSWING2, PxD6Motion::eLIMITED);
-
-	//dJoint->setSwingLimit(PxJointLimitCone(radians(60.f), 0.01));
-	//dJoint->setDistanceLimit(PxJointLinearLimit(1.f, 0.01f));
 	dJoint->setTwistLimit(PxJointAngularLimitPair(0, PxPi/2));
 	dJoint->setPyramidSwingLimit(PxJointLimitPyramid(-PxPi/4, PxPi/4, -0.01f, 0.01f));
+	*/
 
-	
-	
+	trailer1 = PxCreateDynamic(*gPhysics, PxTransform(PxVec3(0.f, 0.75f, -3.f)), PxBoxGeometry(.75f, .75f, .75f), *trailerMat, 1.0f);
+	trailer1->setMass(5);
+	trailer1->setAngularDamping(5);
+	trailer1->setLinearDamping(10);
+	gScene->addActor(*trailer1);
+
+	PxTransform jT1 = PxTransform(trailer1->getGlobalPose().p);
+	PxD6Joint* Joint1 = PxD6JointCreate(
+		*gPhysics,
+		gVehicle.mPhysXState.physxActor.rigidBody,
+		gVehicle.mPhysXState.physxActor.rigidBody->getGlobalPose().getInverse().transform(jT1),
+		trailer1,
+		trailer1->getGlobalPose().getInverse().transform(jT1)
+	);
+	Joint1->setMotion(PxD6Axis::eTWIST, PxD6Motion::eLIMITED);
+	Joint1->setMotion(PxD6Axis::eSWING1, PxD6Motion::eLIMITED);
+	Joint1->setMotion(PxD6Axis::eSWING2, PxD6Motion::eLIMITED);
+	Joint1->setTwistLimit(PxJointAngularLimitPair(-0.01f, 0.01f));
+	Joint1->setPyramidSwingLimit(PxJointLimitPyramid(-PxPi / 4, PxPi / 4, -0.01f, 0.01f));
+
+	trailer2 = PxCreateDynamic(*gPhysics, PxTransform(PxVec3(0.f, 0.75f, -6.0)), PxBoxGeometry(.75f, .75f, .75f), *trailerMat, 1.0f);
+	trailer2->setMass(5);
+	trailer2->setAngularDamping(5);
+	trailer2->setLinearDamping(10);
+	gScene->addActor(*trailer2);
+
+	PxTransform jT2 = PxTransform(trailer2->getGlobalPose().p);
+	PxD6Joint* Joint2 = PxD6JointCreate(
+		*gPhysics,
+		trailer1,
+		trailer1->getGlobalPose().getInverse().transform(jT2),
+		trailer2,
+		trailer2->getGlobalPose().getInverse().transform(jT2)
+	);
+	Joint2->setMotion(PxD6Axis::eTWIST, PxD6Motion::eLIMITED);
+	Joint2->setMotion(PxD6Axis::eSWING1, PxD6Motion::eLIMITED);
+	Joint2->setMotion(PxD6Axis::eSWING2, PxD6Motion::eLIMITED);
+	Joint2->setTwistLimit(PxJointAngularLimitPair(-0.01f, 0.01f));
+	Joint2->setPyramidSwingLimit(PxJointLimitPyramid(-PxPi / 4, PxPi / 4, -0.01f, 0.01f));
+
+	/*
+	PxArticulationReducedCoordinate* articulation = gPhysics->createArticulationReducedCoordinate();
+	PxArticulationLink* link = articulation->createLink(NULL, gVehicle.mPhysXState.physxActor.rigidBody->getGlobalPose());
+	PxRigidActorExt::createExclusiveShape(*link, PxBoxGeometry(0.f), *trailerMat);
+	PxRigidBodyExt::updateMassAndInertia(*link, 1.0f);
+
+	PxArticulationLink* link2 = articulation->createLink(link, trailerTrans);
+	PxRigidActorExt::createExclusiveShape(*link2, PxBoxGeometry(halfLen, halfLen, halfLen), *trailerMat);
+	PxRigidBodyExt::updateMassAndInertia(*link2, 1.0f);
+
+	PxArticulationJointReducedCoordinate* joint2 = static_cast<PxArticulationJointReducedCoordinate*>(link2->getInboundJoint());
+	joint2->setParentPose(trailerTrans);
+	joint2->setChildPose(trailerTrans);
+
+	gScene->addArticulation(*articulation);
+	*/
 
 	gScene->setVisualizationParameter(physx::PxVisualizationParameter::eJOINT_LOCAL_FRAMES, 1.0f);
 	gScene->setVisualizationParameter(physx::PxVisualizationParameter::eJOINT_LIMITS, 1.0f);
@@ -410,18 +448,18 @@ void PhysicsSystem::stepPhysics(shared_ptr<CallbackInterface> callback_ptr, Game
 		
 		// RIGID BODIES
 		if (entityList.at(i).type == PhysType::RigidBody) {
-			
-				
-			p = toGLMVec3(trailer1->getGlobalPose().p);
-			q = toGLMQuat(trailer1->getGlobalPose().q);
-			entityList.at(i).transform->setPosition(p);
-			entityList.at(i).transform->setRotation(q);
-			
-
-			
-			
-				
-			
+			if (entityList.at(i).name == "test_rigidbody") {
+				p = toGLMVec3(trailer1->getGlobalPose().p);
+				q = toGLMQuat(trailer1->getGlobalPose().q);
+				entityList.at(i).transform->setPosition(p);
+				entityList.at(i).transform->setRotation(q);
+			}
+			else {
+				p = toGLMVec3(trailer2->getGlobalPose().p);
+				q = toGLMQuat(trailer2->getGlobalPose().q);
+				entityList.at(i).transform->setPosition(p);
+				entityList.at(i).transform->setRotation(q);
+			}
 		}
 
 		// VEHICLES
