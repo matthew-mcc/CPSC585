@@ -4,6 +4,7 @@ using namespace std;
 
 void GameState::initGameState() {
 	Entity* e;
+	Entity* e1;
 
 // DYNAMIC
 	// Player Truck
@@ -18,15 +19,29 @@ void GameState::initGameState() {
 
 	// Test RigidBody
 	e = addEntity("test_rigidbody", PhysType::RigidBody, new Transform(), vector<string>{
-		"assets/models/trailer1/trailer1.obj",
+		"assets/models/trailer2/trailer1.obj",
 		"assets/models/tire1/tire1_back2.obj",
 		"assets/models/tire1/tire1_back1.obj",
 		"assets/models/tire1/tire1_back2.obj",
 		"assets/models/tire1/tire1_back1.obj"});
-	e->localTransforms.at(1)->setPosition(vec3(-0.88f, -0.17f, -0.70f));
-	e->localTransforms.at(2)->setPosition(vec3(0.88f, -0.17f, -0.70f));
-	e->localTransforms.at(3)->setPosition(vec3(-0.88f, -0.17f, 0.70f));
-	e->localTransforms.at(4)->setPosition(vec3(0.88f, -0.17f, 0.70f));
+	e->localTransforms.at(1)->setPosition(vec3(-0.88f, -0.80f, -0.70f));
+	e->localTransforms.at(2)->setPosition(vec3(0.88f, -0.80f, -0.70f));
+	e->localTransforms.at(3)->setPosition(vec3(-0.88f, -0.80f, 0.70f));
+	e->localTransforms.at(4)->setPosition(vec3(0.88f, -0.80f, 0.70f));
+
+
+	e1 = addEntity("test_rigidbody2", PhysType::RigidBody, new Transform(), vector<string>{
+		"assets/models/trailer2/trailer1.obj",
+			"assets/models/tire1/tire1_back2.obj",
+			"assets/models/tire1/tire1_back1.obj",
+			"assets/models/tire1/tire1_back2.obj",
+			"assets/models/tire1/tire1_back1.obj"});
+	e1->localTransforms.at(1)->setPosition(vec3(-0.88f, -0.80f, -0.70f));
+	e1->localTransforms.at(2)->setPosition(vec3(0.88f, -0.80f, -0.70f));
+	e1->localTransforms.at(3)->setPosition(vec3(-0.88f, -0.80f, 0.70f));
+	e1->localTransforms.at(4)->setPosition(vec3(0.88f, -0.80f, 0.70f));
+
+
 
 // STATIC
 	// Landscape

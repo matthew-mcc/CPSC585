@@ -48,6 +48,7 @@ PxPhysics* gPhysics = NULL;
 PxDefaultCpuDispatcher* gDispatcher = NULL;
 PxScene* gScene = NULL;
 PxMaterial* gMaterial = NULL;
+PxMaterial* trailerMat = NULL;
 PxPvd* gPvd = NULL;
 
 // Cooking shit
@@ -83,6 +84,11 @@ const char gVehicleName[] = "engineDrive";
 //PxRigidStatic* gGroundPlane = NULL;
 //PxTriangleMesh* groundMesh = NULL;
 
+PxRigidDynamic* trailer1;
+
+PxFixedJoint* joint;
+PxSphericalJoint* sJoint;
+
 
 vec3 toGLMVec3(PxVec3 pxTransform) {
 	vec3 vector = vec3();
@@ -108,6 +114,8 @@ void initPhysX() {
 	gPvd->connect(*transport, PxPvdInstrumentationFlag::eALL);
 	gPhysics = PxCreatePhysics(PX_PHYSICS_VERSION, *gFoundation, PxTolerancesScale(), true, gPvd);
 
+
+	PxInitExtensions(*gPhysics, gPvd);
 	PxSceneDesc sceneDesc(gPhysics->getTolerancesScale());
 	sceneDesc.gravity = gGravity;
 
@@ -128,17 +136,10 @@ void initPhysX() {
 		pvdClient->setScenePvdFlag(PxPvdSceneFlag::eTRANSMIT_SCENEQUERIES, true);
 	}
 	gMaterial = gPhysics->createMaterial(0.5f, 0.5f, 0.6f);
+	trailerMat = gPhysics->createMaterial(0.f, 0.f, 0.f);
 
 	
-	float halfLen = 1.0f;
-	PxShape* shape = gPhysics->createShape(PxBoxGeometry(halfLen, halfLen, halfLen), *gMaterial);
-	PxFilterData boxFilter(COLLISION_FLAG_OBSTACLE, COLLISION_FLAG_OBSTACLE_AGAINST, 0, 0);
-	shape->setSimulationFilterData(boxFilter);
-	PxTransform tran(PxVec3(0));
-	PxTransform localTran(PxVec3(10, 10, 10));
-	boxBody = gPhysics->createRigidDynamic(tran.transform(localTran));
-	boxBody->attachShape(*shape);
-	gScene->addActor(*boxBody);
+	
 
 	PxInitVehicleExtension(*gFoundation);
 
@@ -156,6 +157,7 @@ void cleanupPhysX() {
 	PxCloseVehicleExtension();
 
 	PX_RELEASE(gMaterial);
+	PX_RELEASE(trailerMat);
 	PX_RELEASE(gScene);
 	PX_RELEASE(gDispatcher);
 	PX_RELEASE(gPhysics);
@@ -225,6 +227,8 @@ void initPhysXMeshes(GameState* gameState) {
 				PxRigidStatic* meshStatic = gPhysics->createRigidStatic(meshTrans);
 
 				meshStatic->attachShape(*meshShape);
+
+
 				gScene->addActor(*meshStatic);
 			}
 		}
@@ -296,6 +300,57 @@ bool initVehicles() {
 
 	}
 
+	///Trailer1
+	PxTransform trailerTrans(PxVec3(0.f, -1.f, 3.f));
+	//cout << gVehicle.mPhysXState.physxActor.rigidBody->getGlobalPose().p.x << gVehicle.mPhysXState.physxActor.rigidBody->getGlobalPose().p.y << gVehicle.mPhysXState.physxActor.rigidBody->getGlobalPose().p.z;
+	trailer1 = gPhysics->createRigidDynamic(trailerTrans);
+	trailer1->setMass(5);
+	trailer1->setAngularDamping(5);
+	//PxBoxGeometry trailerBox(1.f, 0.5f, 1.f);
+	float halfLen = 0.75f;
+	PxShape* trailerShape = gPhysics->createShape(PxBoxGeometry(halfLen, halfLen, halfLen), *trailerMat);
+	PxFilterData boxFilter(COLLISION_FLAG_OBSTACLE, COLLISION_FLAG_OBSTACLE_AGAINST, 0, 0);
+	trailerShape->setSimulationFilterData(boxFilter);
+	trailer1->attachShape(*trailerShape);
+	trailer1->setLinearDamping(10);
+	trailerShape->release();
+	
+
+	
+	gScene->addActor(*trailer1);
+
+
+
+	//PxRevoluteJoint* revJoint;
+
+	//revJoint = PxRevoluteJointCreate(*gPhysics, gVehicle.mPhysXState.physxActor.rigidBody, gVehicle.mPhysXState.physxActor.rigidBody->getGlobalPose(), trailer, trailer->getGlobalPose());
+	
+	// NOW I WANT TO SET THE WAYS IT CAN MOVE
+	//joint = PxFixedJointCreate(gPhysics, gVehicle.mPhysXState.physxActor.rigidBody, gVehicle.mPhysXState.physxActor.rigidBody->getGlobalPose(), trailer, trailer->getGlobalPose());
+	//sJoint = PxSphericalJointCreate(*gPhysics, gVehicle.mPhysXState.physxActor.rigidBody, gVehicle.mPhysXState.physxActor.rigidBody->getGlobalPose(), trailer, trailer->getGlobalPose());
+	
+	PxD6Joint* dJoint;
+	dJoint = PxD6JointCreate(*gPhysics, gVehicle.mPhysXState.physxActor.rigidBody, gVehicle.mPhysXState.physxActor.rigidBody->getGlobalPose(), trailer1, trailer1->getGlobalPose());
+	
+	
+	// ### SEMI WORKING PxD6
+	dJoint->setMotion(PxD6Axis::eTWIST, PxD6Motion::eLIMITED);
+	dJoint->setMotion(PxD6Axis::eSWING1, PxD6Motion::eLIMITED);
+	dJoint->setMotion(PxD6Axis::eSWING2, PxD6Motion::eLIMITED);
+
+	//dJoint->setSwingLimit(PxJointLimitCone(radians(60.f), 0.01));
+	//dJoint->setDistanceLimit(PxJointLinearLimit(1.f, 0.01f));
+	dJoint->setTwistLimit(PxJointAngularLimitPair(0, PxPi/2));
+	dJoint->setPyramidSwingLimit(PxJointLimitPyramid(-PxPi/4, PxPi/4, -0.01f, 0.01f));
+
+	
+	
+
+	gScene->setVisualizationParameter(physx::PxVisualizationParameter::eJOINT_LOCAL_FRAMES, 1.0f);
+	gScene->setVisualizationParameter(physx::PxVisualizationParameter::eJOINT_LIMITS, 1.0f);
+	//joint->setConstraintFlag(physx::PxConstraintFlag::eVISUALIZATION, true);
+
+
 	return true;
 }
 
@@ -355,10 +410,18 @@ void PhysicsSystem::stepPhysics(shared_ptr<CallbackInterface> callback_ptr, Game
 		
 		// RIGID BODIES
 		if (entityList.at(i).type == PhysType::RigidBody) {
-			p = toGLMVec3(boxBody->getGlobalPose().p);
-			q = toGLMQuat(boxBody->getGlobalPose().q);
+			
+				
+			p = toGLMVec3(trailer1->getGlobalPose().p);
+			q = toGLMQuat(trailer1->getGlobalPose().q);
 			entityList.at(i).transform->setPosition(p);
 			entityList.at(i).transform->setRotation(q);
+			
+
+			
+			
+				
+			
 		}
 
 		// VEHICLES
