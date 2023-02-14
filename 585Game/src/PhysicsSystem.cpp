@@ -365,7 +365,7 @@ bool initVehicles() {
 	Joint2->setMotion(PxD6Axis::eSWING1, PxD6Motion::eLIMITED);
 	Joint2->setMotion(PxD6Axis::eSWING2, PxD6Motion::eLIMITED);
 	Joint2->setTwistLimit(PxJointAngularLimitPair(-0.01f, 0.01f));
-	Joint2->setPyramidSwingLimit(PxJointLimitPyramid(-PxPi / 4, PxPi / 4, -0.01f, 0.01f));
+	Joint2->setPyramidSwingLimit(PxJointLimitPyramid(-0.1f, 0.1f, -0.01f, 0.01f));
 
 	/*
 	PxArticulationReducedCoordinate* articulation = gPhysics->createArticulationReducedCoordinate();
