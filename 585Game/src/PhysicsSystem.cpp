@@ -81,6 +81,8 @@ void PhysicsSystem::spawnTrailer() {
 	PxRigidDynamic* trailer;
 	trailer = gPhysics->createRigidDynamic(PxTransform(spawnPos));
 	trailer->attachShape(*shape);
+	trailer->setLinearDamping(10);
+	trailer->setAngularDamping(5);
 	gScene->addActor(*trailer);
 	rigidBodies.push_back(trailer);
 }
@@ -90,11 +92,11 @@ void PhysicsSystem::attachTrailer(PxRigidDynamic* trailer, int truckIndex) {
 	PxTransform truckTrans = truck->getGlobalPose();
 	PxD6Joint* joint;
 	PxTransform jointTransform;
-	PxTransform trailerOffset = PxTransform(PxVec3(0.0f, 0.75f, -3.f - (attachedTrailers.at(truckIndex).size() * 3.f)), truck->getGlobalPose().q);
-	
+	PxTransform trailerOffset;
 
 	// First Joint, attach to truck rigidbody
 	if (attachedTrailers.at(truckIndex).size() == 0) {
+		trailerOffset = PxTransform(PxVec3(0.0f, 0.75f, -3.f));
 		trailer->setGlobalPose(truckTrans.transform(trailerOffset));
 		jointTransform = PxTransform(trailer->getGlobalPose().p);
 		joint = PxD6JointCreate(*gPhysics, truck, truck->getGlobalPose().getInverse().transform(jointTransform), trailer, trailer->getGlobalPose().getInverse().transform(jointTransform));
@@ -102,21 +104,21 @@ void PhysicsSystem::attachTrailer(PxRigidDynamic* trailer, int truckIndex) {
 		joint->setMotion(PxD6Axis::eSWING1, PxD6Motion::eLIMITED);
 		joint->setMotion(PxD6Axis::eSWING2, PxD6Motion::eLIMITED);
 		joint->setTwistLimit(PxJointAngularLimitPair(-0.01f, 0.01f));
-		joint->setPyramidSwingLimit(PxJointLimitPyramid(-PxPi / 4, PxPi / 4, -0.01f, 0.01f));
+		joint->setPyramidSwingLimit(PxJointLimitPyramid(-0.25f, 0.25f, -0.01f, 0.01f));
 	}
 
 	// Not first joint, attach to last trailer in chain
 	else {
 		PxRigidDynamic* lastTrailer = attachedTrailers.at(truckIndex).back();
-		//trailer->setGlobalPose(PxTransform(truckPos + PxVec3(0.0f, 0.75f, trailerOffset)));
-		trailer->setGlobalPose(truckTrans.transform(trailerOffset));
+		trailerOffset = PxTransform(PxVec3(0.0f, 0.0f, -3.f));
+		trailer->setGlobalPose(lastTrailer->getGlobalPose().transform(trailerOffset));
 		jointTransform = PxTransform(trailer->getGlobalPose().p);
 		joint = PxD6JointCreate(*gPhysics, lastTrailer, lastTrailer->getGlobalPose().getInverse().transform(jointTransform), trailer, trailer->getGlobalPose().getInverse().transform(jointTransform));
 		joint->setMotion(PxD6Axis::eTWIST, PxD6Motion::eLIMITED);
 		joint->setMotion(PxD6Axis::eSWING1, PxD6Motion::eLIMITED);
 		joint->setMotion(PxD6Axis::eSWING2, PxD6Motion::eLIMITED);
 		joint->setTwistLimit(PxJointAngularLimitPair(-0.01f, 0.01f));
-		joint->setPyramidSwingLimit(PxJointLimitPyramid(-PxPi / 4, PxPi / 4, -0.01f, 0.01f));
+		joint->setPyramidSwingLimit(PxJointLimitPyramid(-0.25f, 0.25f, -0.01f, 0.01f));
 	}
 
 	// Add new trailer to attachedTrailers tracking list

@@ -322,7 +322,7 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> callback
 	ImGui::SliderFloat("Max bias", &maxBias, 0.0f, 0.1f);
 
 	ImGui::Text("Camera Parameters");
-	ImGui::SliderFloat("Camera Position Forward", &camera_position_forward, -30.f, 30.f);
+	ImGui::SliderFloat("Camera Position Forward", &camera_position_forward, -200.f, 200.f);
 	ImGui::SliderFloat("Camera Position Up", &camera_position_up, -30.f, 30.f);
 	ImGui::SliderFloat("Camera Position Right", &camera_position_right, -30.f, 30.f);
 	ImGui::SliderFloat("Camera Target Forward", &camera_target_forward, -30.f, 30.f);
