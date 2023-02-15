@@ -10,6 +10,7 @@ public:
 	void initGameState();
 	Entity* addEntity(string name, PhysType type, Transform* transform, vector<string> modelPaths);
 	Entity findEntity(string name);
+	Entity* spawnTrailer();
 
 	// List of all game entities
 	vector<Entity> entityList;

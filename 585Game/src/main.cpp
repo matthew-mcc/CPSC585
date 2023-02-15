@@ -39,7 +39,7 @@ int main() {
 			timer->update();
 
 			// Update Physics System
-			physics.stepPhysics(callback_ptr, gameState, timer);
+			physics.stepPhysics(callback_ptr, timer);
 		}
 
 		// Update Rendering System

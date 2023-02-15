@@ -16,29 +16,6 @@ void GameState::initGameState() {
 		"assets/models/tire1/tire1_back1.obj",
 		"assets/models/tire1/tire1_back2.obj"});
 
-	// Test RigidBody
-	e = addEntity("test_rigidbody", PhysType::RigidBody, new Transform(), vector<string>{
-		"assets/models/trailer1/trailer1.obj",
-		"assets/models/tire1/tire1_back2.obj",
-		"assets/models/tire1/tire1_back1.obj",
-		"assets/models/tire1/tire1_back2.obj",
-		"assets/models/tire1/tire1_back1.obj"});
-	e->localTransforms.at(1)->setPosition(vec3(-0.88f, -0.80f, -0.70f));
-	e->localTransforms.at(2)->setPosition(vec3(0.88f, -0.80f, -0.70f));
-	e->localTransforms.at(3)->setPosition(vec3(-0.88f, -0.80f, 0.70f));
-	e->localTransforms.at(4)->setPosition(vec3(0.88f, -0.80f, 0.70f));
-
-	e = addEntity("test_rigidbody2", PhysType::RigidBody, new Transform(), vector<string>{
-		"assets/models/trailer1/trailer1.obj",
-			"assets/models/tire1/tire1_back2.obj",
-			"assets/models/tire1/tire1_back1.obj",
-			"assets/models/tire1/tire1_back2.obj",
-			"assets/models/tire1/tire1_back1.obj"});
-	e->localTransforms.at(1)->setPosition(vec3(-0.88f, -0.80f, -0.70f));
-	e->localTransforms.at(2)->setPosition(vec3(0.88f, -0.80f, -0.70f));
-	e->localTransforms.at(3)->setPosition(vec3(-0.88f, -0.80f, 0.70f));
-	e->localTransforms.at(4)->setPosition(vec3(0.88f, -0.80f, 0.70f));
-
 // STATIC
 	// Landscape
 	addEntity("landscape", PhysType::StaticMesh, new Transform(), vector<string>{
@@ -48,6 +25,7 @@ void GameState::initGameState() {
 	addEntity("oil_rig_center", PhysType::StaticMesh, new Transform(vec3(0.f, 0.f, 25.f)), vector<string>{
 		"assets/models/oil_rig1/oil_rig1.obj"});
 }
+
 
 Entity* GameState::addEntity(string name, PhysType type, Transform* transform, vector<string> modelPaths) {
 	// Create new entity at end of list
@@ -71,6 +49,7 @@ Entity* GameState::addEntity(string name, PhysType type, Transform* transform, v
 	return &entityList.back();
 }
 
+
 Entity GameState::findEntity(string name) {
 	for (int i = 0; i < entityList.size(); i++) {
 		if (entityList.at(i).name == name) {
@@ -78,4 +57,20 @@ Entity GameState::findEntity(string name) {
 		}
 	}
 	return Entity();
+}
+
+
+Entity* GameState::spawnTrailer() {
+	Entity* e;
+	e = addEntity("trailer", PhysType::RigidBody, new Transform(), vector<string>{
+		"assets/models/trailer1/trailer1.obj",
+		"assets/models/tire1/tire1_back2.obj",
+		"assets/models/tire1/tire1_back1.obj",
+		"assets/models/tire1/tire1_back2.obj",
+		"assets/models/tire1/tire1_back1.obj"});
+	e->localTransforms.at(1)->setPosition(vec3(-0.88f, -0.80f, -0.70f));
+	e->localTransforms.at(2)->setPosition(vec3(0.88f, -0.80f, -0.70f));
+	e->localTransforms.at(3)->setPosition(vec3(-0.88f, -0.80f, 0.70f));
+	e->localTransforms.at(4)->setPosition(vec3(0.88f, -0.80f, 0.70f));
+	return e;
 }
