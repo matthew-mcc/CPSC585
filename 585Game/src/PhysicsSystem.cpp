@@ -72,7 +72,10 @@ quat toGLMQuat(PxQuat pxTransform) {
 
 void PhysicsSystem::spawnTrailer() {
 	gameState->spawnTrailer();
-	PxVec3 spawnPos = PxVec3(rand() % 300, 10.f, rand() % 300);
+	int max = 300;
+	int min = -300;
+	int range = max - min + 1;
+	PxVec3 spawnPos = PxVec3(rand() % range + min, 10.f, rand() % range + min);
 
 	PxShape* shape = gPhysics->createShape(PxBoxGeometry(.75f, .75f, .75f), *trailerMat);
 	PxFilterData boxFilter(COLLISION_FLAG_OBSTACLE, COLLISION_FLAG_OBSTACLE_AGAINST, 0, 0);
@@ -324,7 +327,7 @@ void PhysicsSystem::initPhysicsSystem(GameState* gameState) {
 	initMaterialFrictionTable();
 	initVehicles();
 
-	for (int i = 0; i < 30; i++) {
+	for (int i = 0; i < 50; i++) {
 		spawnTrailer();
 	}
 
