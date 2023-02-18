@@ -93,8 +93,10 @@ public:
 			}
 		}
 
-	
-
+		// DEBUG - ADD TRAILER
+		if (key == GLFW_KEY_Q && action == GLFW_PRESS) {
+			addTrailer = true;
+		}
 	}
 
 	// MOUSE BUTTON CALLBACK

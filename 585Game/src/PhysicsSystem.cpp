@@ -48,9 +48,8 @@ const char gVehicleName[] = "engineDrive";
 
 ContactReportCallback* gContactReportCallback = new ContactReportCallback();
 vector<PxRigidDynamic*> rigidBodies;
-vector<PxRigidBody*> vehicleBodies;
-vector<vector<PxRigidDynamic*>> attachedTrailers = { {}, {}, {}, {} };
-EngineDriveVehicle vehicle1;
+int rigidBodyAddIndex;
+vector<Vehicle*> vehicles;
 
 
 vec3 toGLMVec3(PxVec3 pxTransform) {
@@ -84,35 +83,37 @@ void PhysicsSystem::spawnTrailer() {
 	PxRigidDynamic* trailer;
 	trailer = gPhysics->createRigidDynamic(PxTransform(spawnPos));
 	trailer->attachShape(*shape);
-	trailer->setLinearDamping(10);
-	trailer->setAngularDamping(5);
+	trailer->setLinearDamping(1);
+	trailer->setAngularDamping(1);
 	gScene->addActor(*trailer);
 	rigidBodies.push_back(trailer);
 }
 
-void PhysicsSystem::attachTrailer(PxRigidDynamic* trailer, int truckIndex) {
-	PxRigidBody* truck = vehicleBodies.at(truckIndex);
-	PxTransform truckTrans = truck->getGlobalPose();
+void PhysicsSystem::attachTrailer(PxRigidDynamic* trailer, Vehicle* vehicle) {
+	PxRigidBody* truckBody = vehicle->vehicle.mPhysXState.physxActor.rigidBody;
+	PxTransform truckTrans = truckBody->getGlobalPose();
 	PxD6Joint* joint;
 	PxTransform jointTransform;
 	PxTransform trailerOffset;
+	trailer->setLinearDamping(10);
+	trailer->setAngularDamping(5);
 
 	// First Joint, attach to truck rigidbody
-	if (attachedTrailers.at(truckIndex).size() == 0) {
+	if (vehicle->attachedTrailers.size() == 0) {
 		trailerOffset = PxTransform(PxVec3(0.0f, 0.75f, -3.f));
 		trailer->setGlobalPose(truckTrans.transform(trailerOffset));
 		jointTransform = PxTransform(trailer->getGlobalPose().p);
-		joint = PxD6JointCreate(*gPhysics, truck, truck->getGlobalPose().getInverse().transform(jointTransform), trailer, trailer->getGlobalPose().getInverse().transform(jointTransform));
+		joint = PxD6JointCreate(*gPhysics, truckBody, truckBody->getGlobalPose().getInverse().transform(jointTransform), trailer, trailer->getGlobalPose().getInverse().transform(jointTransform));
 		joint->setMotion(PxD6Axis::eTWIST, PxD6Motion::eLIMITED);
 		joint->setMotion(PxD6Axis::eSWING1, PxD6Motion::eLIMITED);
 		joint->setMotion(PxD6Axis::eSWING2, PxD6Motion::eLIMITED);
 		joint->setTwistLimit(PxJointAngularLimitPair(-0.01f, 0.01f));
-		joint->setPyramidSwingLimit(PxJointLimitPyramid(-0.25f, 0.25f, -0.01f, 0.01f));
+		joint->setPyramidSwingLimit(PxJointLimitPyramid(-0.8f, 0.8f, -0.01f, 0.01f));
 	}
 
 	// Not first joint, attach to last trailer in chain
 	else {
-		PxRigidDynamic* lastTrailer = attachedTrailers.at(truckIndex).back();
+		PxRigidDynamic* lastTrailer = vehicle->attachedTrailers.back();
 		trailerOffset = PxTransform(PxVec3(0.0f, 0.0f, -3.f));
 		trailer->setGlobalPose(lastTrailer->getGlobalPose().transform(trailerOffset));
 		jointTransform = PxTransform(trailer->getGlobalPose().p);
@@ -121,11 +122,62 @@ void PhysicsSystem::attachTrailer(PxRigidDynamic* trailer, int truckIndex) {
 		joint->setMotion(PxD6Axis::eSWING1, PxD6Motion::eLIMITED);
 		joint->setMotion(PxD6Axis::eSWING2, PxD6Motion::eLIMITED);
 		joint->setTwistLimit(PxJointAngularLimitPair(-0.01f, 0.01f));
-		joint->setPyramidSwingLimit(PxJointLimitPyramid(-0.25f, 0.25f, -0.01f, 0.01f));
+		joint->setPyramidSwingLimit(PxJointLimitPyramid(-0.8f, 0.8f, -0.01f, 0.01f));
 	}
 
 	// Add new trailer to attachedTrailers tracking list
-	attachedTrailers.at(truckIndex).push_back(trailer);
+	vehicle->attachedTrailers.push_back(trailer);
+	vehicle->attachedJoints.push_back(joint);
+}
+
+void PhysicsSystem::detachTrailer(PxRigidDynamic* trailer, Vehicle* vehicle) {
+	// Init local vars
+	int breakPoint = 0;
+	vector<PxD6Joint*> newJoints;
+	vector<PxRigidDynamic*> newTrailers;
+
+	// Loop through attached trailers until collided trailer is found, store index in breakPoint
+	for (int i = 0; i < vehicle->attachedTrailers.size(); i++) {
+		if (vehicle->attachedTrailers.at(i) == trailer) {
+			breakPoint = i;
+			break;
+		}
+		else {
+			newJoints.push_back(vehicle->attachedJoints.at(i));
+			newTrailers.push_back(vehicle->attachedTrailers.at(i));
+		}
+	}
+	// Loop backwards through attached trailers, removing the back trailer iteratively until breakPoint is reached
+	for (int i = vehicle->attachedTrailers.size() - 1; i >= breakPoint; i--) {
+		vehicle->attachedJoints.at(i)->release();
+		vehicle->attachedTrailers.at(i)->setAngularDamping(1);
+		vehicle->attachedTrailers.at(i)->setLinearDamping(1);
+	}
+
+	// Set new joint and trailer arrays for vehicle
+	vehicle->attachedJoints = newJoints;
+	vehicle->attachedTrailers = newTrailers;
+}
+
+void PhysicsSystem::processTrailerCollision() {
+	gContactReportCallback->contactDetected = false;
+	// Store trailer (1st in contact pair)
+	PxRigidDynamic* trailer = (PxRigidDynamic*)gContactReportCallback->contactPair.actors[0];
+
+	// Search for vehicle that collided with trailer
+	for (int i = 0; i < vehicles.size(); i++) {
+		if (vehicles.at(i)->vehicle.mPhysXState.physxActor.rigidBody == gContactReportCallback->contactPair.actors[1]) {
+			// Search for trailer in list of attached trailers for found vehicle
+			for (int j = 0; j < vehicles.at(i)->attachedTrailers.size(); j++) {
+				if (trailer == vehicles.at(i)->attachedTrailers.at(j)) {
+					detachTrailer(trailer, vehicles.at(i));
+					return;
+				}
+			}
+			// If not already attached, attach trailer
+			attachTrailer(trailer, vehicles.at(i));
+		}
+	}
 }
 
 void PhysicsSystem::initPhysX() {
@@ -262,27 +314,29 @@ void PhysicsSystem::initMaterialFrictionTable() {
 }
 
 bool PhysicsSystem::initVehicles() {
+	vehicles.push_back(new Vehicle());
+	
 	//Load the params from json or set directly.
 	gVehicleDataPath = "assets/vehicledata";
-	readBaseParamsFromJsonFile(gVehicleDataPath, "Base.json", vehicle1.mBaseParams);
-	setPhysXIntegrationParams(vehicle1.mBaseParams.axleDescription, gPhysXMaterialFrictions, gNbPhysXMaterialFrictions, gPhysXDefaultMaterialFriction, vehicle1.mPhysXParams);
-	readEngineDrivetrainParamsFromJsonFile(gVehicleDataPath, "EngineDrive.json", vehicle1.mEngineDriveParams);
+	readBaseParamsFromJsonFile(gVehicleDataPath, "Base.json", vehicles.back()->vehicle.mBaseParams);
+	setPhysXIntegrationParams(vehicles.back()->vehicle.mBaseParams.axleDescription, gPhysXMaterialFrictions, gNbPhysXMaterialFrictions, gPhysXDefaultMaterialFriction, vehicles.back()->vehicle.mPhysXParams);
+	readEngineDrivetrainParamsFromJsonFile(gVehicleDataPath, "EngineDrive.json", vehicles.back()->vehicle.mEngineDriveParams);
 
 	//Set the states to default.
-	if (!vehicle1.initialize(*gPhysics, PxCookingParams(PxTolerancesScale()), *gMaterial, EngineDriveVehicle::eDIFFTYPE_FOURWHEELDRIVE)) {
+	if (!vehicles.back()->vehicle.initialize(*gPhysics, PxCookingParams(PxTolerancesScale()), *gMaterial, EngineDriveVehicle::eDIFFTYPE_FOURWHEELDRIVE)) {
 		return false;
 	}
 
 	//Apply a start pose to the physx actor and add it to the physx scene.
 	PxTransform pose(PxVec3(0.f, 0.f, 0.f), PxQuat(PxIdentity));
-	vehicle1.setUpActor(*gScene, pose, gVehicleName);
+	vehicles.back()->vehicle.setUpActor(*gScene, pose, gVehicleName);
 
 	//Set the vehicle in 1st gear.
-	vehicle1.mEngineDriveState.gearboxState.currentGear = vehicle1.mEngineDriveParams.gearBoxParams.neutralGear + 1;
-	vehicle1.mEngineDriveState.gearboxState.targetGear = vehicle1.mEngineDriveParams.gearBoxParams.neutralGear + 1;
+	vehicles.back()->vehicle.mEngineDriveState.gearboxState.currentGear = vehicles.back()->vehicle.mEngineDriveParams.gearBoxParams.neutralGear + 1;
+	vehicles.back()->vehicle.mEngineDriveState.gearboxState.targetGear = vehicles.back()->vehicle.mEngineDriveParams.gearBoxParams.neutralGear + 1;
 
 	//Set the vehicle to use the automatic gearbox.
-	vehicle1.mTransmissionCommandState.targetGear = PxVehicleEngineDriveTransmissionCommandState::eAUTOMATIC_GEAR;
+	vehicles.back()->vehicle.mTransmissionCommandState.targetGear = PxVehicleEngineDriveTransmissionCommandState::eAUTOMATIC_GEAR;
 
 	//Set up the simulation context.
 	//The snippet is set up with
@@ -302,17 +356,16 @@ bool PhysicsSystem::initVehicles() {
 	// Vehicle flags
 	PxFilterData vehicleFilter(COLLISION_FLAG_CHASSIS, COLLISION_FLAG_CHASSIS_AGAINST, 0, 0);
 	//PxFilterData vehicleFilter(COLLISION_FLAG_WHEEL, COLLISION_FLAG_GROUND_AGAINST, 0, 0);
-	PxU32 shapes = vehicle1.mPhysXState.physxActor.rigidBody->getNbShapes();
+	PxU32 shapes = vehicles.back()->vehicle.mPhysXState.physxActor.rigidBody->getNbShapes();
 	for (PxU32 i = 0; i < 1; i++) {
 		PxShape* shape = NULL;
-		vehicle1.mPhysXState.physxActor.rigidBody->getShapes(&shape, 1, i);
+		vehicles.back()->vehicle.mPhysXState.physxActor.rigidBody->getShapes(&shape, 1, i);
 		shape->setSimulationFilterData(vehicleFilter);
 
 		shape->setFlag(PxShapeFlag::eSCENE_QUERY_SHAPE, true);
 		shape->setFlag(PxShapeFlag::eSIMULATION_SHAPE, true);
 		shape->setFlag(PxShapeFlag::eTRIGGER_SHAPE, false);
 	}
-	vehicleBodies.push_back(vehicle1.mPhysXState.physxActor.rigidBody);
 
 	gScene->setVisualizationParameter(physx::PxVisualizationParameter::eJOINT_LOCAL_FRAMES, 1.0f);
 	gScene->setVisualizationParameter(physx::PxVisualizationParameter::eJOINT_LIMITS, 1.0f);
@@ -347,28 +400,33 @@ void PhysicsSystem::stepPhysics(shared_ptr<CallbackInterface> callback_ptr, Time
 	// Check for trailer contact reports
 	// If detected, attached trailer to truck
 	if (gContactReportCallback->contactDetected) {
-		PxRigidDynamic* trailer = (PxRigidDynamic*)gContactReportCallback->contactPair.actors[0];
-		attachTrailer(trailer, 0);
-		gContactReportCallback->contactDetected = false;
+		processTrailerCollision();
+	}
+
+	// Debug - Add trailer on key command
+	if (callback_ptr->addTrailer) {
+		attachTrailer(rigidBodies.at(rigidBodyAddIndex), vehicles.at(0));
+		callback_ptr->addTrailer = false;
+		rigidBodyAddIndex++;
 	}
 
 	// Store entity list
 	auto entityList = gameState->entityList;
 
 	//Apply the brake, throttle and steer inputs to the vehicle's command state
-	vehicle1.mCommandState.brakes[0] = callback_ptr->brake;
-	vehicle1.mCommandState.nbBrakes = 1;
-	vehicle1.mCommandState.throttle = callback_ptr->throttle;
-	vehicle1.mCommandState.steer = callback_ptr->steer;
+	vehicles.at(0)->vehicle.mCommandState.brakes[0] = callback_ptr->brake;
+	vehicles.at(0)->vehicle.mCommandState.nbBrakes = 1;
+	vehicles.at(0)->vehicle.mCommandState.throttle = callback_ptr->throttle;
+	vehicles.at(0)->vehicle.mCommandState.steer = callback_ptr->steer;
 
 	//Forward integrate the vehicle by a single timestep.
 	//Apply substepping at low forward speed to improve simulation fidelity.
-	const PxVec3 linVel = vehicle1.mPhysXState.physxActor.rigidBody->getLinearVelocity();
-	const PxVec3 forwardDir = vehicle1.mPhysXState.physxActor.rigidBody->getGlobalPose().q.getBasisVector2();
+	const PxVec3 linVel = vehicles.at(0)->vehicle.mPhysXState.physxActor.rigidBody->getLinearVelocity();
+	const PxVec3 forwardDir = vehicles.at(0)->vehicle.mPhysXState.physxActor.rigidBody->getGlobalPose().q.getBasisVector2();
 	const PxReal forwardSpeed = linVel.dot(forwardDir);
 	const PxU8 nbSubsteps = (forwardSpeed < 5.0f ? 3 : 1);
-	vehicle1.mComponentSequence.setSubsteps(vehicle1.mComponentSequenceSubstepGroupHandle, nbSubsteps);
-	vehicle1.step(timestep, gVehicleSimulationContext);
+	vehicles.at(0)->vehicle.mComponentSequence.setSubsteps(vehicles.at(0)->vehicle.mComponentSequenceSubstepGroupHandle, nbSubsteps);
+	vehicles.at(0)->vehicle.step(timestep, gVehicleSimulationContext);
 
 	//Forward integrate the phsyx scene by a single timestep.
 	gScene->simulate(timestep);
@@ -393,17 +451,17 @@ void PhysicsSystem::stepPhysics(shared_ptr<CallbackInterface> callback_ptr, Time
 		// VEHICLES
 		else if (entityList.at(i).type == PhysType::Vehicle) {
 			// Global Transform + Linear Velocity
-			p = toGLMVec3(vehicle1.mPhysXState.physxActor.rigidBody->getGlobalPose().p);
-			q = toGLMQuat(vehicle1.mPhysXState.physxActor.rigidBody->getGlobalPose().q);
-			v = toGLMVec3(vehicle1.mPhysXState.physxActor.rigidBody->getLinearVelocity());
+			p = toGLMVec3(vehicles.at(0)->vehicle.mPhysXState.physxActor.rigidBody->getGlobalPose().p);
+			q = toGLMQuat(vehicles.at(0)->vehicle.mPhysXState.physxActor.rigidBody->getGlobalPose().q);
+			v = toGLMVec3(vehicles.at(0)->vehicle.mPhysXState.physxActor.rigidBody->getLinearVelocity());
 			entityList.at(i).transform->setPosition(p);
 			entityList.at(i).transform->setRotation(q);
 			entityList.at(i).transform->setLinearVelocity(v);
 
 			// Local Wheel Transforms
 			for (int j = 1; j < entityList.at(i).localTransforms.size(); j++) {
-				p = toGLMVec3(vehicle1.mPhysXState.physxActor.wheelShapes[j - 1]->getLocalPose().p);
-				q = toGLMQuat(vehicle1.mPhysXState.physxActor.wheelShapes[j - 1]->getLocalPose().q);
+				p = toGLMVec3(vehicles.at(0)->vehicle.mPhysXState.physxActor.wheelShapes[j - 1]->getLocalPose().p);
+				q = toGLMQuat(vehicles.at(0)->vehicle.mPhysXState.physxActor.wheelShapes[j - 1]->getLocalPose().q);
 				entityList.at(i).localTransforms.at(j)->setPosition(p);
 				entityList.at(i).localTransforms.at(j)->setRotation(q);
 			}

@@ -20,6 +20,12 @@ using namespace snippetvehicle2;
 using namespace glm;
 using namespace std;
 
+struct Vehicle {
+	EngineDriveVehicle vehicle;
+	vector<PxRigidDynamic*> attachedTrailers;
+	vector<PxD6Joint*> attachedJoints;
+};
+
 class PhysicsSystem {
 
 public:
@@ -37,7 +43,9 @@ private:
 	void initMaterialFrictionTable();
 	bool initVehicles();
 	void spawnTrailer();
-	void attachTrailer(PxRigidDynamic* trailer, int truckIndex);
+	void processTrailerCollision();
+	void attachTrailer(PxRigidDynamic* trailer, Vehicle* vehicle);
+	void detachTrailer(PxRigidDynamic* trailer, Vehicle* vehicle);
 
 	GameState* gameState;
 };

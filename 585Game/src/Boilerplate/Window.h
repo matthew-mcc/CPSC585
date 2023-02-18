@@ -84,6 +84,9 @@ public:
 	float xAngle = 0.f;
 	glm::vec2 clickPos = glm::vec2(0.f, 0.f);
 
+	// Debug - Add Trailer
+	bool addTrailer = false;
+
 	// GAMEPAD VEHICLE INPUT
 
 	void XboxUpdate(XboxInput x) {
