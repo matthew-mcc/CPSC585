@@ -21,4 +21,5 @@ public:
 	Transform* transform;
 	vector<Transform*> localTransforms;
 	Model* model;
+	int nbChildEntities;
 };

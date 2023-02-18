@@ -190,7 +190,6 @@ void PhysicsSystem::detachTrailer(PxRigidDynamic* trailer, Vehicle* vehicle) {
 		vehicle->attachedJoints.at(i)->release();
 		vehicle->attachedTrailers.at(i)->setAngularDamping(1);
 		vehicle->attachedTrailers.at(i)->setLinearDamping(1);
-		//vehicle->attachedTrailers.at(i)->setLinearVelocity(vehicle->attachedTrailers.at(i)->getLinearVelocity() * 5.f);
 	}
 
 	// Set new joint and trailer arrays for vehicle
@@ -489,6 +488,7 @@ void PhysicsSystem::stepPhysics(shared_ptr<CallbackInterface> callback_ptr, Time
 			entityList.at(i).transform->setPosition(p);
 			entityList.at(i).transform->setRotation(q);
 			entityList.at(i).transform->setLinearVelocity(v);
+			gameState->entityList.at(i).nbChildEntities = vehicles.at(vehicleIndex)->attachedTrailers.size();
 
 			// Local Wheel Transforms
 			for (int j = 1; j < entityList.at(i).localTransforms.size(); j++) {

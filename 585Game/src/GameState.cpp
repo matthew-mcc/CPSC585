@@ -33,7 +33,10 @@ Entity* GameState::addEntity(string name, PhysType type, Transform* transform, v
 	for (int i = 0; i < modelPaths.size(); i++) {
 		entityList.back().model->addMesh(modelPaths.at(i));
 	}
+	// Child Entity Counter
+	entityList.back().nbChildEntities = 0;
 
+	// Return Pointer to Entity
 	return &entityList.back();
 }
 

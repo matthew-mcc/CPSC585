@@ -98,10 +98,14 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> callback
 	vec3 player_right = playerEntity.transform->getRightVector();
 	vec3 player_up = playerEntity.transform->getUpVector();
 
+	// Dynamically adjust camera zoom based on number of trailers attached
+	float camera_zoom_forward = clamp(1.0f + (float)playerEntity.nbChildEntities * 0.5f, 1.0f, 11.0f);
+	float camera_zoom_up = clamp(1.0f + (float)playerEntity.nbChildEntities * 0.4f, 1.0f, 11.0f);
+
 	// Chase Camera: Compute eye and target offsets
 		// Eye Offset: Camera position (world space)
 		// Target Offset: Camera focus point (world space)
-	vec3 eye_offset = (camera_position_forward * player_forward) + (camera_position_right * player_right) + (camera_position_up * player_up);
+	vec3 eye_offset = (camera_position_forward * player_forward * camera_zoom_forward) + (camera_position_right * player_right) + (camera_position_up * vec3(0.0f, 1.0f, 0.0f) * camera_zoom_up);
 	vec3 target_offset = (camera_target_forward * player_forward) + (camera_target_right * player_right) + (camera_target_up * player_up);
 
 	// Camera lag: Generate target_position - prev_position creating a vector. Scale by constant factor, then add to prev and update
