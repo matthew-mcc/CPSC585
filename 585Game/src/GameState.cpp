@@ -5,18 +5,6 @@ using namespace std;
 void GameState::initGameState() {
 	Entity* e;
 
-// DYNAMIC
-	// Player Truck
-	addEntity("player_truck1", PhysType::Vehicle, new Transform(), vector<string>{
-		"assets/models/truck1/truck1.obj",
-		"assets/models/tire1/tire1_front2.obj",
-		"assets/models/tire1/tire1_front1.obj",
-		"assets/models/tire1/tire1_back2.obj",
-		"assets/models/tire1/tire1_back1.obj",
-		"assets/models/tire1/tire1_back1.obj",
-		"assets/models/tire1/tire1_back2.obj"});
-
-// STATIC
 	// Landscape
 	addEntity("landscape", PhysType::StaticMesh, new Transform(), vector<string>{
 		"assets/models/landscape1/landscape1.obj"});
@@ -73,4 +61,16 @@ Entity* GameState::spawnTrailer() {
 	e->localTransforms.at(3)->setPosition(vec3(-0.88f, -0.80f, 0.70f));
 	e->localTransforms.at(4)->setPosition(vec3(0.88f, -0.80f, 0.70f));
 	return e;
+}
+
+
+Entity* GameState::spawnVehicle() {
+	addEntity("player_truck1", PhysType::Vehicle, new Transform(), vector<string>{
+		"assets/models/truck1/truck1.obj",
+		"assets/models/tire1/tire1_front2.obj",
+		"assets/models/tire1/tire1_front1.obj",
+		"assets/models/tire1/tire1_back2.obj",
+		"assets/models/tire1/tire1_back1.obj",
+		"assets/models/tire1/tire1_back1.obj",
+		"assets/models/tire1/tire1_back2.obj"});
 }

@@ -41,9 +41,10 @@ private:
 	void cleanupPhysX();
 	void initPhysXMeshes();
 	void initMaterialFrictionTable();
-	bool initVehicles();
+	void initVehicles(int vehicleCount);
 	void spawnTrailer();
 	void processTrailerCollision();
+	Vehicle* getPullingVehicle(PxRigidDynamic* trailer);
 	void attachTrailer(PxRigidDynamic* trailer, Vehicle* vehicle);
 	void detachTrailer(PxRigidDynamic* trailer, Vehicle* vehicle);
 

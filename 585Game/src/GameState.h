@@ -11,6 +11,7 @@ public:
 	Entity* addEntity(string name, PhysType type, Transform* transform, vector<string> modelPaths);
 	Entity findEntity(string name);
 	Entity* spawnTrailer();
+	Entity* spawnVehicle();
 
 	// List of all game entities
 	vector<Entity> entityList;
