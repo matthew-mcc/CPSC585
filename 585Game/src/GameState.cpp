@@ -2,6 +2,9 @@
 
 using namespace std;
 
+int vehiclesSpawned = 0;
+int trailersSpawned = 0;
+
 void GameState::initGameState() {
 	Entity* e;
 
@@ -53,7 +56,8 @@ Entity GameState::findEntity(string name) {
 
 Entity* GameState::spawnTrailer() {
 	Entity* e;
-	e = addEntity("trailer", PhysType::RigidBody, new Transform(), vector<string>{
+	string name = "trailer_" + to_string(trailersSpawned);
+	e = addEntity(name, PhysType::RigidBody, new Transform(), vector<string>{
 		"assets/models/trailer1/trailer1.obj",
 		"assets/models/tire1/tire1_back2.obj",
 		"assets/models/tire1/tire1_back1.obj",
@@ -63,12 +67,14 @@ Entity* GameState::spawnTrailer() {
 	e->localTransforms.at(2)->setPosition(vec3(0.88f, -0.80f, -0.70f));
 	e->localTransforms.at(3)->setPosition(vec3(-0.88f, -0.80f, 0.70f));
 	e->localTransforms.at(4)->setPosition(vec3(0.88f, -0.80f, 0.70f));
+	trailersSpawned++;
 	return e;
 }
 
 
 Entity* GameState::spawnVehicle() {
-	addEntity("player_truck1", PhysType::Vehicle, new Transform(), vector<string>{
+	string name = "vehicle_" + to_string(vehiclesSpawned);
+	addEntity(name, PhysType::Vehicle, new Transform(), vector<string>{
 		"assets/models/truck1/truck1.obj",
 		"assets/models/tire1/tire1_front2.obj",
 		"assets/models/tire1/tire1_front1.obj",
@@ -76,4 +82,5 @@ Entity* GameState::spawnVehicle() {
 		"assets/models/tire1/tire1_back1.obj",
 		"assets/models/tire1/tire1_back1.obj",
 		"assets/models/tire1/tire1_back2.obj"});
+	vehiclesSpawned++;
 }

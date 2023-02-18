@@ -60,7 +60,7 @@ PxPairFlags& pairFlags, const void* constantBlock, PxU32 constantBlockSize)
 	if ((filterData0.word0 == COLLISION_FLAG_OBSTACLE && filterData1.word0 == COLLISION_FLAG_CHASSIS) ||
 		(filterData0.word0 == COLLISION_FLAG_CHASSIS && filterData1.word0 == COLLISION_FLAG_OBSTACLE)) {
 		pairFlags |= physx::PxPairFlag::eNOTIFY_TOUCH_FOUND;
-		std::cout << "Whoa there" << std::endl;
+		//std::cout << "Whoa there" << std::endl;
 	}
 	pairFlags |= physx::PxPairFlags(physx::PxU16(filterData0.word2 | filterData1.word2));
 

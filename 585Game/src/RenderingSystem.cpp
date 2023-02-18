@@ -90,7 +90,7 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> callback
 
 	// CAMERA POSITION / LAG
 		// Find player entity
-	Entity playerEntity = gameState->findEntity("player_truck1");
+	Entity playerEntity = gameState->findEntity("vehicle_0");
 
 	// Retrieve player direction vectors
 	//camera_position_forward = camera_position_forward - (callback_ptr->camera_acceleration) / 15.f;
