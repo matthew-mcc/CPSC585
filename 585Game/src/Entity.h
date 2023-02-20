@@ -5,18 +5,21 @@
 
 using namespace std;
 
-/*
-This is similar to a GameObject in Unity - but much more simplified.
+enum class PhysType {
+	None,
+	StaticMesh,
+	Vehicle,
+	RigidBody
+};
 
-An entity will be composed of a name (identifier), a Model (what we are rendering) and a Transform (information for the physics engine).
-
-*/
+// Entity Class
+// Contains individual object information
 class Entity {
 public:
 	string name = "unnamed_entity";
-	bool bphysicsEntity = false; 
-	bool isRigidBody = false;
+	PhysType type = PhysType::None;
 	Transform* transform;
 	vector<Transform*> localTransforms;
 	Model* model;
+	int nbChildEntities;
 };

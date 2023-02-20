@@ -19,6 +19,8 @@ public:
 	// Initialize Renderer
 	void initRenderer();
 
+	void SetupImgui();
+
 	// Update Renderer
 	void updateRenderer(shared_ptr<CallbackInterface> callback_ptr, GameState* gameState, Timer* timer);
 
@@ -27,13 +29,14 @@ public:
 
 	// Window Pointer
 	GLFWwindow* window;
-	void SetupImgui();
+
 private:
 	void setCelShaderUniforms();
 
 	// Shadow Maps
 	Shadow nearShadowMap;
 	Shadow farShadowMap;
+	Shadow outlineMap;
 
 	// Shaders
 	Shader textShader;
@@ -47,18 +50,20 @@ private:
 
 	// Shader Parameters
 	float minBias = 0.001f;
-	float maxBias = 0.012f;
+	float maxBias = 0.002f;
 	float lightRotation = 5.f;
 	float lightAngle = 0.3f;
 	float band = 0.166f;
 	float gradient = 0.02f;
 	float shift = 0.111f;
 	vec3 skyColor = vec3(0.99f, 0.84f, 0.80f);
-	vec3 lightPos = vec3(sin(lightRotation)*cos(lightAngle), sin(lightAngle), cos(lightRotation)*cos(lightAngle)) * 4.f;
+	vec3 lightPos = vec3(sin(lightRotation) * cos(lightAngle), sin(lightAngle), cos(lightRotation) * cos(lightAngle)) * 4.f;
 	vec3 lightColor = vec3(0.97f, 0.91f, 0.89f);
-	vec3 shadowColor = vec3(0.61f, 0.49f, 0.46f);
-	vec3 fogColor = vec3(1.f, 0.63f, 0.53f);
-	float fogDepth = 0.002f;
+	vec3 shadowColor = vec3(0.71f, 0.55f, 0.51f);
+	vec3 fogColor = vec3(1.f, 0.73f, 0.66f);
+	float fogDepth = 0.00125f;
+	float outlineSensitivity = 14.264f;
+	float outlineTransparency = 0.5f;
 
 	// Text
 	map<char, Character> textChars;
@@ -75,7 +80,7 @@ private:
 	float camera_target_right = 0.0f;
 	vec3 world_up = vec3(0.0f, 1.0f, 0.0f);
 	vec3 camera_previous_position;
-	
+
 	// Camera Parameters
 	float camera_lag = 0.05f;
 	float fov = 45.f;

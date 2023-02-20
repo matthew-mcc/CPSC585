@@ -10,9 +10,9 @@ class Transform {
 
 public:
 // CONSTRUCTOR
-	Transform() {
-		this->position = vec3();
-		this->rotation = quat();
+	Transform(vec3 pos = vec3(), quat rot = quat()) {
+		this->position = pos;
+		this->rotation = rot;
 		this->linearVelocity = vec3();
 		update();
 	};

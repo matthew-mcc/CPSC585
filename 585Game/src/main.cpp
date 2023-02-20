@@ -11,9 +11,9 @@
 int main() {
 	// Systems Creation
 	Timer* timer = &Timer::Instance();
+	GameState* gameState = new GameState();
 	RenderingSystem renderer = RenderingSystem();
 	PhysicsSystem physics = PhysicsSystem();
-	GameState* gameState = new GameState();
 	XboxInput xInput;
 
 	// Flags
@@ -22,32 +22,35 @@ int main() {
 	// Initialize Systems
 	xInput.run();
 	gameState->initGameState();
-
+	physics.initPhysicsSystem(gameState);
 	std::shared_ptr<CallbackInterface> callback_ptr = processInput(renderer.window);
 	renderer.SetupImgui();
+
 	// PRIMARY GAME LOOP
 	while (!glfwWindowShouldClose(renderer.window)) {
-		// Process Callbacks
 		
+		// Update Input Drivers
 		xInput.update();
 		callback_ptr->XboxUpdate(xInput);
-
+		
+		// Post-Load
 		if (isLoaded) {
 			// Update Timer
 			timer->update();
 
 			// Update Physics System
-			physics.stepPhysics(callback_ptr, gameState, timer);
+			physics.stepPhysics(callback_ptr, timer);
 		}
 
 		// Update Rendering System
 		renderer.updateRenderer(callback_ptr, gameState, timer);
-		
+
 		// Post-Load Initialization
 		if (!isLoaded) {
 			timer->init();
 			isLoaded = true;
 		}
+
 	}
   
 	// Terminate program

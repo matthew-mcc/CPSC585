@@ -68,7 +68,7 @@ namespace snippetvehicle2
 	if ((filterData0.word0 == COLLISION_FLAG_OBSTACLE && filterData1.word0 == COLLISION_FLAG_CHASSIS) ||
 		(filterData0.word0 == COLLISION_FLAG_CHASSIS && filterData1.word0 == COLLISION_FLAG_OBSTACLE)) {
 		pairFlags |= physx::PxPairFlag::eNOTIFY_TOUCH_FOUND;
-		std::cout << "Whoa there" << std::endl;
+		//std::cout << "Whoa there" << std::endl;
 	}
 	if ((filterData0.word0 == COLLISION_FLAG_GROUND && filterData1.word0 == COLLISION_FLAG_CHASSIS) ||
 		(filterData0.word0 == COLLISION_FLAG_CHASSIS && filterData1.word0 == COLLISION_FLAG_GROUND)||

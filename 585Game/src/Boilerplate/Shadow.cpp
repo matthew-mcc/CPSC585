@@ -7,6 +7,37 @@
 
 Shadow::Shadow() {}
 
+Shadow::Shadow(int width, int height) {
+	WIDTH = width;
+	HEIGHT = height;
+	glGenFramebuffers(1, &depthMapFBO);
+	glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
+
+	// Generate texture
+	glGenTextures(1, &depthMap);
+	glBindTexture(GL_TEXTURE_2D, depthMap);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT,
+		WIDTH, HEIGHT, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+	float borderColor[] = { 1.0, 1.0, 1.0, 1.0 };
+	glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);
+
+	// Attach texture to FBO
+	glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depthMap, 0);
+	glDrawBuffer(GL_NONE);
+	glReadBuffer(GL_NONE);
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+	shader = Shader("src/Shaders/shadowVertex.txt", "src/Shaders/shadowFragment.txt");
+	debugShader = Shader("src/Shaders/shadowDebugVertex.txt", "src/Shaders/shadowDebugFragment.txt");
+
+	quadVAO = 0;
+}
+
 Shadow::Shadow(unsigned int width, unsigned int height, float x, float y, float near_plane, float far_plane) {
 	WIDTH = width;
 	HEIGHT = height;
@@ -45,6 +76,16 @@ Shadow::Shadow(unsigned int width, unsigned int height, float x, float y, float 
 
 void Shadow::update(glm::vec3 lightPos, glm::vec3 playerPos) {
 	ConfigureShaderAndMatrices(lightPos, playerPos);
+	shader.use();
+	shader.setMat4("lightSpaceMatrix", lightSpaceMatrix);
+	shader.setMat4("model", glm::mat4(1.0f));
+	glViewport(0, 0, WIDTH, HEIGHT);
+	glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
+	glClear(GL_DEPTH_BUFFER_BIT);
+	glActiveTexture(GL_TEXTURE0);
+}
+void Shadow::update(glm::mat4 proj, glm::mat4 view) {
+	lightSpaceMatrix = proj * view;
 	shader.use();
 	shader.setMat4("lightSpaceMatrix", lightSpaceMatrix);
 	shader.setMat4("model", glm::mat4(1.0f));

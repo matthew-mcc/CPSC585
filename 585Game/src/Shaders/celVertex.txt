@@ -6,21 +6,32 @@ layout (location = 2) in vec2 aTexCoords;
 out vec3 FragPos;
 out vec2 TexCoords;
 out vec3 normal;
-out vec4 FragPosLightSpace;
+out vec4 NearFragPosLightSpace;
+out vec4 FarFragPosLightSpace;
+out vec4 OutlineFragPosSpace;
 out float depth;
+out mat4 projMatrixInv;
+out mat4 viewMatrixInv;
 
 uniform mat4 model;
 uniform mat4 view;
 uniform mat4 projection;
-uniform mat4 lightSpaceMatrix;
+uniform mat4 nearLightSpaceMatrix;
+uniform mat4 farLightSpaceMatrix;
+uniform mat4 outlineSpaceMatrix;
 uniform float fogDepth;
 
 void main(){
     FragPos = vec3(model * vec4(aPos, 1.0));
     normal = normalize(aNormal);
     TexCoords = aTexCoords;
-    FragPosLightSpace = lightSpaceMatrix * vec4(FragPos, 1.0);
+    NearFragPosLightSpace = nearLightSpaceMatrix * vec4(FragPos, 1.0);
+    FarFragPosLightSpace = farLightSpaceMatrix * vec4(FragPos, 1.0);
+    OutlineFragPosSpace = outlineSpaceMatrix * vec4(FragPos, 1.0);
     gl_Position = projection * view * model * vec4(aPos, 1.0);
     depth = length(view * model * vec4(aPos, 1.0)) * fogDepth;
     if (depth > 1.0) depth = 1.0;
+
+    projMatrixInv = inverse(projection);
+    viewMatrixInv = inverse(view);
 }

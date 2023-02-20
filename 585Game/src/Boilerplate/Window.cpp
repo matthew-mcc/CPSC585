@@ -1,7 +1,8 @@
 
 #include <Boilerplate/Window.h>
 #include "imgui.h"
-
+#include "imgui_impl_glfw.h"
+#include "imgui_impl_opengl3.h"
 using namespace std;
 
 
@@ -104,11 +105,14 @@ public:
 			}
 		}
 
+		// DEBUG - ADD TRAILER
+		if (key == GLFW_KEY_Q && action == GLFW_PRESS) {
+			addTrailer = true;
+		}
 	}
 
 	// MOUSE BUTTON CALLBACK
 	virtual void mouseButtonCallback(int button, int action, int mods) {
-		
 		auto& io = ImGui::GetIO();
 
 		if (io.WantCaptureMouse) return;
@@ -147,7 +151,7 @@ public:
 		//xoffset *= sensitivity;
 		//yoffset *= sensitivity;
 		if (moveCamera) {
-			xAngle = (clickPos.x - lastX) * atan(1)*4.f;
+			xAngle = (clickPos.x - lastX) * atan(1) * 4.f;
 		}
 	}
 
@@ -204,8 +208,9 @@ void windowSizeMetaCallback(GLFWwindow* window, int width, int height) {
 std::shared_ptr<CallbackInterface> processInput(GLFWwindow* window) {
 	//glfwSetWindowUserPointer(window, callbacks_.get());
 	glfwSetKeyCallback(window, keyMetaCallback);
-	glfwSetMouseButtonCallback(window, mouseButtonMetaCallback);		// Commented out to work with imgui (temporarily)
+	glfwSetMouseButtonCallback(window, mouseButtonMetaCallback);	
 	glfwSetCursorPosCallback(window, cursorPosMetaCallback);
+	
 	glfwSetScrollCallback(window, scrollMetaCallback);
 	glfwSetWindowSizeCallback(window, windowSizeMetaCallback);
 
