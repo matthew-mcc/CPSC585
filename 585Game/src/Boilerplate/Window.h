@@ -79,6 +79,10 @@ public:
 	float brake = 0.f;
 	float steer = 0.f;
 	float reverse = 0.f;
+	float AirPitch = 0.f;
+	float AirRoll = 0.f;
+
+	float boosterrrrr = 0.f;
 
 	// Camera Control
 	bool moveCamera = false;
@@ -93,9 +97,12 @@ public:
 	void XboxUpdate(XboxInput x) {
 		if (keys_pressed <= 0) {
 			throttle = x.data.RT / 255.f;
-			brake = x.data.LB; 
+			brake = x.data.LT / 255.f;
 			steer = -x.data.LThumb_X_direction;
 			reverse = x.data.LT / 255.f;
+			AirPitch = x.data.LThumb_Y_direction;
+			AirRoll = -x.data.LThumb_X_direction;
+			boosterrrrr = x.data.RB;
 			//std::cout << x.data.LB <<std::endl;
 		}
 		if (abs(x.data.RThumb_magnitude) > 0.01f) {

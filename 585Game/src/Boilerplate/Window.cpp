@@ -46,6 +46,11 @@ GLFWwindow* initWindow() {
 
 class KeyCallbacks : public CallbackInterface {
 public:
+	bool A = false;
+	bool D = false;
+	
+	bool shift = false;
+	bool control = false;
 	// KEYBOARD VEHICLE INPUT
 	virtual void keyCallback(int key, int scancode, int action, int mods) {
 		// THROTTLE (W)
@@ -59,50 +64,100 @@ public:
 				keys_pressed--;
 			}
 		}
-		// THROTTLE (S)
+		// BRAKE (S)
 		if (key == GLFW_KEY_S) {
 			if (action == GLFW_PRESS) {
 				reverse = 1.f;
-				keys_pressed++;
-			}
-			if (action == GLFW_RELEASE) {
-				reverse = 0.f;
-				keys_pressed--;
-			}
-		}
-
-		// BRAKE (S)
-		if (key == GLFW_KEY_SPACE) {
-			if (action == GLFW_PRESS) {
 				brake = 1.f;
 				keys_pressed++;
 			}
 			if (action == GLFW_RELEASE) {
+				reverse = 0.f;
 				brake = 0.f;
 				keys_pressed--;
 			}
 		}
+
+	
 		// STEER LEFT (A)
 		if (key == GLFW_KEY_A) {
-			if (action == GLFW_PRESS) {
+			if (action == GLFW_PRESS ) {
+				A = true;
 				steer = 1.f;
+				AirRoll = 1.f;
 				keys_pressed++;
 			}
 			if (action == GLFW_RELEASE) {
-				steer = 0.f;
+				A = false;
+				if (D == true) {
+					steer = -1.f;
+					AirRoll = -1.f;
+				}
+				else {
+					steer = 0.f;
+					AirRoll = 0.f;
+				}
 				keys_pressed--;
 			}
 		}
 		// STEER RIGHT (D)
 		if (key == GLFW_KEY_D) {
-			if (action == GLFW_PRESS) {
+			if (action == GLFW_PRESS ) {
+				D = true;
 				steer = -1.f;
+				AirRoll = -1.f;
 				keys_pressed++;
 			}
 			if (action == GLFW_RELEASE) {
-				steer = 0.f;
+				D = false;
+				if (A == true) {
+					steer = 1.f;
+					AirRoll = 1.f;
+				}
+				else {
+					steer = 0.f;
+					AirRoll = 0.f;
+				}
 				keys_pressed--;
 			}
+		}
+
+		if (key == GLFW_KEY_LEFT_SHIFT) {
+			if (action == GLFW_PRESS) {
+				shift = true;
+				AirPitch = 1.f;
+				keys_pressed++;
+			}
+			if (action == GLFW_RELEASE) {
+				shift = false;
+				if (control == true)
+					AirPitch = -1.f;
+				else
+					AirPitch = 0.f;
+				keys_pressed--;
+			}
+		
+		}
+		if (key == GLFW_KEY_LEFT_CONTROL) {
+			if (action == GLFW_PRESS) {
+				control = true;
+				AirPitch = -1.f;
+				keys_pressed++;
+			}
+			if (action == GLFW_RELEASE) {
+				control = false;
+				if (shift == true)
+					AirPitch = 1.f;
+				else
+					AirPitch = 0.f;
+				keys_pressed--;
+			}
+		}
+		if (key == GLFW_KEY_SPACE) {
+			if (action == GLFW_PRESS)
+				boosterrrrr = 1.f;
+			if (action == GLFW_RELEASE)
+				boosterrrrr = 0.f;
 		}
 
 		// DEBUG - ADD TRAILER

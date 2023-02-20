@@ -8,68 +8,6 @@
 #include <time.h> 
 #include <map>
 
-
-#define shape1 1
-#define shape2 2
-#define shape3 4
-#define shape4 8
-#define shape5 16
-#define shape6 32
-
-vector<PxShape*>wheelshapes;
-
-class ContactReportCallback : public physx::PxSimulationEventCallback {
-	
-	void onContact(const physx::PxContactPairHeader& pairHeader, const physx::PxContactPair* pairs, physx::PxU32 nbPairs) {
-		//PX_UNUSED(pairHeader);
-		//PX_UNUSED(pairs);
-		PX_UNUSED(nbPairs);
-		if (pairHeader.pairs->events.isSet(PxPairFlag::eNOTIFY_TOUCH_FOUND)) {
-			std::cout << "Collision Detected!" << std::endl;
-			//AirOrNot = false;
-		}
-		else if (pairHeader.pairs->events.isSet(PxPairFlag::eNOTIFY_TOUCH_LOST)) {
-			AirOrNot = true;
-			gate = 0;
-		}
-
-			
-	}
-	void onConstraintBreak(physx::PxConstraintInfo* constraints, physx::PxU32 count) {}
-	void onWake(physx::PxActor** actors, physx::PxU32 count) {
-	}
-	void onSleep(physx::PxActor** actors, physx::PxU32 count) {
-	}
-	void onTrigger(physx::PxTriggerPair* pairs, physx::PxU32 count) {
-		if (pairs->status == PxPairFlag::eNOTIFY_TOUCH_FOUND &&  gate==3) {
-			AirOrNot = false;
-			//cout << count << endl;
-		}
-		else {
-			if (pairs->triggerShape == wheelshapes[0])
-				gate |= shape1;
-			else if (pairs->triggerShape == wheelshapes[1])
-				gate |= shape2;
-		}
-		//if (pairs->status == PxPairFlag::eNOTIFY_TOUCH_FOUND && gate == 3) {
-			//AirOrNot = false;
-		//}
-			//tires are too bouncing to check this movement*/
-		//else if(pairs->status==PxPairFlag::eNOTIFY_TOUCH_LOST){ cout << "mm" << endl; } //AirOrNot = true; }
-		//std::cout << "On the ground!" << std::endl;
-	}
-	void onAdvance(const physx::PxRigidBody* const* bodyBuffer,
-		const physx::PxTransform* poseBuffer,
-		const physx::PxU32 count) {}
-
-	//void onConstraintBreak(physx::PxConstraintInfo* constraints, physx::PxU32 count){}
-public:
-	bool AirOrNot = false;
-	int gate = 0;
-};
-
-
-
 //PhysX management class instances.
 PxDefaultAllocator		gAllocator;
 PxDefaultErrorCallback	gErrorCallback;
@@ -81,7 +19,7 @@ PxMaterial* gMaterial = NULL;
 PxMaterial* trailerMat = NULL;
 PxPvd* gPvd = NULL;
 ContactReportCallback* gContactReportCallback;
-
+vector<Vehicle*> vehicles;
 int FrameCounter = 0;
 
 // Cooking shit
@@ -110,10 +48,9 @@ PxReal gPhysXDefaultMaterialFriction = 1.0f;
 //Give the vehicle a name so it can be identified in PVD.
 const char gVehicleName[] = "engineDrive";
 
-ContactReportCallback* gContactReportCallback = new ContactReportCallback();
 vector<PxRigidDynamic*> rigidBodies;
 int rigidBodyAddIndex;
-vector<Vehicle*> vehicles;
+
 
 //A ground plane to drive on (this is our landscape stuff).
 PxRigidStatic* gGroundPlane = NULL;
@@ -415,7 +352,7 @@ void PhysicsSystem::initVehicles(int vehicleCount) {
 		!vehicles.back()->vehicle.initialize(*gPhysics, PxCookingParams(PxTolerancesScale()), *gMaterial, EngineDriveVehicle::eDIFFTYPE_FOURWHEELDRIVE);
 
 		//Apply a start pose to the physx actor and add it to the physx scene.
-		PxTransform pose(PxVec3(0.f, 3.f, 20.f + i*20.f), PxQuat(PxIdentity));
+		PxTransform pose(PxVec3(0.f, 3.f, 20.f + i * 20.f), PxQuat(PxIdentity));
 		vehicles.back()->vehicle.setUpActor(*gScene, pose, gVehicleName);
 
 		//Set the vehicle in 1st gear.
@@ -442,51 +379,56 @@ void PhysicsSystem::initVehicles(int vehicleCount) {
 
 
 
-	// Vehicle flags
-	PxFilterData vehicleFilter(COLLISION_FLAG_CHASSIS, COLLISION_FLAG_CHASSIS_AGAINST, 0, 0);
-	PxFilterData wheelFilter(COLLISION_FLAG_WHEEL, 0, 0, 0);
+		// Vehicle flags
+		PxFilterData vehicleFilter(COLLISION_FLAG_CHASSIS, COLLISION_FLAG_CHASSIS_AGAINST, 0, 0);
+		PxFilterData wheelFilter(COLLISION_FLAG_WHEEL, 0, 0, 0);
 
 
-	//float halfLen = 0.5f;
-	//PxMaterial *tem_m = gPhysics->createMaterial(0.f, 0.f, 0.f);
-	//PxShape* sha = gPhysics->createShape(PxSphereGeometry(0.37f),*tem_m);
-	//sha->setSimulationFilterData(wheelFilter);
-	//sha->setFlag(PxShapeFlag::eSIMULATION_SHAPE, true);
-	//sha->setFlag(PxShapeFlag::eTRIGGER_SHAPE, true);//set a trigger, for reset AirOrNot condition, it doesn't take part during physics simulation
-	//gVehicle.mPhysXState.physxActor.rigidBody->attachShape(*sha); //not really work as expected
-	PxU32 shapes = gVehicle.mPhysXState.physxActor.rigidBody->getNbShapes();
-	for (PxU32 i = 0; i < shapes; i++) { 
-		PxShape* shape = NULL;
-		gVehicle.mPhysXState.physxActor.rigidBody->getShapes(&shape, 1, i);
-		//if (shape == sha)continue;
-		shape->setFlag(PxShapeFlag::eSCENE_QUERY_SHAPE, true);
-		if (i == 0) {
-			shape->setContactOffset(1.f);
-			shape->setSimulationFilterData(vehicleFilter);
-			shape->setFlag(PxShapeFlag::eSIMULATION_SHAPE, true);
-		}
-		else if (i == 1 || i==6) {
-			shape->setContactOffset(0.03f);
-			shape->setSimulationFilterData(wheelFilter);
-			shape->setFlag(PxShapeFlag::eTRIGGER_SHAPE,true);
-			wheelshapes.push_back(shape);
-		}
+		//float halfLen = 0.5f;
+		//PxMaterial *tem_m = gPhysics->createMaterial(0.f, 0.f, 0.f);
+		//PxShape* sha = gPhysics->createShape(PxSphereGeometry(0.37f),*tem_m);
+		//sha->setSimulationFilterData(wheelFilter);
+		//sha->setFlag(PxShapeFlag::eSIMULATION_SHAPE, true);
+		//sha->setFlag(PxShapeFlag::eTRIGGER_SHAPE, true);//set a trigger, for reset AirOrNot condition, it doesn't take part during physics simulation
+		//gVehicle.mPhysXState.physxActor.rigidBody->attachShape(*sha); //not really work as expected
+		PxU32 shapes = vehicles.back()->vehicle.mPhysXState.physxActor.rigidBody->getNbShapes();
 		
-		
-		//shape->setFlag(PxShapeFlag::eTRIGGER_SHAPE, false);
-
+		if (i == 0){// only simulate for player
+			for (PxU32 j = 0; j < shapes; j++) {
+				PxShape* shape = NULL;
+				vehicles.back()->vehicle.mPhysXState.physxActor.rigidBody->getShapes(&shape, 1, j);
+				//if (shape == sha)continue;
+				shape->setFlag(PxShapeFlag::eSCENE_QUERY_SHAPE, true);
+				if (j == 0) {
+					shape->setContactOffset(1.f);
+					shape->setSimulationFilterData(vehicleFilter);
+					shape->setFlag(PxShapeFlag::eSIMULATION_SHAPE, true);
+				}
+				else if (j == 1 || j == 6) {
+					shape->setContactOffset(0.03f);
+					shape->setSimulationFilterData(wheelFilter);
+					shape->setFlag(PxShapeFlag::eTRIGGER_SHAPE, true);
+					gContactReportCallback->wheelshapes.push_back(shape);
+				}
+			}
+		}
+		else { //AI cars 
+			for (PxU32 j = 0; j < 1; j++) {
+				PxShape* shape = NULL;
+				vehicles.back()->vehicle.mPhysXState.physxActor.rigidBody->getShapes(&shape, 1, j);
+				shape->setSimulationFilterData(vehicleFilter);
+				shape->setFlag(PxShapeFlag::eSCENE_QUERY_SHAPE, true);
+				shape->setFlag(PxShapeFlag::eSIMULATION_SHAPE, true);
+				shape->setFlag(PxShapeFlag::eTRIGGER_SHAPE, false);
+			}
+		}
+			//shape->setFlag(PxShapeFlag::eTRIGGER_SHAPE, false);
 	}
-
-	return true;
-}
-
-void cleanupVehicles() {
-	gVehicle.destroy();
-}
-
+	gContactReportCallback->cars = vehicles;
 	gScene->setVisualizationParameter(physx::PxVisualizationParameter::eJOINT_LOCAL_FRAMES, 1.0f);
 	gScene->setVisualizationParameter(physx::PxVisualizationParameter::eJOINT_LIMITS, 1.0f);
 }
+
 
 void PhysicsSystem::initPhysicsSystem(GameState* gameState) {
 	this->gameState = gameState;
@@ -504,6 +446,7 @@ void PhysicsSystem::initPhysicsSystem(GameState* gameState) {
 }
 
 void PhysicsSystem::stepPhysics(shared_ptr<CallbackInterface> callback_ptr, Timer* timer) {
+	//cout << gContactReportCallback->AirOrNot << endl;
 	// Update Timestep
 	PxReal timestep;
 	if (timer->getDeltaTime() > 0.1) {	// Safety check: If deltaTime gets too large, default it to (1 / 60)
@@ -528,30 +471,44 @@ void PhysicsSystem::stepPhysics(shared_ptr<CallbackInterface> callback_ptr, Time
 
 	// Store entity list
 	auto entityList = gameState->entityList;
-	const PxVec3 linVel = gVehicle.mPhysXState.physxActor.rigidBody->getLinearVelocity();
-	const PxVec3 forwardDir = gVehicle.mPhysXState.physxActor.rigidBody->getGlobalPose().q.getBasisVector2();
-	const PxReal forwardSpeed = linVel.dot(forwardDir);
-	PxTransform vehicle_transform = gVehicle.mPhysXState.physxActor.rigidBody->getGlobalPose().getNormalized();
 
-	if (!gContactReportCallback->AirOrNot) {
-		//Apply the brake, throttle and steer inputs to the vehicle's command state
-		gVehicle.mCommandState.brakes[0] = callback_ptr->brake;
-		gVehicle.mCommandState.nbBrakes = 1;
-		gVehicle.mCommandState.throttle = callback_ptr->throttle;
-		gVehicle.mPhysXState.physxActor.rigidBody->addForce(vehicle_transform.rotate(PxVec3(0.f, 0.f, -callback_ptr->reverse * 0.2f)), PxForceMode().eVELOCITY_CHANGE);
-		gVehicle.mCommandState.steer = callback_ptr->steer;
-	}
-	else {
-		gVehicle.mPhysXState.physxActor.rigidBody->addTorque(vehicle_transform.rotate(PxVec3((callback_ptr->throttle - callback_ptr->reverse) * 0.2f, 0.f, -callback_ptr->steer * 0.2f)), PxForceMode().eVELOCITY_CHANGE);
-	}
 	// Loop through each vehicle, update input and step physics simulation
 	for (int i = 0; i < vehicles.size(); i++) {
+		//Forward integrate the vehicle by a single timestep.
+		//Apply substepping at low forward speed to improve simulation fidelity.
+		const PxVec3 linVel = vehicles.at(i)->vehicle.mPhysXState.physxActor.rigidBody->getLinearVelocity();
+		const PxVec3 forwardDir = vehicles.at(i)->vehicle.mPhysXState.physxActor.rigidBody->getGlobalPose().q.getBasisVector2();
+		const PxReal forwardSpeed = linVel.dot(forwardDir);
+		PxTransform vehicle_transform = vehicles.at(i)->vehicle.mPhysXState.physxActor.rigidBody->getGlobalPose().getNormalized();
+		const PxU8 nbSubsteps = (forwardSpeed < 5.0f ? 3 : 1);
+		vehicles.at(i)->vehicle.mComponentSequence.setSubsteps(vehicles.at(i)->vehicle.mComponentSequenceSubstepGroupHandle, nbSubsteps);
+		vehicles.at(i)->vehicle.step(timestep, gVehicleSimulationContext);
 		// PLAYER VEHICLE INPUT
 		if (i == 0) {
+			if (!gContactReportCallback->AirOrNot) {
+				//Apply the brake, throttle and steer inputs to the vehicle's command state
+				if (forwardSpeed > 0.1f) {
+					vehicles.at(i)->vehicle.mCommandState.brakes[0] = callback_ptr->brake;
+					vehicles.at(i)->vehicle.mCommandState.nbBrakes = 1;
+				}
+				else {
+					vehicles.at(i)->vehicle.mCommandState.brakes[0] = 0;
+					vehicles.at(i)->vehicle.mCommandState.nbBrakes = 1;
+					vehicles.at(i)->vehicle.mPhysXState.physxActor.rigidBody->addForce(vehicle_transform.rotate(PxVec3(0.f, 0.f, -callback_ptr->reverse * 0.2f)), PxForceMode().eVELOCITY_CHANGE);
+				}
+				vehicles.at(i)->vehicle.mCommandState.throttle = callback_ptr->throttle;
+				
+				vehicles.at(i)->vehicle.mCommandState.steer = callback_ptr->steer;
+			}
+			else { //
+				vehicles.at(i)->vehicle.mPhysXState.physxActor.rigidBody->addTorque(vehicle_transform.rotate(PxVec3(callback_ptr->AirPitch * 0.2f, 0.f, -callback_ptr->AirRoll * 0.2f)), PxForceMode().eVELOCITY_CHANGE);
+			}
+			vehicles.at(i)->vehicle.mPhysXState.physxActor.rigidBody->addForce(vehicle_transform.rotate(PxVec3(0.f, 0.f, callback_ptr->boosterrrrr)), PxForceMode().eVELOCITY_CHANGE);
+			/**
 			vehicles.at(i)->vehicle.mCommandState.brakes[0] = callback_ptr->brake;
 			vehicles.at(i)->vehicle.mCommandState.nbBrakes = 1;
 			vehicles.at(i)->vehicle.mCommandState.throttle = callback_ptr->throttle;
-			vehicles.at(i)->vehicle.mCommandState.steer = callback_ptr->steer;
+			vehicles.at(i)->vehicle.mCommandState.steer = callback_ptr->steer;*/
 		}
 		// PLACEHOLDER - AI VEHICLE INPUT
 		else {
@@ -560,15 +517,6 @@ void PhysicsSystem::stepPhysics(shared_ptr<CallbackInterface> callback_ptr, Time
 			vehicles.at(i)->vehicle.mCommandState.throttle = 1.0f;
 			vehicles.at(i)->vehicle.mCommandState.steer = 0.5f;
 		}
-
-		//Forward integrate the vehicle by a single timestep.
-		//Apply substepping at low forward speed to improve simulation fidelity.
-		const PxVec3 linVel = vehicles.at(i)->vehicle.mPhysXState.physxActor.rigidBody->getLinearVelocity();
-		const PxVec3 forwardDir = vehicles.at(i)->vehicle.mPhysXState.physxActor.rigidBody->getGlobalPose().q.getBasisVector2();
-		const PxReal forwardSpeed = linVel.dot(forwardDir);
-		const PxU8 nbSubsteps = (forwardSpeed < 5.0f ? 3 : 1);
-		vehicles.at(i)->vehicle.mComponentSequence.setSubsteps(vehicles.at(i)->vehicle.mComponentSequenceSubstepGroupHandle, nbSubsteps);
-		vehicles.at(i)->vehicle.step(timestep, gVehicleSimulationContext);
 	}
 
 	//Forward integrate the phsyx scene by a single timestep.
@@ -582,7 +530,7 @@ void PhysicsSystem::stepPhysics(shared_ptr<CallbackInterface> callback_ptr, Time
 		vec3 p;		// Position Temp
 		vec3 v;		// Velocity Temp
 		quat q;		// Quaternion Temp
-		
+
 		// RIGID BODIES
 		if (entityList.at(i).type == PhysType::RigidBody) {
 			p = toGLMVec3(rigidBodies.at(trailerIndex)->getGlobalPose().p);
