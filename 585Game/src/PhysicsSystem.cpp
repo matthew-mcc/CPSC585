@@ -17,24 +17,63 @@ using namespace physx;
 using namespace physx::vehicle2;
 using namespace snippetvehicle2;
 
-class ContactReportCallback : public physx::PxSimulationEventCallback {
-	void onContact(const physx::PxContactPairHeader& pairHeader, const physx::PxContactPair* pairs, physx::PxU32 nbPairs) {
-		PX_UNUSED(pairHeader);
-		PX_UNUSED(pairs);
-		PX_UNUSED(nbPairs);
+#define shape1 1
+#define shape2 2
+#define shape3 4
+#define shape4 8
+#define shape5 16
+#define shape6 32
 
-		std::cout << "Collision Detected!" << std::endl;
+vector<PxShape*>wheelshapes;
+
+class ContactReportCallback : public physx::PxSimulationEventCallback {
+	
+	void onContact(const physx::PxContactPairHeader& pairHeader, const physx::PxContactPair* pairs, physx::PxU32 nbPairs) {
+		//PX_UNUSED(pairHeader);
+		//PX_UNUSED(pairs);
+		PX_UNUSED(nbPairs);
+		if (pairHeader.pairs->events.isSet(PxPairFlag::eNOTIFY_TOUCH_FOUND)) {
+			std::cout << "Collision Detected!" << std::endl;
+			//AirOrNot = false;
+		}
+		else if (pairHeader.pairs->events.isSet(PxPairFlag::eNOTIFY_TOUCH_LOST)) {
+			AirOrNot = true;
+			gate = 0;
+		}
+
+			
 	}
 	void onConstraintBreak(physx::PxConstraintInfo* constraints, physx::PxU32 count) {}
-	void onWake(physx::PxActor** actors, physx::PxU32 count) {}
-	void onSleep(physx::PxActor** actors, physx::PxU32 count) {}
-	void onTrigger(physx::PxTriggerPair* pairs, physx::PxU32 count) {}
+	void onWake(physx::PxActor** actors, physx::PxU32 count) {
+	}
+	void onSleep(physx::PxActor** actors, physx::PxU32 count) {
+	}
+	void onTrigger(physx::PxTriggerPair* pairs, physx::PxU32 count) {
+		if (pairs->status == PxPairFlag::eNOTIFY_TOUCH_FOUND &&  gate==3) {
+			AirOrNot = false;
+			//cout << count << endl;
+		}
+		else {
+			if (pairs->triggerShape == wheelshapes[0])
+				gate |= shape1;
+			else if (pairs->triggerShape == wheelshapes[1])
+				gate |= shape2;
+		}
+		//if (pairs->status == PxPairFlag::eNOTIFY_TOUCH_FOUND && gate == 3) {
+			//AirOrNot = false;
+		//}
+			//tires are too bouncing to check this movement*/
+		//else if(pairs->status==PxPairFlag::eNOTIFY_TOUCH_LOST){ cout << "mm" << endl; } //AirOrNot = true; }
+		//std::cout << "On the ground!" << std::endl;
+	}
 	void onAdvance(const physx::PxRigidBody* const* bodyBuffer,
 		const physx::PxTransform* poseBuffer,
 		const physx::PxU32 count) {}
 
 	//void onConstraintBreak(physx::PxConstraintInfo* constraints, physx::PxU32 count){}
-
+public:
+	bool AirOrNot = false;
+	int gate = 0;
 };
 
 
@@ -48,6 +87,9 @@ PxDefaultCpuDispatcher* gDispatcher = NULL;
 PxScene* gScene = NULL;
 PxMaterial* gMaterial = NULL;
 PxPvd* gPvd = NULL;
+ContactReportCallback* gContactReportCallback;
+
+int FrameCounter = 0;
 
 // Cooking shit
 PxCooking* gCooking = NULL;
@@ -78,10 +120,10 @@ PxReal gPhysXDefaultMaterialFriction = 1.0f;
 //Give the vehicle a name so it can be identified in PVD.
 const char gVehicleName[] = "engineDrive";
 
+
 //A ground plane to drive on (this is our landscape stuff).
 PxRigidStatic* gGroundPlane = NULL;
 PxTriangleMesh* groundMesh = NULL;
-
 
 void initPhysX() {
 	gFoundation = PxCreateFoundation(PX_PHYSICS_VERSION, gAllocator, gErrorCallback);
@@ -99,7 +141,7 @@ void initPhysX() {
 	sceneDesc.filterShader = VehicleFilterShader;
 
 	// Not sure if we need this
-	ContactReportCallback* gContactReportCallback = new ContactReportCallback();
+	gContactReportCallback = new ContactReportCallback();
 	sceneDesc.simulationEventCallback = gContactReportCallback;
 
 	gScene = gPhysics->createScene(sceneDesc);
@@ -121,6 +163,7 @@ void initPhysX() {
 	boxBody = gPhysics->createRigidDynamic(tran.transform(localTran));
 	boxBody->attachShape(*shape);
 	gScene->addActor(*boxBody);
+
 
 	PxInitVehicleExtension(*gFoundation);
 
@@ -159,15 +202,14 @@ void initGroundPlane() {
 
 	PxFilterData groundFilter(COLLISION_FLAG_GROUND, COLLISION_FLAG_GROUND_AGAINST, 0, 0);
 	groundShape->setSimulationFilterData(groundFilter);
-	
+	//groundShape->setFlag(PxShapeFlag::eSIMULATION_SHAPE, true);
 
 	PxTransform groundTrans(physx::PxVec3(0, 0, 0), PxQuat(PxIdentity));
-	PxRigidStatic* ground = gPhysics->createRigidStatic(groundTrans);
+	gGroundPlane = gPhysics->createRigidStatic(groundTrans);
 	
 	
-	ground->attachShape(*groundShape);
-	gScene->addActor(*ground);
-	
+	gGroundPlane->attachShape(*groundShape);
+	gScene->addActor(*gGroundPlane);
 	
 }
 
@@ -189,7 +231,7 @@ void initStaticMeshes() {
 
 	// Mesh Description for Triangle Mesh
 	PxTriangleMeshDesc meshDesc;
-	meshDesc.setToDefault();
+	meshDesc.setToDefault();                                                                                                                                                            
 
 	meshDesc.points.count = (PxU32) vertexArr.size();
 	meshDesc.points.stride = sizeof(PxVec3);
@@ -246,6 +288,7 @@ bool initVehicles() {
 	//Apply a start pose to the physx actor and add it to the physx scene.
 	PxTransform pose(PxVec3(-10.f, -5.f, 0.f), PxQuat(PxIdentity));
 	gVehicle.setUpActor(*gScene, pose, gVehicleName);
+	gVehicle.mBaseParams.rigidBodyParams.mass = 1000;
 
 	//Set the vehicle in 1st gear.
 	gVehicle.mEngineDriveState.gearboxState.currentGear = gVehicle.mEngineDriveParams.gearBoxParams.neutralGear + 1;
@@ -269,18 +312,40 @@ bool initVehicles() {
 	gVehicleSimulationContext.physxScene = gScene;
 	gVehicleSimulationContext.physxActorUpdateMode = PxVehiclePhysXActorUpdateMode::eAPPLY_ACCELERATION;
 
+
+
 	// Vehicle flags
 	PxFilterData vehicleFilter(COLLISION_FLAG_CHASSIS, COLLISION_FLAG_CHASSIS_AGAINST, 0, 0);
-	//PxFilterData vehicleFilter(COLLISION_FLAG_WHEEL, COLLISION_FLAG_GROUND_AGAINST, 0, 0);
+	PxFilterData wheelFilter(COLLISION_FLAG_WHEEL, 0, 0, 0);
+
+
+	//float halfLen = 0.5f;
+	//PxMaterial *tem_m = gPhysics->createMaterial(0.f, 0.f, 0.f);
+	//PxShape* sha = gPhysics->createShape(PxSphereGeometry(0.37f),*tem_m);
+	//sha->setSimulationFilterData(wheelFilter);
+	//sha->setFlag(PxShapeFlag::eSIMULATION_SHAPE, true);
+	//sha->setFlag(PxShapeFlag::eTRIGGER_SHAPE, true);//set a trigger, for reset AirOrNot condition, it doesn't take part during physics simulation
+	//gVehicle.mPhysXState.physxActor.rigidBody->attachShape(*sha); //not really work as expected
 	PxU32 shapes = gVehicle.mPhysXState.physxActor.rigidBody->getNbShapes();
-	for (PxU32 i = 0; i < 1; i++) {
+	for (PxU32 i = 0; i < shapes; i++) { 
 		PxShape* shape = NULL;
 		gVehicle.mPhysXState.physxActor.rigidBody->getShapes(&shape, 1, i);
-		shape->setSimulationFilterData(vehicleFilter);
-
+		//if (shape == sha)continue;
 		shape->setFlag(PxShapeFlag::eSCENE_QUERY_SHAPE, true);
-		shape->setFlag(PxShapeFlag::eSIMULATION_SHAPE, true);
-		shape->setFlag(PxShapeFlag::eTRIGGER_SHAPE, false);
+		if (i == 0) {
+			shape->setContactOffset(1.f);
+			shape->setSimulationFilterData(vehicleFilter);
+			shape->setFlag(PxShapeFlag::eSIMULATION_SHAPE, true);
+		}
+		else if (i == 1 || i==6) {
+			shape->setContactOffset(0.03f);
+			shape->setSimulationFilterData(wheelFilter);
+			shape->setFlag(PxShapeFlag::eTRIGGER_SHAPE,true);
+			wheelshapes.push_back(shape);
+		}
+		
+		
+		//shape->setFlag(PxShapeFlag::eTRIGGER_SHAPE, false);
 
 	}
 
@@ -324,19 +389,37 @@ void PhysicsSystem::stepPhysics(std::shared_ptr<CallbackInterface> callback_ptr,
 	// Store entity list
 	auto entityList = gameState->entityList;
 
+	FrameCounter++;
 	
-
-	//Apply the brake, throttle and steer inputs to the vehicle's command state
-	gVehicle.mCommandState.brakes[0] = callback_ptr->brake;
-	gVehicle.mCommandState.nbBrakes = 1;
-	gVehicle.mCommandState.throttle = callback_ptr->throttle;
-	gVehicle.mCommandState.steer = callback_ptr->steer;
-
 	//Forward integrate the vehicle by a single timestep.
 	//Apply substepping at low forward speed to improve simulation fidelity.
 	const PxVec3 linVel = gVehicle.mPhysXState.physxActor.rigidBody->getLinearVelocity();
 	const PxVec3 forwardDir = gVehicle.mPhysXState.physxActor.rigidBody->getGlobalPose().q.getBasisVector2();
 	const PxReal forwardSpeed = linVel.dot(forwardDir);
+	PxTransform vehicle_transform = gVehicle.mPhysXState.physxActor.rigidBody->getGlobalPose().getNormalized();
+
+	if (!gContactReportCallback->AirOrNot) {
+		//Apply the brake, throttle and steer inputs to the vehicle's command state
+		gVehicle.mCommandState.brakes[0] = callback_ptr->brake;
+		gVehicle.mCommandState.nbBrakes = 1;
+		gVehicle.mCommandState.throttle = callback_ptr->throttle;
+		gVehicle.mPhysXState.physxActor.rigidBody->addForce(vehicle_transform.rotate(PxVec3(0.f, 0.f,-callback_ptr->reverse*0.2f)), PxForceMode().eVELOCITY_CHANGE);
+		gVehicle.mCommandState.steer = callback_ptr->steer;
+	}
+	else {
+		gVehicle.mPhysXState.physxActor.rigidBody->addTorque(vehicle_transform.rotate(PxVec3((callback_ptr->throttle-callback_ptr->reverse)*0.2f,0.f,-callback_ptr->steer*0.2f)),PxForceMode().eVELOCITY_CHANGE);	
+	}
+
+	//float airOrnot = vehicle_transform.rotate(PxVec3(0.f, 1.f, 0.f)).dot(PxVec3(0.f, 1.f, 0.f)); // not actualy work as expected, more like detect if the car on a horizontal plane or not
+	//if ( gVehicle.mPhysXState.physxActor.rigidBody->getGlobalPose().p.y) {
+	//	cout << "we are in the air!" << endl;
+	//}
+	//cout << "The y value is: " << linVel.y << endl;//.mPhysXState.physxActor.rigidBody->getGlobalPose().p.y << endl;
+	
+	//first vector is base on global coordinate, not the user coordinate. So we need rotate it to match global coordinate
+	//gVehicle.mPhysXState.physxActor.rigidBody->addForce(vehicle_transform.rotate(PxVec3(0.f, 0.f, 0.1f)), PxForceMode().eVELOCITY_CHANGE);
+	
+
 	const PxU8 nbSubsteps = (forwardSpeed < 5.0f ? 3 : 1);
 	gVehicle.mComponentSequence.setSubsteps(gVehicle.mComponentSequenceSubstepGroupHandle, nbSubsteps);
 	gVehicle.step(timestep, gVehicleSimulationContext);

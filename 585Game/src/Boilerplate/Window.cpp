@@ -58,8 +58,20 @@ public:
 				keys_pressed--;
 			}
 		}
-		// BRAKE (S)
+		// THROTTLE (S)
 		if (key == GLFW_KEY_S) {
+			if (action == GLFW_PRESS) {
+				reverse = 1.f;
+				keys_pressed++;
+			}
+			if (action == GLFW_RELEASE) {
+				reverse = 0.f;
+				keys_pressed--;
+			}
+		}
+
+		// BRAKE (S)
+		if (key == GLFW_KEY_SPACE) {
 			if (action == GLFW_PRESS) {
 				brake = 1.f;
 				keys_pressed++;

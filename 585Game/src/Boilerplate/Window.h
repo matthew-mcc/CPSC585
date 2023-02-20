@@ -39,7 +39,7 @@ struct ConStruct
 	bool DOWN;
 	bool LEFT;
 	bool RIGHT;
-	bool LB;
+	bool LB; // digit ,1 or 0. Press down is 1, otherwise 0
 	bool RB;
 	bool L3; //press down the left thumb bar
 	bool R3; //press down the right thumb bar
@@ -78,6 +78,7 @@ public:
 	float throttle = 0.f;
 	float brake = 0.f;
 	float steer = 0.f;
+	float reverse = 0.f;
 
 	// Camera Control
 	bool moveCamera = false;
@@ -88,8 +89,10 @@ public:
 	void XboxUpdate(XboxInput x) {
 		if (keys_pressed <= 0) {
 			throttle = x.data.RT / 255.f;
-			brake = x.data.LT / 255.f;
+			brake = x.data.LB; 
 			steer = -x.data.LThumb_X_direction;
+			reverse = x.data.LT / 255.f;
+			//std::cout << x.data.LB <<std::endl;
 		}
 		if (abs(x.data.RThumb_magnitude) > 0.01f) {
 			moveCamera = true;
