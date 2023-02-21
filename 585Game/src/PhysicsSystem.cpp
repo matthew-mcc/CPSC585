@@ -429,7 +429,6 @@ void PhysicsSystem::initVehicles(int vehicleCount) {
 	gScene->setVisualizationParameter(physx::PxVisualizationParameter::eJOINT_LIMITS, 1.0f);
 }
 
-
 void PhysicsSystem::initPhysicsSystem(GameState* gameState) {
 	this->gameState = gameState;
 	srand(time(NULL));
@@ -485,31 +484,32 @@ void PhysicsSystem::stepPhysics(shared_ptr<CallbackInterface> callback_ptr, Time
 		vehicles.at(i)->vehicle.step(timestep, gVehicleSimulationContext);
 		// PLAYER VEHICLE INPUT
 		if (i == 0) {
+			// On Ground
 			if (!gContactReportCallback->AirOrNot) {
-				//Apply the brake, throttle and steer inputs to the vehicle's command state
+				//Apply the brake, forward throttle and steer inputs to the vehicle's command state
 				if (forwardSpeed > 0.1f) {
 					vehicles.at(i)->vehicle.mCommandState.brakes[0] = callback_ptr->brake;
 					vehicles.at(i)->vehicle.mCommandState.nbBrakes = 1;
 				}
+				// Switch brake input with reverse throttle
 				else {
 					vehicles.at(i)->vehicle.mCommandState.brakes[0] = 0;
 					vehicles.at(i)->vehicle.mCommandState.nbBrakes = 1;
 					vehicles.at(i)->vehicle.mPhysXState.physxActor.rigidBody->addForce(vehicle_transform.rotate(PxVec3(0.f, 0.f, -callback_ptr->reverse * 0.2f)), PxForceMode().eVELOCITY_CHANGE);
 				}
 				vehicles.at(i)->vehicle.mCommandState.throttle = callback_ptr->throttle;
-				
 				vehicles.at(i)->vehicle.mCommandState.steer = callback_ptr->steer;
 			}
-			else { //
-				vehicles.at(i)->vehicle.mPhysXState.physxActor.rigidBody->addTorque(vehicle_transform.rotate(PxVec3(callback_ptr->AirPitch * 0.05f, 0.f, -callback_ptr->AirRoll * 0.05f)), PxForceMode().eVELOCITY_CHANGE);
+			// In Air
+			else { 
+				// Set Rotation based on air controls
+				vehicles.at(i)->vehicle.mPhysXState.physxActor.rigidBody->addTorque(vehicle_transform.rotate(PxVec3(callback_ptr->AirPitch * 0.0075f, callback_ptr->AirRoll * 0.01f, 0.f)), PxForceMode().eVELOCITY_CHANGE);
 			}
+
+			// EXPERIMENTAL - Simple Boost
 			vehicles.at(i)->vehicle.mPhysXState.physxActor.rigidBody->addForce(vehicle_transform.rotate(PxVec3(0.f, 0.f, callback_ptr->boosterrrrr)), PxForceMode().eVELOCITY_CHANGE);
-			/**
-			vehicles.at(i)->vehicle.mCommandState.brakes[0] = callback_ptr->brake;
-			vehicles.at(i)->vehicle.mCommandState.nbBrakes = 1;
-			vehicles.at(i)->vehicle.mCommandState.throttle = callback_ptr->throttle;
-			vehicles.at(i)->vehicle.mCommandState.steer = callback_ptr->steer;*/
 		}
+
 		// PLACEHOLDER - AI VEHICLE INPUT
 		else {
 			vehicles.at(i)->vehicle.mCommandState.brakes[0] = 0.f;

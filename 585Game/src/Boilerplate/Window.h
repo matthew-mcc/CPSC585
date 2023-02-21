@@ -7,6 +7,8 @@
 #include <thread>
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
+#include <glm.hpp>
+#include <Boilerplate/Timer.h>
 
 GLFWwindow* initWindow();
 
@@ -78,9 +80,14 @@ public:
 	float throttle = 0.f;
 	float brake = 0.f;
 	float steer = 0.f;
+	float steer_speed = 0.f;
 	float reverse = 0.f;
 	float AirPitch = 0.f;
 	float AirRoll = 0.f;
+
+	// Vehicle Control Parameters
+	float steer_release_speed = 4.0f;
+	float steer_activate_speed = 2.0f;
 
 	float boosterrrrr = 0.f;
 
@@ -94,11 +101,11 @@ public:
 
 	// GAMEPAD VEHICLE INPUT
 
-	void XboxUpdate(XboxInput x) {
+	void XboxUpdate(XboxInput x, Timer* timer) {
 		if (keys_pressed <= 0) {
 			throttle = x.data.RT / 255.f;
 			brake = x.data.LT / 255.f;
-			steer = -x.data.LThumb_X_direction;
+			steer_speed = -x.data.LThumb_X_direction;
 			reverse = x.data.LT / 255.f;
 			AirPitch = x.data.LThumb_Y_direction;
 			AirRoll = -x.data.LThumb_X_direction;
@@ -114,6 +121,19 @@ public:
 			moveCamera = false;
 		}
 		lastX_Controller = x.data.RThumb_magnitude;
+
+		// Retrive Delta Time
+		float deltaTime = (float)timer->getDeltaTime();
+		
+		// If Steer Speed is near-zero and the steering angle isn't 0, unwind the steering input
+		if (abs(steer_speed) <= 0.01f) {
+			if (steer < -0.01f) steer = steer + steer_release_speed * deltaTime;
+			if (steer > 0.01f) steer = steer - steer_release_speed * deltaTime;
+		}
+		// Otherwise add the steering input to steer
+		else {
+			steer = glm::clamp(steer + steer_speed * steer_activate_speed * deltaTime, -1.f, 1.f);
+		}
 	}
 };
 

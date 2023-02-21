@@ -28,11 +28,7 @@ int main() {
 
 	// PRIMARY GAME LOOP
 	while (!glfwWindowShouldClose(renderer.window)) {
-		
-		// Update Input Drivers
-		xInput.update();
-		callback_ptr->XboxUpdate(xInput);
-		
+
 		// Post-Load
 		if (isLoaded) {
 			// Update Timer
@@ -41,6 +37,10 @@ int main() {
 			// Update Physics System
 			physics.stepPhysics(callback_ptr, timer);
 		}
+
+		// Update Input Drivers
+		xInput.update();
+		callback_ptr->XboxUpdate(xInput, timer);
 
 		// Update Rendering System
 		renderer.updateRenderer(callback_ptr, gameState, timer);

@@ -83,18 +83,18 @@ public:
 		if (key == GLFW_KEY_A) {
 			if (action == GLFW_PRESS ) {
 				A = true;
-				steer = 1.f;
+				steer_speed = 1.f;
 				AirRoll = 1.f;
 				keys_pressed++;
 			}
 			if (action == GLFW_RELEASE) {
 				A = false;
 				if (D == true) {
-					steer = -1.f;
+					steer_speed = -1.f;
 					AirRoll = -1.f;
 				}
 				else {
-					steer = 0.f;
+					steer_speed = 0.f;
 					AirRoll = 0.f;
 				}
 				keys_pressed--;
@@ -104,18 +104,18 @@ public:
 		if (key == GLFW_KEY_D) {
 			if (action == GLFW_PRESS ) {
 				D = true;
-				steer = -1.f;
+				steer_speed = -1.f;
 				AirRoll = -1.f;
 				keys_pressed++;
 			}
 			if (action == GLFW_RELEASE) {
 				D = false;
 				if (A == true) {
-					steer = 1.f;
+					steer_speed = 1.f;
 					AirRoll = 1.f;
 				}
 				else {
-					steer = 0.f;
+					steer_speed = 0.f;
 					AirRoll = 0.f;
 				}
 				keys_pressed--;
