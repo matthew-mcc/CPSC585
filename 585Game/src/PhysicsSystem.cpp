@@ -400,7 +400,7 @@ void PhysicsSystem::initVehicles(int vehicleCount) {
 				//if (shape == sha)continue;
 				shape->setFlag(PxShapeFlag::eSCENE_QUERY_SHAPE, true);
 				if (j == 0) {
-					shape->setContactOffset(1.f);
+					shape->setContactOffset(0.7f);
 					shape->setSimulationFilterData(vehicleFilter);
 					shape->setFlag(PxShapeFlag::eSIMULATION_SHAPE, true);
 				}
@@ -501,7 +501,7 @@ void PhysicsSystem::stepPhysics(shared_ptr<CallbackInterface> callback_ptr, Time
 				vehicles.at(i)->vehicle.mCommandState.steer = callback_ptr->steer;
 			}
 			else { //
-				vehicles.at(i)->vehicle.mPhysXState.physxActor.rigidBody->addTorque(vehicle_transform.rotate(PxVec3(callback_ptr->AirPitch * 0.2f, 0.f, -callback_ptr->AirRoll * 0.2f)), PxForceMode().eVELOCITY_CHANGE);
+				vehicles.at(i)->vehicle.mPhysXState.physxActor.rigidBody->addTorque(vehicle_transform.rotate(PxVec3(callback_ptr->AirPitch * 0.05f, 0.f, -callback_ptr->AirRoll * 0.05f)), PxForceMode().eVELOCITY_CHANGE);
 			}
 			vehicles.at(i)->vehicle.mPhysXState.physxActor.rigidBody->addForce(vehicle_transform.rotate(PxVec3(0.f, 0.f, callback_ptr->boosterrrrr)), PxForceMode().eVELOCITY_CHANGE);
 			/**
