@@ -2,52 +2,46 @@
 #include <Boilerplate/Window.h>
 
 
-
 class PlayerProperties {
 public:
-	// Ok, I'm a little confused as to how this interacts with callbacks
-	// I think this class has a callback, then increases brake accordingly
-	// Provides finer control over inputs
-	// I don't know how this will interact with xbox controls
-	// What will we want?
-	// An update function that takes in inputs for sure
-	// Some constructors
-
 	void setPlayerControlled();
 	void setAiControlled();
 	void updateCallbacks (std::shared_ptr<CallbackInterface> callback_ptr);
 
 	void updateBoost();
 
-	// Forgo some get functions for now, lets make sure it's up to date
-//	float getBrake();
-
-
-
-
 	bool playerControlled = false;
 	int playerScore = 0;
 
-
-
+	// Controls
+	float throttle = 0.f;
 	float brake = 0.f;
 	float reverse = 0.f;
-	float throttle = 0.f;
 	float steer = 0.f;
 	float AirPitch = 0.f;
 	float AirRoll = 0.f;
-	float boost = 0.f;
-	float boost_bar = 100.0f;
 
+	// Boost
+	
+	float boost = 0.f;
+	float boost_meter = 100.0f;
+
+	// debug 
 	bool addTrailer = false;
 
 private:
-	// What various bullshit will we want for boost
-	float boost_reset_time = 2.0f;
-	float boost_recovery_rate = 5.0f;
-	float boost_consumption_rate = 2.0f;
+	bool boost_status = false;
+	bool boost_status_cb = false;
 
+	bool boost_recovery = false;
 
+	float boost_reset_time = 1.0f;
+	float boost_reset_countdown = 0.0f;
+
+	float boost_speed_limit = 0.5f;
+	float boost_increase_rate = 0.05f;				// How much boost is added when holding down boost button
+	float boost_consumption_rate = 0.1f;			// How much meter is consumed when holding down boost button
+	float boost_recovery_rate = 0.1f;				// How fast meter recovers when not holding down boost button
 };
 
 

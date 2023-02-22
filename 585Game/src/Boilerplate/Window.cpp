@@ -155,9 +155,9 @@ public:
 		}
 		if (key == GLFW_KEY_SPACE) {
 			if (action == GLFW_PRESS)
-				boosterrrrr = 1.f;
+				boosterrrrr = true;
 			if (action == GLFW_RELEASE)
-				boosterrrrr = 0.f;
+				boosterrrrr = false;
 		}
 
 		// DEBUG - ADD TRAILER

@@ -310,6 +310,14 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> callback
 		callback_ptr->yres - 32.f, 0.6f,
 		vec3(0.2, 0.2f, 0.2f),
 		textChars);
+	
+	Entity player = gameState->findEntity("vehicle_0");
+	RenderText(textShader, textVAO, textVBO, "Boost Meter: " + std::to_string( (int) player.playerProperties->boost_meter),
+		callback_ptr->xres - 1900.f,
+		callback_ptr->yres - 1040.f, 0.6f,
+		vec3(0.2, 0.2f, 0.2f),
+		textChars);
+
 
 	/*
 	if (timer->getCountdownSecs() >= 10) {

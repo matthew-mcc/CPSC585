@@ -89,7 +89,7 @@ public:
 	float steer_release_speed = 4.0f;
 	float steer_activate_speed = 3.5f;
 
-	float boosterrrrr = 0.f;
+	bool boosterrrrr = false;
 
 	// Camera Control
 	bool moveCamera = false;
