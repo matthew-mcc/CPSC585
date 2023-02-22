@@ -128,6 +128,7 @@ void PhysicsSystem::spawnTrailer() {
 	trailer->attachShape(*shape);
 	trailer->setLinearDamping(1);
 	trailer->setAngularDamping(1);
+	trailer->setMass(2);
 	gScene->addActor(*trailer);
 	rigidBodies.push_back(trailer);
 }

@@ -9,11 +9,11 @@ void GameState::initGameState() {
 	Entity* e;
 
 	// Landscape
-	addEntity("landscape", PhysType::StaticMesh, new Transform(), vector<string>{
+	e = addEntity("landscape", PhysType::StaticMesh, new Transform(vec3(0.0f, -2.0f, 0.0f)), vector<string>{
 		"assets/models/landscape1/landscape1.obj"});
 
 	// Center Oil Rig
-	addEntity("oil_rig_center", PhysType::StaticMesh, new Transform(vec3(0.f, 0.f, 25.f)), vector<string>{
+	e = addEntity("oil_rig_center", PhysType::StaticMesh, new Transform(vec3(0.f, 0.f, 25.f)), vector<string>{
 		"assets/models/oil_rig1/oil_rig1.obj"});
 }
 
