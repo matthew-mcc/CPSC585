@@ -1,4 +1,6 @@
 #include "GameState.h"
+#include <stdlib.h>
+#include <time.h> 
 
 using namespace std;
 
@@ -64,8 +66,23 @@ Entity GameState::findEntity(string name) {
 Entity* GameState::spawnTrailer() {
 	Entity* e;
 	string name = "trailer_" + to_string(trailersSpawned);
+	string modelPath;
+	
+	// Randomize trailer model
+	switch (rand() % 3) {
+	case 0:
+		modelPath = "assets/models/trailer1/trailer1.obj";
+		break;
+	case 1:
+		modelPath = "assets/models/trailer2/trailer2.obj";
+		break;
+	case 2:
+		modelPath = "assets/models/trailer3/trailer3.obj";
+		break;
+	}
+
 	e = addEntity(name, PhysType::RigidBody, new Transform(), vector<string>{
-		"assets/models/trailer1/trailer1.obj",
+		modelPath,
 		"assets/models/tire1/tire1_back2.obj",
 		"assets/models/tire1/tire1_back1.obj",
 		"assets/models/tire1/tire1_back2.obj",
