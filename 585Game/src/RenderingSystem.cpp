@@ -291,6 +291,27 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> callback
 	RenderText(textShader, textVAO, textVBO, "FPS: " + std::to_string(fps), 8.f, callback_ptr->yres - 32.f, 0.6f, vec3(0.2, 0.2f, 0.2f), textChars);
 
 	// Display game timer / countdown
+	std::string timerMins = std::to_string(abs(timer->getCountdownMins()));
+	std::string timerSeconds = std::to_string(abs(timer->getCountdownSecs()));
+	std::string overtime = "Overtime: ";
+	std::string zero = "0";
+	float timer_xoffset = callback_ptr->xres / 2.f - 10.f;
+
+	if (timerSeconds.size() < 2) {
+		timerSeconds.insert(0, zero);
+	}
+	if (timer->getCountdown() < 0) {
+		timerMins.insert(0, overtime);
+		timer_xoffset = callback_ptr->xres / 2.f - 100.f;
+	}
+
+	RenderText(textShader, textVAO, textVBO, timerMins + ":" + timerSeconds,
+		timer_xoffset,
+		callback_ptr->yres - 32.f, 0.6f,
+		vec3(0.2, 0.2f, 0.2f),
+		textChars);
+
+	/*
 	if (timer->getCountdownSecs() >= 10) {
 		RenderText(textShader, textVAO, textVBO, std::to_string(timer->getCountdownMins()) + ":" + std::to_string(timer->getCountdownSecs()),
 			callback_ptr->xres / 2.f - 10.f,
@@ -298,6 +319,8 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> callback
 			vec3(0.2, 0.2f, 0.2f),
 			textChars);
 	}
+
+
 	else {
 		RenderText(textShader, textVAO, textVBO, std::to_string(timer->getCountdownMins()) + ":0" + std::to_string(timer->getCountdownSecs()),
 			callback_ptr->xres / 2.f - 10.f,
@@ -305,6 +328,7 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> callback
 			vec3(0.2, 0.2f, 0.2f),
 			textChars);
 	}
+	*/
 
 	// Imgui Window
 	ImGui::Begin("Super Space Salvagers - Debug Menu");

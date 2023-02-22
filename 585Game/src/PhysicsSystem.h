@@ -13,6 +13,7 @@
 #include <Boilerplate/Timer.h>
 #include <Entity.h>
 #include <GameState.h>
+#include <PlayerProperties.h>
 
 using namespace physx;
 using namespace physx::vehicle2;
@@ -42,7 +43,10 @@ public:
 	// Initializer
 	void initPhysicsSystem(GameState* gameState);
 	// Physics Update
+	// Changed to PlayerProperties
+	//void stepPhysics(std::shared_ptr<CallbackInterface> callback_ptr, Timer* timer);
 	void stepPhysics(std::shared_ptr<CallbackInterface> callback_ptr, Timer* timer);
+
 
 private:
 	void initPhysX();

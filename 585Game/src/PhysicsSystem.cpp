@@ -470,6 +470,11 @@ void PhysicsSystem::stepPhysics(shared_ptr<CallbackInterface> callback_ptr, Time
 
 	// Store entity list
 	auto entityList = gameState->entityList;
+	
+	Entity player = gameState->findEntity("vehicle_0");
+	player.playerProperties->updateCallbacks(callback_ptr);
+	// Super scuffed af. Right now, I just want to make playerProperties to work, so manually set our pointer?
+
 
 	// Loop through each vehicle, update input and step physics simulation
 	for (int i = 0; i < vehicles.size(); i++) {
@@ -488,26 +493,26 @@ void PhysicsSystem::stepPhysics(shared_ptr<CallbackInterface> callback_ptr, Time
 			if (!gContactReportCallback->AirOrNot) {
 				//Apply the brake, forward throttle and steer inputs to the vehicle's command state
 				if (forwardSpeed > 0.1f) {
-					vehicles.at(i)->vehicle.mCommandState.brakes[0] = callback_ptr->brake;
+					vehicles.at(i)->vehicle.mCommandState.brakes[0] = player.playerProperties->brake;
 					vehicles.at(i)->vehicle.mCommandState.nbBrakes = 1;
 				}
 				// Switch brake input with reverse throttle
 				else {
 					vehicles.at(i)->vehicle.mCommandState.brakes[0] = 0;
 					vehicles.at(i)->vehicle.mCommandState.nbBrakes = 1;
-					vehicles.at(i)->vehicle.mPhysXState.physxActor.rigidBody->addForce(vehicle_transform.rotate(PxVec3(0.f, 0.f, -callback_ptr->reverse * 0.2f)), PxForceMode().eVELOCITY_CHANGE);
+					vehicles.at(i)->vehicle.mPhysXState.physxActor.rigidBody->addForce(vehicle_transform.rotate(PxVec3(0.f, 0.f, -player.playerProperties->reverse * 0.2f)), PxForceMode().eVELOCITY_CHANGE);
 				}
-				vehicles.at(i)->vehicle.mCommandState.throttle = callback_ptr->throttle;
-				vehicles.at(i)->vehicle.mCommandState.steer = callback_ptr->steer;
+				vehicles.at(i)->vehicle.mCommandState.throttle = player.playerProperties->throttle;
+				vehicles.at(i)->vehicle.mCommandState.steer = player.playerProperties->steer;
 			}
 			// In Air
 			else { 
 				// Set Rotation based on air controls
-				vehicles.at(i)->vehicle.mPhysXState.physxActor.rigidBody->addTorque(vehicle_transform.rotate(PxVec3(callback_ptr->AirPitch * 0.0075f, callback_ptr->AirRoll * 0.01f, 0.f)), PxForceMode().eVELOCITY_CHANGE);
+				vehicles.at(i)->vehicle.mPhysXState.physxActor.rigidBody->addTorque(vehicle_transform.rotate(PxVec3(player.playerProperties->AirPitch * 0.0075f, player.playerProperties->AirRoll * 0.01f, 0.f)), PxForceMode().eVELOCITY_CHANGE);
 			}
 
 			// EXPERIMENTAL - Simple Boost
-			vehicles.at(i)->vehicle.mPhysXState.physxActor.rigidBody->addForce(vehicle_transform.rotate(PxVec3(0.f, 0.f, callback_ptr->boosterrrrr)), PxForceMode().eVELOCITY_CHANGE);
+			vehicles.at(i)->vehicle.mPhysXState.physxActor.rigidBody->addForce(vehicle_transform.rotate(PxVec3(0.f, 0.f, player.playerProperties->boost)), PxForceMode().eVELOCITY_CHANGE);
 		}
 
 		// PLACEHOLDER - AI VEHICLE INPUT

@@ -77,5 +77,6 @@ private:
     double currentTime;
     double lastDeltaTime;
     double lastFPSTime;
+    //double countdown = 5.f;
     double countdown = 300.f;
 };

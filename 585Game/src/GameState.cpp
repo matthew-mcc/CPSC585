@@ -39,6 +39,13 @@ Entity* GameState::addEntity(string name, PhysType type, Transform* transform, v
 	// Child Entity Counter
 	entityList.back().nbChildEntities = 0;
 
+	if (type == PhysType::Vehicle) {
+		entityList.back().playerProperties = new PlayerProperties();
+	}
+	else {
+		entityList.back().playerProperties = NULL;
+	}
+
 	// Return Pointer to Entity
 	return &entityList.back();
 }
