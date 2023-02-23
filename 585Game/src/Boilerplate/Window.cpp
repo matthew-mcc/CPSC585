@@ -57,10 +57,12 @@ public:
 		if (key == GLFW_KEY_W) {
 			if (action == GLFW_PRESS) {
 				throttle = 1.f;
+				AirPitch = 0.2f;
 				keys_pressed++;
 			}
 			if (action == GLFW_RELEASE) {
 				throttle = 0.f;
+				AirPitch = 0.0f;
 				keys_pressed--;
 			}
 		}
@@ -69,11 +71,13 @@ public:
 			if (action == GLFW_PRESS) {
 				reverse = 1.f;
 				brake = 1.f;
+				AirPitch = -0.2f;
 				keys_pressed++;
 			}
 			if (action == GLFW_RELEASE) {
 				reverse = 0.f;
 				brake = 0.f;
+				AirPitch = 0.0f;
 				keys_pressed--;
 			}
 		}
