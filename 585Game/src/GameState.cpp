@@ -11,12 +11,28 @@ void GameState::initGameState() {
 	Entity* e;
 
 	// Landscape
-	e = addEntity("landscape", PhysType::StaticMesh, new Transform(vec3(0.0f, -2.0f, 0.0f)), vector<string>{
+	e = addEntity("landscape", PhysType::StaticMesh, new Transform(), vector<string>{
 		"assets/models/landscape1/landscape1.obj"});
 
 	// Center Oil Rig
+	/*
 	e = addEntity("oil_rig_center", PhysType::StaticMesh, new Transform(vec3(0.f, 0.f, 25.f)), vector<string>{
 		"assets/models/oil_rig1/oil_rig1.obj"});
+	*/
+
+	// Center Portal
+	e = addEntity("portal_center", PhysType::StaticMesh, new Transform(vec3(0.0f, 0.0f, 33.0f)), vector<string>{
+		"assets/models/portal1/portal1_1.obj",
+		"assets/models/portal1/portal1_2.obj",
+		"assets/models/portal1/portal1_3.obj",
+		"assets/models/portal1/portal1_4.obj"});
+
+	// Center Platform
+	e = addEntity("platform_center", PhysType::StaticMesh, new Transform(), vector<string>{
+		"assets/models/platform1/platform1_1.obj",
+		"assets/models/platform1/platform1_2.obj"});
+	e = addEntity("platform_center_decal", PhysType::None, new Transform(), vector<string>{
+		"assets/models/platform1/platform1_3.obj"});
 }
 
 
@@ -53,13 +69,13 @@ Entity* GameState::addEntity(string name, PhysType type, Transform* transform, v
 }
 
 
-Entity GameState::findEntity(string name) {
+Entity* GameState::findEntity(string name) {
 	for (int i = 0; i < entityList.size(); i++) {
 		if (entityList.at(i).name == name) {
-			return entityList.at(i);
+			return &entityList.at(i);
 		}
 	}
-	return Entity();
+	return new Entity();
 }
 
 

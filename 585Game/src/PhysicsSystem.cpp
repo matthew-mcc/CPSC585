@@ -19,8 +19,19 @@ PxMaterial* gMaterial = NULL;
 PxMaterial* trailerMat = NULL;
 PxPvd* gPvd = NULL;
 ContactReportCallback* gContactReportCallback;
+
+// Vehicles
 vector<Vehicle*> vehicles;
-int FrameCounter = 0;
+vector<PxVec3> vehicleStartPositions = vector<PxVec3>{
+	PxVec3(0.0f, 8.0f, -250.0f),
+	PxVec3(-250.0f, 8.0f, 0.0f),
+	PxVec3(0.0f, 8.0f, 250.0f),
+	PxVec3(250.0f, 8.0f, 0.0f)};
+vector<PxQuat> vehicleStartRotations = vector<PxQuat>{
+	PxQuat(0.0f, 0.0f, 0.0f, 1.0f),
+	PxQuat(0.0f, 0.0f, 0.0f, 1.0f),
+	PxQuat(0.0f, 0.0f, 0.0f, 1.0f),
+	PxQuat(0.0f, 0.0f, 0.0f, 1.0f)};
 
 // Cooking shit
 PxCooking* gCooking = NULL;
@@ -31,6 +42,7 @@ PxRigidDynamic* boxBody;
 
 //The path to the vehicle json files to be loaded.
 const char* gVehicleDataPath = NULL;
+int FrameCounter = 0;
 
 //Vehicle simulation needs a simulation context
 //to store global parameters of the simulation such as 
@@ -114,10 +126,10 @@ void PhysicsSystem::processTrailerCollision() {
 
 void PhysicsSystem::spawnTrailer() {
 	gameState->spawnTrailer();
-	int max = 300;
-	int min = -300;
+	int max = 250;
+	int min = -250;
 	int range = max - min + 1;
-	PxVec3 spawnPos = PxVec3(rand() % range + min, 10.f, rand() % range + min);
+	PxVec3 spawnPos = PxVec3(rand() % range + min, 20.f, rand() % range + min);
 
 	PxShape* shape = gPhysics->createShape(PxBoxGeometry(.75f, .75f, .75f), *trailerMat);
 	PxFilterData boxFilter(COLLISION_FLAG_OBSTACLE, COLLISION_FLAG_OBSTACLE_AGAINST, 0, 0);
@@ -353,7 +365,7 @@ void PhysicsSystem::initVehicles(int vehicleCount) {
 		!vehicles.back()->vehicle.initialize(*gPhysics, PxCookingParams(PxTolerancesScale()), *gMaterial, EngineDriveVehicle::eDIFFTYPE_FOURWHEELDRIVE);
 
 		//Apply a start pose to the physx actor and add it to the physx scene.
-		PxTransform pose(PxVec3(0.f, 3.f, 20.f + i * 20.f), PxQuat(PxIdentity));
+		PxTransform pose(vehicleStartPositions.at(i), vehicleStartRotations.at(i));
 		vehicles.back()->vehicle.setUpActor(*gScene, pose, gVehicleName);
 
 		//Set the vehicle in 1st gear.
@@ -438,11 +450,9 @@ void PhysicsSystem::initPhysicsSystem(GameState* gameState) {
 	initMaterialFrictionTable();
 	initVehicles(4);
 
-	for (int i = 0; i < 50; i++) {
+	for (int i = 0; i < 30; i++) {
 		spawnTrailer();
 	}
-
-	//attachTrailer(rigidBodies.at(0), 0);
 }
 
 void PhysicsSystem::stepPhysics(shared_ptr<CallbackInterface> callback_ptr, Timer* timer) {
@@ -472,8 +482,8 @@ void PhysicsSystem::stepPhysics(shared_ptr<CallbackInterface> callback_ptr, Time
 	// Store entity list
 	auto entityList = gameState->entityList;
 	
-	Entity player = gameState->findEntity("vehicle_0");
-	player.playerProperties->updateCallbacks(callback_ptr);
+	Entity* player = gameState->findEntity("vehicle_0");
+	player->playerProperties->updateCallbacks(callback_ptr);
 	// Super scuffed af. Right now, I just want to make playerProperties to work, so manually set our pointer?
 
 
@@ -494,26 +504,26 @@ void PhysicsSystem::stepPhysics(shared_ptr<CallbackInterface> callback_ptr, Time
 			if (!gContactReportCallback->AirOrNot) {
 				//Apply the brake, forward throttle and steer inputs to the vehicle's command state
 				if (forwardSpeed > 0.1f) {
-					vehicles.at(i)->vehicle.mCommandState.brakes[0] = player.playerProperties->brake;
+					vehicles.at(i)->vehicle.mCommandState.brakes[0] = player->playerProperties->brake;
 					vehicles.at(i)->vehicle.mCommandState.nbBrakes = 1;
 				}
 				// Switch brake input with reverse throttle
 				else {
 					vehicles.at(i)->vehicle.mCommandState.brakes[0] = 0;
 					vehicles.at(i)->vehicle.mCommandState.nbBrakes = 1;
-					vehicles.at(i)->vehicle.mPhysXState.physxActor.rigidBody->addForce(vehicle_transform.rotate(PxVec3(0.f, 0.f, -player.playerProperties->reverse * 0.2f)), PxForceMode().eVELOCITY_CHANGE);
+					vehicles.at(i)->vehicle.mPhysXState.physxActor.rigidBody->addForce(vehicle_transform.rotate(PxVec3(0.f, 0.f, -player->playerProperties->reverse * 0.2f)), PxForceMode().eVELOCITY_CHANGE);
 				}
-				vehicles.at(i)->vehicle.mCommandState.throttle = player.playerProperties->throttle;
-				vehicles.at(i)->vehicle.mCommandState.steer = player.playerProperties->steer;
+				vehicles.at(i)->vehicle.mCommandState.throttle = player->playerProperties->throttle;
+				vehicles.at(i)->vehicle.mCommandState.steer = player->playerProperties->steer;
 			}
 			// In Air
 			else { 
 				// Set Rotation based on air controls
-				vehicles.at(i)->vehicle.mPhysXState.physxActor.rigidBody->addTorque(vehicle_transform.rotate(PxVec3(player.playerProperties->AirPitch * 0.0075f, player.playerProperties->AirRoll * 0.01f, 0.f)), PxForceMode().eVELOCITY_CHANGE);
+				vehicles.at(i)->vehicle.mPhysXState.physxActor.rigidBody->addTorque(vehicle_transform.rotate(PxVec3(player->playerProperties->AirPitch * 0.0075f, player->playerProperties->AirRoll * 0.01f, 0.f)), PxForceMode().eVELOCITY_CHANGE);
 			}
 
 			// EXPERIMENTAL - Simple Boost
-			vehicles.at(i)->vehicle.mPhysXState.physxActor.rigidBody->addForce(vehicle_transform.rotate(PxVec3(0.f, 0.f, player.playerProperties->boost)), PxForceMode().eVELOCITY_CHANGE);
+			vehicles.at(i)->vehicle.mPhysXState.physxActor.rigidBody->addForce(vehicle_transform.rotate(PxVec3(0.f, 0.f, player->playerProperties->boost)), PxForceMode().eVELOCITY_CHANGE);
 		}
 
 		// PLACEHOLDER - AI VEHICLE INPUT
