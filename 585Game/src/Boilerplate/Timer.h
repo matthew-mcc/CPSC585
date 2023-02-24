@@ -28,12 +28,19 @@ public:
         lastDeltaTime = currentTime;
         frameCount++;
         countdown = countdown - deltaTime;
+        timeElapsed += deltaTime;
     }
 
     // Get Delta Time
     // Returns time delta between current and last frame
     double getDeltaTime() {
         return deltaTime;
+    }
+
+    // Get Time Elapsed
+    // Returns the time elapsed since the first frame of the game in milliseconds
+    double getTimeElapsed() {
+        return timeElapsed;
     }
 
     // Get FPS
@@ -68,15 +75,16 @@ public:
         return (int)countdown % 60;
     }
 
+
 private:
     Timer() {};
     Timer(const Timer&);
 
     int frameCount = 0;						// Frames rendered since last fps update
     double deltaTime = 0.0;					// Time delta between last and current frame
+    double timeElapsed = 0.0f;              // Time elapsed since first frame
     double currentTime;
     double lastDeltaTime;
     double lastFPSTime;
-    //double countdown = 5.f;
     double countdown = 300.f;
 };

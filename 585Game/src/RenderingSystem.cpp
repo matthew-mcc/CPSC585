@@ -121,12 +121,14 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> callback
 
 
 	// MESH ANIMATIONS
+		// Center Portals
 	Entity* portalEntity = gameState->findEntity("portal_center");
-	//portalEntity->transform->setRotation(normalize(portalEntity->transform->getRotation() * quat(rot)));
 	for (int i = 0; i < portalEntity->localTransforms.size(); i++) {
-		vec3 rot(0.0f, 0.3f * timer->getDeltaTime(), 0.0f);
+		vec3 rot(0.0f, 0.3f * timer->getDeltaTime(), 0.0f);								// Spinning
+		vec3 pos(0.0f, 0.01f * (float)sin(timer->getTimeElapsed() * 1.0 + i), 0.0f);	// Bobbing
 		if (i % 2 == 0) rot = -rot;
 		portalEntity->localTransforms.at(i)->setRotation(normalize(portalEntity->localTransforms.at(i)->getRotation() * quat(rot)));
+		portalEntity->localTransforms.at(i)->setPosition(portalEntity->localTransforms.at(i)->getPosition() + pos);
 	}
 
 
@@ -314,8 +316,8 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> callback
 		textChars);
 	
 	RenderText(textShader, textVAO, textVBO, "Boost Meter: " + std::to_string( (int) playerEntity->playerProperties->boost_meter),
-		callback_ptr->xres - 1900.f,
-		callback_ptr->yres - 1040.f, 0.6f,
+		20,
+		40, 0.6f,
 		vec3(0.2, 0.2f, 0.2f),
 		textChars);
 
