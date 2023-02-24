@@ -78,29 +78,20 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> callback
 	ImGui_ImplGlfw_NewFrame();
 	ImGui::NewFrame();
 
-	// Draw outlines
-	/*outlineShader.use();
-	outlineShader.setMat4("model", model);
-	outlineShader.setMat4("view", view);
-	outlineShader.setMat4("projection", projection);
-	outlineShader.setFloat("thickness", 0.2f);
-	for (int i = 0; i < models.size(); i ++) {
-		models.at(i).Draw(outlineShader);
-	}*/
 
 	// CAMERA POSITION / LAG
 		// Find player entity
-	Entity playerEntity = gameState->findEntity("vehicle_0");
+	Entity* playerEntity = gameState->findEntity("vehicle_0");
 
 	// Retrieve player direction vectors
 	//camera_position_forward = camera_position_forward - (callback_ptr->camera_acceleration) / 15.f;
-	vec3 player_forward = playerEntity.transform->getForwardVector();
-	vec3 player_right = playerEntity.transform->getRightVector();
-	vec3 player_up = playerEntity.transform->getUpVector();
+	vec3 player_forward = playerEntity->transform->getForwardVector();
+	vec3 player_right = playerEntity->transform->getRightVector();
+	vec3 player_up = playerEntity->transform->getUpVector();
 
 	// Dynamically adjust camera zoom based on number of trailers attached
-	float camera_zoom_forward = clamp(1.0f + (float)playerEntity.nbChildEntities * 0.5f, 1.0f, 11.0f);
-	float camera_zoom_up = clamp(1.0f + (float)playerEntity.nbChildEntities * 0.4f, 1.0f, 11.0f);
+	float camera_zoom_forward = clamp(1.0f + (float)playerEntity->nbChildEntities * 0.5f, 1.0f, 11.0f);
+	float camera_zoom_up = clamp(1.0f + (float)playerEntity->nbChildEntities * 0.4f, 1.0f, 11.0f);
 
 	// Chase Camera: Compute eye and target offsets
 		// Eye Offset: Camera position (world space)
@@ -109,7 +100,7 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> callback
 	vec3 target_offset = (camera_target_forward * player_forward) + (camera_target_right * player_right) + (camera_target_up * player_up);
 
 	// Camera lag: Generate target_position - prev_position creating a vector. Scale by constant factor, then add to prev and update
-	vec3 camera_target_position = playerEntity.transform->getPosition() + eye_offset;
+	vec3 camera_target_position = playerEntity->transform->getPosition() + eye_offset;
 	vec3 camera_track_vector = camera_target_position - camera_previous_position;
 	camera_track_vector = camera_track_vector * camera_lag;
 	camera_previous_position = vec3(translate(mat4(1.0f), camera_track_vector) * vec4(camera_previous_position, 1.0f));
@@ -117,16 +108,27 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> callback
 	// If user is controlling camera, set view accordingly
 	vec3 camOffset = vec3(0.f);
 	if (callback_ptr->moveCamera) {
-		camOffset = camera_previous_position - playerEntity.transform->getPosition();
+		camOffset = camera_previous_position - playerEntity->transform->getPosition();
 		camOffset = vec4(camOffset, 0.f) * glm::rotate(glm::mat4(1.f), callback_ptr->xAngle, world_up);
-		camOffset += playerEntity.transform->getPosition();
-		view = lookAt(camOffset, playerEntity.transform->getPosition() + target_offset, world_up);
+		camOffset += playerEntity->transform->getPosition();
+		view = lookAt(camOffset, playerEntity->transform->getPosition() + target_offset, world_up);
 	}
 	else {
-		view = lookAt(camera_previous_position + camOffset, playerEntity.transform->getPosition() + target_offset, world_up);
+		view = lookAt(camera_previous_position + camOffset, playerEntity->transform->getPosition() + target_offset, world_up);
 	}
 	// Set projection and view matrices
 	projection = perspective(radians(fov), (float)callback_ptr->xres / (float)callback_ptr->yres, 0.1f, 1000.0f);
+
+
+	// MESH ANIMATIONS
+	Entity* portalEntity = gameState->findEntity("portal_center");
+	//portalEntity->transform->setRotation(normalize(portalEntity->transform->getRotation() * quat(rot)));
+	for (int i = 0; i < portalEntity->localTransforms.size(); i++) {
+		vec3 rot(0.0f, 0.3f * timer->getDeltaTime(), 0.0f);
+		if (i % 2 == 0) rot = -rot;
+		portalEntity->localTransforms.at(i)->setRotation(normalize(portalEntity->localTransforms.at(i)->getRotation() * quat(rot)));
+	}
+
 
 	// FIRST PASS: FAR SHADOWMAP RENDER
 	lightPos = vec3(sin(lightRotation) * cos(lightAngle), sin(lightAngle), cos(lightRotation) * cos(lightAngle)) * 200.f;
@@ -163,7 +165,7 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> callback
 
 	// SECOND PASS: NEAR SHADOWMAP RENDER
 	lightPos = vec3(sin(lightRotation) * cos(lightAngle), sin(lightAngle), cos(lightRotation) * cos(lightAngle)) * 40.f;
-	nearShadowMap.update(lightPos, playerEntity.transform->getPosition());
+	nearShadowMap.update(lightPos, playerEntity->transform->getPosition());
 	glCullFace(GL_FRONT);
 	for (int i = 0; i < gameState->entityList.size(); i++) {
 		// Retrieve global position and rotation
@@ -311,10 +313,9 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> callback
 		vec3(0.2, 0.2f, 0.2f),
 		textChars);
 	
-	Entity player = gameState->findEntity("vehicle_0");
-	RenderText(textShader, textVAO, textVBO, "Boost Meter: " + std::to_string( (int) player.playerProperties->boost_meter),
-		20,
-		40, 0.6f,
+	RenderText(textShader, textVAO, textVBO, "Boost Meter: " + std::to_string( (int) playerEntity->playerProperties->boost_meter),
+		callback_ptr->xres - 1900.f,
+		callback_ptr->yres - 1040.f, 0.6f,
 		vec3(0.2, 0.2f, 0.2f),
 		textChars);
 
