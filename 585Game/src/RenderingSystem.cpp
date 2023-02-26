@@ -58,9 +58,6 @@ void RenderingSystem::initRenderer() {
 	// Create text shader
 	textShader = Shader("src/Shaders/textVertex.txt", "src/Shaders/textFragment.txt");
 	textShader.use();
-
-	// CAMERA POSITION
-	camera_previous_position = vec3(1.0f);
 }
 
 
@@ -121,15 +118,10 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> callback
 
 
 	// MESH ANIMATIONS
-		// Center Portals
+	// Center Portal
 	Entity* portalEntity = gameState->findEntity("portal_center");
-	for (int i = 0; i < portalEntity->localTransforms.size(); i++) {
-		vec3 rot(0.0f, 0.3f * timer->getDeltaTime(), 0.0f);								// Spinning
-		vec3 pos(0.0f, 0.01f * (float)sin(timer->getTimeElapsed() * 1.0 + i), 0.0f);	// Bobbing
-		if (i % 2 == 0) rot = -rot;
-		portalEntity->localTransforms.at(i)->setRotation(normalize(portalEntity->localTransforms.at(i)->getRotation() * quat(rot)));
-		portalEntity->localTransforms.at(i)->setPosition(portalEntity->localTransforms.at(i)->getPosition() + pos);
-	}
+	vec3 rot(0.0f, 0.3f * timer->getDeltaTime(), 0.0f);
+	portalEntity->localTransforms.at(0)->setRotation(normalize(portalEntity->localTransforms.at(0)->getRotation() * quat(rot)));
 
 
 	// FIRST PASS: FAR SHADOWMAP RENDER

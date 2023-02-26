@@ -14,25 +14,18 @@ void GameState::initGameState() {
 	e = addEntity("landscape", PhysType::StaticMesh, new Transform(), vector<string>{
 		"assets/models/landscape1/landscape1.obj"});
 
-	// Center Oil Rig
-	/*
-	e = addEntity("oil_rig_center", PhysType::StaticMesh, new Transform(vec3(0.f, 0.f, 25.f)), vector<string>{
-		"assets/models/oil_rig1/oil_rig1.obj"});
-	*/
+	// Oil Rigs
+	e = addEntity("oil_rigs", PhysType::None, new Transform(), vector<string>{
+		"assets/models/oil_rig1/oil_rig2.obj"});
 
 	// Center Portal
-	e = addEntity("portal_center", PhysType::StaticMesh, new Transform(vec3(0.0f, 0.0f, 33.0f)), vector<string>{
+	e = addEntity("portal_center", PhysType::StaticMesh, new Transform(vec3(0.0f, 0.0f, 32.0f)), vector<string>{
 		"assets/models/portal1/portal1_1.obj",
-		"assets/models/portal1/portal1_2.obj",
-		"assets/models/portal1/portal1_3.obj",
-		"assets/models/portal1/portal1_4.obj"});
+		"assets/models/portal1/portal1_2.obj"});
 
 	// Center Platform
-	e = addEntity("platform_center", PhysType::StaticMesh, new Transform(), vector<string>{
-		"assets/models/platform1/platform1_1.obj",
-		"assets/models/platform1/platform1_2.obj"});
-	e = addEntity("platform_center_decal", PhysType::None, new Transform(), vector<string>{
-		"assets/models/platform1/platform1_3.obj"});
+	e = addEntity("platform_center", PhysType::None, new Transform(), vector<string>{
+		"assets/models/platform1/platform1.obj"});
 }
 
 
