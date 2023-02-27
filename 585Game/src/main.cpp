@@ -3,6 +3,7 @@
 #include <PhysicsSystem.h>
 #include <GameState.h>
 #include <Boilerplate/Timer.h>
+#include "NavMesh.h"
 
 
 // Main
@@ -15,6 +16,8 @@ int main() {
 	RenderingSystem renderer = RenderingSystem();
 	PhysicsSystem physics = PhysicsSystem();
 	XboxInput xInput;
+
+	
 
 	// Flags
 	bool isLoaded = false;	// false if first render update hasn't finished, true otherwise

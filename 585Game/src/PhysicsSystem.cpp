@@ -4,6 +4,7 @@
 #include "../snippetcommon/SnippetPVD.h"
 #include "PhysicsSystem.h"
 #include "Boilerplate/OBJ_Loader.h"
+
 #include <stdlib.h>
 #include <time.h> 
 #include <map>
@@ -483,6 +484,8 @@ void PhysicsSystem::stepPhysics(shared_ptr<CallbackInterface> callback_ptr, Time
 	auto entityList = gameState->entityList;
 	
 	Entity* player = gameState->findEntity("vehicle_0");
+
+	cout << player->transform->getPosition().x << ", " << player->transform->getPosition().y << ", " << player->transform->getPosition().z << endl;
 	player->playerProperties->updateCallbacks(callback_ptr);
 	// Super scuffed af. Right now, I just want to make playerProperties to work, so manually set our pointer?
 

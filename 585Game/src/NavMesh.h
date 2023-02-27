@@ -12,5 +12,7 @@ public:
 	NavMesh();
 	~NavMesh();
 
+	float cost(Node* src, Node* dest);
+
 	Node* findEntity(glm::vec3 pos);
 };
