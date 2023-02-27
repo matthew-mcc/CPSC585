@@ -178,6 +178,7 @@
     <ClCompile Include="src\GameState.cpp" />
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\NavMesh.cpp" />
+    <ClCompile Include="src\Pathfinder.cpp" />
     <ClCompile Include="src\PhysicsSystem.cpp" />
     <ClCompile Include="src\RenderingSystem.cpp" />
     <ClCompile Include="src\ControllerInput.cpp" />
@@ -620,6 +621,7 @@
     <ClInclude Include="src\Boilerplate\OBJ_Loader.h" />
     <ClInclude Include="src\NavMesh.h" />
     <ClInclude Include="src\Node.h" />
+    <ClInclude Include="src\Pathfinder.h" />
     <ClInclude Include="src\PhysicsSystem.h" />
     <ClInclude Include="src\RenderingSystem.h" />
     <ClInclude Include="src\Transform.h" />

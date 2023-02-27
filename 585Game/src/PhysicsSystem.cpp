@@ -5,6 +5,8 @@
 #include "PhysicsSystem.h"
 #include "Boilerplate/OBJ_Loader.h"
 
+#include "Pathfinder.h"
+#include "NavMesh.h"
 #include <stdlib.h>
 #include <time.h> 
 #include <map>
@@ -20,6 +22,11 @@ PxMaterial* gMaterial = NULL;
 PxMaterial* trailerMat = NULL;
 PxPvd* gPvd = NULL;
 ContactReportCallback* gContactReportCallback;
+
+
+Pathfinder* pathfinder;
+
+
 
 // Vehicles
 vector<Vehicle*> vehicles;
@@ -351,6 +358,18 @@ void PhysicsSystem::initMaterialFrictionTable() {
 }
 
 void PhysicsSystem::initVehicles(int vehicleCount) {
+	// Init AI
+	NavMesh* navMesh = new NavMesh();
+	/*Pathfinder* path = new Pathfinder(navMesh);*/
+	pathfinder = new Pathfinder(navMesh);
+	
+	
+	//cout << path->navMesh->nodes->size() << endl;
+
+	
+	
+
+
 	for (int i = 0; i < vehicleCount; i++) {
 		// Create a new vehicle entity and physics struct
 		gameState->spawnVehicle();
@@ -449,7 +468,7 @@ void PhysicsSystem::initPhysicsSystem(GameState* gameState) {
 	initPhysX();
 	initPhysXMeshes();
 	initMaterialFrictionTable();
-	initVehicles(4);
+	initVehicles(2);
 
 	for (int i = 0; i < 30; i++) {
 		spawnTrailer();
@@ -485,12 +504,13 @@ void PhysicsSystem::stepPhysics(shared_ptr<CallbackInterface> callback_ptr, Time
 	
 	Entity* player = gameState->findEntity("vehicle_0");
 
-	cout << player->transform->getPosition().x << ", " << player->transform->getPosition().y << ", " << player->transform->getPosition().z << endl;
+	//cout << player->transform->getPosition().x << ", " << player->transform->getPosition().y << ", " << player->transform->getPosition().z << endl;
 	player->playerProperties->updateCallbacks(callback_ptr);
 	// Super scuffed af. Right now, I just want to make playerProperties to work, so manually set our pointer?
 
 
 	// Loop through each vehicle, update input and step physics simulation
+	
 	for (int i = 0; i < vehicles.size(); i++) {
 		//Forward integrate the vehicle by a single timestep.
 		//Apply substepping at low forward speed to improve simulation fidelity.
@@ -531,10 +551,67 @@ void PhysicsSystem::stepPhysics(shared_ptr<CallbackInterface> callback_ptr, Time
 
 		// PLACEHOLDER - AI VEHICLE INPUT
 		else {
-			vehicles.at(i)->vehicle.mCommandState.brakes[0] = 0.f;
+			/*vehicles.at(i)->vehicle.mCommandState.brakes[0] = 0.f;
 			vehicles.at(i)->vehicle.mCommandState.nbBrakes = 1;
 			vehicles.at(i)->vehicle.mCommandState.throttle = 1.0f;
-			vehicles.at(i)->vehicle.mCommandState.steer = 0.5f;
+			vehicles.at(i)->vehicle.mCommandState.steer = 0.5f;*/
+			
+			
+
+			Node* startNode = pathfinder->navMesh->nodes->find(0)->second;
+			Node* destNode = pathfinder->navMesh->nodes->find(2)->second;
+
+			pathfinder->search(startNode, destNode);
+			cout << pathfinder->navMesh->nodes->size() << endl;
+			
+
+
+			Entity* aiVehicle = gameState->findEntity("vehicle_1");
+			vehicles.at(i)->vehicle.mCommandState.throttle = 1.f;
+			vehicles.at(i)->vehicle.mCommandState.steer = 1.f;
+
+			glm::quat rotation = aiVehicle->transform->getRotation();
+			glm::mat4 rotationMat = glm::toMat4(rotation);
+
+			glm::vec3 vanHeading = (rotationMat * glm::vec4(0.f, 0.f, -1.f, 1.f));
+
+			PxVec3 pos = vehicles.at(i)->vehicle.mPhysXState.physxActor.rigidBody->getGlobalPose().p;
+			PxVec3 target;
+
+			glm::vec3 dest = pathfinder->getNextWaypoint();
+
+
+			PxVec3 vanHeadingPx;
+			vanHeadingPx.x = vanHeading.x;
+			vanHeadingPx.y = vanHeading.y;
+			vanHeadingPx.z = vanHeading.z;
+
+			target.x = dest.x - pos.x;
+			target.y = dest.y - pos.y;
+			target.z = dest.z - pos.z;
+
+			target.normalize();
+
+			float dot = target.dot(vanHeadingPx);
+			if (sqrt(dot * dot) > 0.95f) {
+				vehicles.at(i)->vehicle.mCommandState.steer = 0.f;
+			}
+			else {
+				PxVec3 cross = vanHeadingPx.cross(target);
+				cross.normalize();
+				if (cross.y < 0) {
+					vehicles.at(i)->vehicle.mCommandState.steer = 1.f;
+				}
+				else {
+					vehicles.at(i)->vehicle.mCommandState.steer = -1.f;
+				}
+			}
+
+			//target.x = destNode.
+			
+			
+
+
 		}
 	}
 

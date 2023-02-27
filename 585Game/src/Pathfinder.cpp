@@ -4,6 +4,25 @@
 
 using namespace std;
 
+Pathfinder::Pathfinder(NavMesh* nm) {
+	this->navMesh = nm;
+	this->path = new stack<glm::vec3>();
+}
+
+glm::vec3 Pathfinder::getNextWaypoint() {
+	if (path->size() > 0) {
+		glm::vec3 vector = path->top();
+		path->pop();
+
+		return vector;
+	}
+	else {
+		cout << "Path is Empty :(" << endl;
+	}
+	
+	
+}
+
 
 bool Pathfinder::isDestination(Node* src, Node* dest) {
 	if (src->id == dest->id) {
@@ -69,7 +88,7 @@ void Pathfinder::smoothPath(vector<glm::vec3> cPoints) {
 }
 
 void Pathfinder::tracePath(Node* src, Node* dest, map<ui, ui> parents) {
-	cout << "The path is: ";
+	/*cout << "The path is: ";*/
 	vector<glm::vec3> bPath;
 
 	// Get rid of any pre-existing paths
@@ -80,10 +99,11 @@ void Pathfinder::tracePath(Node* src, Node* dest, map<ui, ui> parents) {
 	ui temp = dest->id;
 	while (temp != parents.find(temp)->second) {
 		bPath.push_back(this->navMesh->nodes->find(temp)->second->centroid);
+		path->push(this->navMesh->nodes->find(temp)->second->centroid);
 		temp = parents.find(temp)->second;
 	}
 	bPath.push_back(this->navMesh->nodes->find(temp)->second->centroid);
-
+	path->push(this->navMesh->nodes->find(temp)->second->centroid);
 }
 
 bool Pathfinder::search(Node* src, Node* dest) {
@@ -123,7 +143,7 @@ bool Pathfinder::search(Node* src, Node* dest) {
 	while (!frontier.empty()) {
 		
 		// Get a reference to first in frontier, and remove it
-
+		
 		pair<float, Node*> p = *frontier.begin();
 		frontier.erase(frontier.begin());
 
@@ -175,6 +195,7 @@ bool Pathfinder::search(Node* src, Node* dest) {
 		return false;
 
 	}
+	
 
 
 };

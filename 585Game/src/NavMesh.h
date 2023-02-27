@@ -10,7 +10,7 @@ public:
 	map<unsigned int, Node*>* nodes;
 
 	NavMesh();
-	~NavMesh();
+	//~NavMesh();
 
 	float cost(Node* src, Node* dest);
 
