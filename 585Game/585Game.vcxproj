@@ -167,6 +167,7 @@
     <ClCompile Include="snippetvehicle2common\serialization\EngineDrivetrainSerialization.cpp" />
     <ClCompile Include="snippetvehicle2common\serialization\SerializationCommon.cpp" />
     <ClCompile Include="snippetvehicle2common\SnippetVehicleHelpers.cpp" />
+    <ClCompile Include="src\AiController.cpp" />
     <ClCompile Include="src\Boilerplate\Mesh.cpp" />
     <ClCompile Include="src\Boilerplate\Shader.cpp" />
     <ClCompile Include="src\Boilerplate\Shadow.cpp" />
@@ -606,6 +607,7 @@
     <ClInclude Include="snippetvehicle2common\serialization\EngineDrivetrainSerialization.h" />
     <ClInclude Include="snippetvehicle2common\serialization\SerializationCommon.h" />
     <ClInclude Include="snippetvehicle2common\SnippetVehicleHelpers.h" />
+    <ClInclude Include="src\AiController.h" />
     <ClInclude Include="src\Boilerplate\Cube.h" />
     <ClInclude Include="src\Boilerplate\Shadow.h" />
     <ClInclude Include="src\Boilerplate\Mesh.h" />

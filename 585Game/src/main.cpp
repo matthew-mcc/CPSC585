@@ -4,6 +4,7 @@
 #include <GameState.h>
 #include <Boilerplate/Timer.h>
 #include "NavMesh.h"
+#include "AiController.h"
 
 
 // Main
@@ -16,6 +17,7 @@ int main() {
 	RenderingSystem renderer = RenderingSystem();
 	PhysicsSystem physics = PhysicsSystem();
 	XboxInput xInput;
+	AiController aiController =  AiController();
 
 	
 
@@ -26,6 +28,9 @@ int main() {
 	xInput.run();
 	gameState->initGameState();
 	physics.initPhysicsSystem(gameState);
+	aiController.initAiSystem(gameState);
+	
+	//aiController.initAiSystem(gameState, gameState->findEntity("vehicle_1"));
 	std::shared_ptr<CallbackInterface> callback_ptr = processInput(renderer.window);
 	renderer.SetupImgui();
 
@@ -39,6 +44,7 @@ int main() {
 
 			// Update Physics System
 			physics.stepPhysics(callback_ptr, timer);
+			aiController.StateController();
 		}
 
 		// Update Input Drivers

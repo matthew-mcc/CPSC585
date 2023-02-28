@@ -6,6 +6,7 @@
 #include "Boilerplate/OBJ_Loader.h"
 
 #include "Pathfinder.h"
+#include "AiController.h"
 #include "NavMesh.h"
 #include <stdlib.h>
 #include <time.h> 
@@ -26,6 +27,7 @@ ContactReportCallback* gContactReportCallback;
 
 Pathfinder* pathfinder;
 
+AiController* aiController;
 
 
 // Vehicles
@@ -462,6 +464,7 @@ void PhysicsSystem::initVehicles(int vehicleCount) {
 	gScene->setVisualizationParameter(physx::PxVisualizationParameter::eJOINT_LIMITS, 1.0f);
 }
 
+
 void PhysicsSystem::initPhysicsSystem(GameState* gameState) {
 	this->gameState = gameState;
 	srand(time(NULL));
@@ -469,6 +472,11 @@ void PhysicsSystem::initPhysicsSystem(GameState* gameState) {
 	initPhysXMeshes();
 	initMaterialFrictionTable();
 	initVehicles(2);
+
+	
+
+	
+	
 
 	for (int i = 0; i < 30; i++) {
 		spawnTrailer();
@@ -486,7 +494,7 @@ void PhysicsSystem::commandAI(Vehicle* vehicle) {
 
 	Entity* aiVehicle = gameState->findEntity("vehicle_1");
 
-	cout << pathfinder->navMesh->findEntity(aiVehicle->transform->getPosition())->id << endl;
+	//cout << pathfinder->navMesh->findEntity(aiVehicle->transform->getPosition())->id << endl;
 	vehicle->vehicle.mCommandState.throttle = 1.f;
 	vehicle->vehicle.mCommandState.steer = 1.f;
 
@@ -531,6 +539,7 @@ void PhysicsSystem::commandAI(Vehicle* vehicle) {
 void PhysicsSystem::stepPhysics(shared_ptr<CallbackInterface> callback_ptr, Timer* timer) {
 	//cout << gContactReportCallback->AirOrNot << endl;
 	// Update Timestep
+	//cout << gameState->entityList[4].transform->getPosition().x << endl;
 	PxReal timestep;
 	if (timer->getDeltaTime() > 0.1) {	// Safety check: If deltaTime gets too large, default it to (1 / 60)
 		timestep = (1 / 60.f);
