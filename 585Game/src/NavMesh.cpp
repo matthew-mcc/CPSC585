@@ -69,7 +69,7 @@ NavMesh::NavMesh() {
 	n0->connections->emplace_back(make_pair(cost(n0, n5), n5));
 
 	n1->connections->emplace_back(make_pair(cost(n1, n0), n0));
-	n1->connections->emplace_back(make_pair(cost(n1, n4), n4));
+	n1->connections->emplace_back(make_pair(cost(n1, n2), n2));
 
 	n2->connections->emplace_back(make_pair(cost(n2, n1), n1));
 	n2->connections->emplace_back(make_pair(cost(n2, n3), n3));
@@ -89,7 +89,30 @@ NavMesh::NavMesh() {
 	n7->connections->emplace_back(make_pair(cost(n7, n2), n2));
 	n7->connections->emplace_back(make_pair(cost(n7, n6), n6));
 
+}
 
+Node* NavMesh::findEntity(glm::vec3 pos) {
+	float min = FLT_MAX;
+	Node* result = NULL;
 
+	for (unsigned int i = 0; i < this->nodes->size(); i++) {
+		Node* aNode = this->nodes->find(i)->second;
 
+		float angle = 0.f;
+		
+		glm::vec3 a = aNode->v0 - pos;
+		glm::vec3 b = aNode->v1 - pos;
+		glm::vec3 c = aNode->v2 - pos;
+
+		angle += acos(dot(a, b) / (length(a) * length(b)));
+		angle += acos(dot(a, c) / (length(a) * length(c)));
+		angle += acos(dot(b, c) / (length(b) * length(c)));
+
+		if (abs(angle - (2 * 3.14159265)) < min) {
+			min = abs(angle - (2 * 3.14159265));
+			result = aNode;
+		}
+
+	}
+	return result;
 }

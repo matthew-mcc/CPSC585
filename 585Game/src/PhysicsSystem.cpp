@@ -475,6 +475,59 @@ void PhysicsSystem::initPhysicsSystem(GameState* gameState) {
 	}
 }
 
+
+void PhysicsSystem::commandAI(Vehicle* vehicle) {
+	Node* startNode = pathfinder->navMesh->nodes->find(1)->second;
+	Node* destNode = pathfinder->navMesh->nodes->find(2)->second;
+
+
+	
+	pathfinder->search(startNode, destNode);
+
+	Entity* aiVehicle = gameState->findEntity("vehicle_1");
+
+	cout << pathfinder->navMesh->findEntity(aiVehicle->transform->getPosition())->id << endl;
+	vehicle->vehicle.mCommandState.throttle = 1.f;
+	vehicle->vehicle.mCommandState.steer = 1.f;
+
+	glm::quat rotation = aiVehicle->transform->getRotation();
+	glm::mat4 rotationMat = glm::toMat4(rotation);
+
+	glm::vec3 vanHeading = (rotationMat * glm::vec4(0.f, 0.f, -1.f, 1.f));
+
+	PxVec3 pos = vehicle->vehicle.mPhysXState.physxActor.rigidBody->getGlobalPose().p;
+	PxVec3 target;
+
+	glm::vec3 dest = pathfinder->getNextWaypoint();
+
+	PxVec3 vanHeadingPx;
+	vanHeadingPx.x = vanHeading.x;
+	vanHeadingPx.y = vanHeading.y;
+	vanHeadingPx.z = vanHeading.z;
+
+	target.x = dest.x - pos.x;
+	target.y = dest.y - pos.y;
+	target.z = dest.z - pos.z;
+
+	target.normalize();
+
+	float dot = target.dot(vanHeadingPx);
+	if (sqrt(dot * dot) > 0.95f) {
+		vehicle->vehicle.mCommandState.steer = 0.f;
+	}
+	else {
+		PxVec3 cross = vanHeadingPx.cross(target);
+		cross.normalize();
+		if (cross.y < 0) {
+			vehicle->vehicle.mCommandState.steer = 1.f;
+		}
+		else {
+			vehicle->vehicle.mCommandState.steer = -1.f;
+		}
+	}
+
+}
+
 void PhysicsSystem::stepPhysics(shared_ptr<CallbackInterface> callback_ptr, Timer* timer) {
 	//cout << gContactReportCallback->AirOrNot << endl;
 	// Update Timestep
@@ -551,65 +604,17 @@ void PhysicsSystem::stepPhysics(shared_ptr<CallbackInterface> callback_ptr, Time
 
 		// PLACEHOLDER - AI VEHICLE INPUT
 		else {
-			/*vehicles.at(i)->vehicle.mCommandState.brakes[0] = 0.f;
-			vehicles.at(i)->vehicle.mCommandState.nbBrakes = 1;
-			vehicles.at(i)->vehicle.mCommandState.throttle = 1.0f;
-			vehicles.at(i)->vehicle.mCommandState.steer = 0.5f;*/
-			
+			commandAI(vehicles.at(i));
+
 			
 
-			Node* startNode = pathfinder->navMesh->nodes->find(0)->second;
-			Node* destNode = pathfinder->navMesh->nodes->find(2)->second;
-
-			pathfinder->search(startNode, destNode);
-			cout << pathfinder->navMesh->nodes->size() << endl;
+			
+			
 			
 
 
-			Entity* aiVehicle = gameState->findEntity("vehicle_1");
-			vehicles.at(i)->vehicle.mCommandState.throttle = 1.f;
-			vehicles.at(i)->vehicle.mCommandState.steer = 1.f;
-
-			glm::quat rotation = aiVehicle->transform->getRotation();
-			glm::mat4 rotationMat = glm::toMat4(rotation);
-
-			glm::vec3 vanHeading = (rotationMat * glm::vec4(0.f, 0.f, -1.f, 1.f));
-
-			PxVec3 pos = vehicles.at(i)->vehicle.mPhysXState.physxActor.rigidBody->getGlobalPose().p;
-			PxVec3 target;
-
-			glm::vec3 dest = pathfinder->getNextWaypoint();
-
-
-			PxVec3 vanHeadingPx;
-			vanHeadingPx.x = vanHeading.x;
-			vanHeadingPx.y = vanHeading.y;
-			vanHeadingPx.z = vanHeading.z;
-
-			target.x = dest.x - pos.x;
-			target.y = dest.y - pos.y;
-			target.z = dest.z - pos.z;
-
-			target.normalize();
-
-			float dot = target.dot(vanHeadingPx);
-			if (sqrt(dot * dot) > 0.95f) {
-				vehicles.at(i)->vehicle.mCommandState.steer = 0.f;
-			}
-			else {
-				PxVec3 cross = vanHeadingPx.cross(target);
-				cross.normalize();
-				if (cross.y < 0) {
-					vehicles.at(i)->vehicle.mCommandState.steer = 1.f;
-				}
-				else {
-					vehicles.at(i)->vehicle.mCommandState.steer = -1.f;
-				}
-			}
-
-			//target.x = destNode.
 			
-			
+
 
 
 		}

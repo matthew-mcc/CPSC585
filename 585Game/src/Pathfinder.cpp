@@ -17,7 +17,7 @@ glm::vec3 Pathfinder::getNextWaypoint() {
 		return vector;
 	}
 	else {
-		cout << "Path is Empty :(" << endl;
+		//cout << "Path is Empty :(" << endl;
 	}
 	
 	
@@ -136,7 +136,7 @@ bool Pathfinder::search(Node* src, Node* dest) {
 	explored.insert({ frontier.begin()->second->id, false });
 
 	// And to parent
-	parents.insert({ src->id, src->id }); // Does this not need to be dest for second?
+	parents.insert({ src->id, src->id }); 
 
 	// Loop !
 
@@ -167,18 +167,20 @@ bool Pathfinder::search(Node* src, Node* dest) {
 
 			//get reference
 			pair<float, Node*> temp = p.second->connections->at(i);
-
+		
+			
 			//Check if we at destination
 			if (isDestination(temp.second, dest)) {
 				parents.insert_or_assign(temp.second->id, p.second->id);
 				this->tracePath(temp.second, dest, parents);
+				
 				return true;
 			}
 
 			// Have not explored this node yet
 			else if (!explored.find(temp.second->id)->second) {
 				// Update cost!
-
+				
 				// Cost so far // Cost of current edge
 				gNew = p.first + temp.first; // Actual cost
 				hNew = calculateHCost(temp.second, dest); // Heuristic cost
