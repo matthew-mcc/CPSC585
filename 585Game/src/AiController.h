@@ -24,13 +24,14 @@ public:
 
 	int state;
 	
+	pair<string, glm::vec3> selectedTrailer;
 
 	AiController();
 
 	void initAiSystem(GameState* gameState);
 
-	string FindTrailer();
-	void CollectTrailer(string trailerName);
+	pair<string, glm::vec3> FindTrailer();
+	void CollectTrailer();
 	void DropOff();
 	void BumpPlayer();
 

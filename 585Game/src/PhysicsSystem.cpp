@@ -465,8 +465,9 @@ void PhysicsSystem::initVehicles(int vehicleCount) {
 }
 
 
-void PhysicsSystem::initPhysicsSystem(GameState* gameState) {
+void PhysicsSystem::initPhysicsSystem(GameState* gameState, AiController* aiController) {
 	this->gameState = gameState;
+	this->aiController = aiController;
 	srand(time(NULL));
 	initPhysX();
 	initPhysXMeshes();
@@ -485,12 +486,15 @@ void PhysicsSystem::initPhysicsSystem(GameState* gameState) {
 
 
 void PhysicsSystem::commandAI(Vehicle* vehicle) {
-	Node* startNode = pathfinder->navMesh->nodes->find(1)->second;
-	Node* destNode = pathfinder->navMesh->nodes->find(2)->second;
+
+	cout << aiController->selectedTrailer.first << endl;
+
+	/*Node* startNode = pathfinder->navMesh->nodes->find(1)->second;
+	Node* destNode = pathfinder->navMesh->nodes->find(2)->second;*/
 
 
 	
-	pathfinder->search(startNode, destNode);
+	//pathfinder->search(startNode, destNode);
 
 	Entity* aiVehicle = gameState->findEntity("vehicle_1");
 
@@ -506,7 +510,7 @@ void PhysicsSystem::commandAI(Vehicle* vehicle) {
 	PxVec3 pos = vehicle->vehicle.mPhysXState.physxActor.rigidBody->getGlobalPose().p;
 	PxVec3 target;
 
-	glm::vec3 dest = pathfinder->getNextWaypoint();
+	glm::vec3 dest = aiController->selectedTrailer.second;
 
 	PxVec3 vanHeadingPx;
 	vanHeadingPx.x = vanHeading.x;

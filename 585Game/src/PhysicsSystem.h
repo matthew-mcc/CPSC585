@@ -14,6 +14,7 @@
 #include <Entity.h>
 #include <GameState.h>
 #include <PlayerProperties.h>
+#include "AiController.h"
 
 
 
@@ -43,7 +44,7 @@ public:
 	// Constructor
 	PhysicsSystem(){};
 	// Initializer
-	void initPhysicsSystem(GameState* gameState);
+	void initPhysicsSystem(GameState* gameState, AiController* aiController);
 	// Physics Update
 	// Changed to PlayerProperties
 	//void stepPhysics(std::shared_ptr<CallbackInterface> callback_ptr, Timer* timer);
@@ -65,6 +66,7 @@ private:
 	void detachTrailer(PxRigidDynamic* trailer, Vehicle* vehicle);
 
 	GameState* gameState;
+	AiController* aiController;
 };
 
 

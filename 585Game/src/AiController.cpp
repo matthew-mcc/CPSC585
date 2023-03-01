@@ -21,21 +21,26 @@ void AiController::initAiSystem(GameState* gameState) {
 
 
 void AiController::StateController() {
-
+	
 	if (state == 0) {
-		string currentTrailer = FindTrailer();
+		selectedTrailer = FindTrailer();
+		//state = 1;
 	}
-	/*if (state == 1) {
+	if (state == 1) {
 		CollectTrailer();
+
+		// if # trailers > 5, state --> 2, else state --> 0
+
 	}
-	if (state == 2) {
+
+	/*if (state == 2) {
 		DropOff();
 	}*/
 
 
 }
 
-string AiController::FindTrailer() {
+pair<string, glm::vec3> AiController::FindTrailer() {
 
 
 	for (Entity entity : gameState->entityList) {
@@ -46,6 +51,7 @@ string AiController::FindTrailer() {
 
 
 	string tempName;
+	glm::vec3 tempVec;
 	float distance = 10000000000.f;
 	glm::vec3 aiPosition = gameState->findEntity("vehicle_1")->transform->getPosition();
 	
@@ -60,24 +66,28 @@ string AiController::FindTrailer() {
 	
 		if (tempDistance < distance) {
 			tempName = trailerLocations[i].first;
+			tempVec = trailerLocations[i].second;
 			distance = tempDistance;
+			
 		}
 
 		
 	}
-	//cout << "trailer selected: " << tempName << endl;
-
-	//state = 1;
+	
 
 
-	return tempName;
+	return make_pair(tempName, tempVec);
 
 
 }
 
-void AiController::CollectTrailer(string trailerName) {
-	glm::vec3 trailerPosition = gameState->findEntity(trailerName)->transform->getPosition();
+void AiController::CollectTrailer() {
+	/*glm::vec3 trailerPosition = gameState->findEntity(trailerName)->transform->getPosition();*/
 	// Drive to position
+
+	
+
+	//Somehow we need to pass this trailerPosition into physics system
 }
 
 

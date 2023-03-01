@@ -17,7 +17,7 @@ int main() {
 	RenderingSystem renderer = RenderingSystem();
 	PhysicsSystem physics = PhysicsSystem();
 	XboxInput xInput;
-	AiController aiController =  AiController();
+	AiController* aiController =  new AiController();
 
 	
 
@@ -27,8 +27,8 @@ int main() {
 	// Initialize Systems
 	xInput.run();
 	gameState->initGameState();
-	physics.initPhysicsSystem(gameState);
-	aiController.initAiSystem(gameState);
+	physics.initPhysicsSystem(gameState, aiController);
+	aiController->initAiSystem(gameState);
 	
 	//aiController.initAiSystem(gameState, gameState->findEntity("vehicle_1"));
 	std::shared_ptr<CallbackInterface> callback_ptr = processInput(renderer.window);
@@ -44,7 +44,7 @@ int main() {
 
 			// Update Physics System
 			physics.stepPhysics(callback_ptr, timer);
-			aiController.StateController();
+			aiController->StateController();
 		}
 
 		// Update Input Drivers
