@@ -7,7 +7,7 @@
 
 FBuffer::FBuffer() {}
 
-// Constructor for shadow maps
+// Constructor for outline map
 FBuffer::FBuffer(int width, int height) {
 	WIDTH = width;
 	HEIGHT = height;
@@ -39,7 +39,7 @@ FBuffer::FBuffer(int width, int height) {
 	quadVAO = 0;
 }
 
-// Constructor for outline map
+// Constructor for shadow maps
 FBuffer::FBuffer(unsigned int width, unsigned int height, float x, float y, float near_plane, float far_plane) {
 	WIDTH = width;
 	HEIGHT = height;

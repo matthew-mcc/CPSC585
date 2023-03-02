@@ -42,6 +42,7 @@ void RenderingSystem::initRenderer() {
 	nearShadowMap = FBuffer(8192, 2048, 40.f, 10.f, -500.f, 100.f);
 	farShadowMap = FBuffer(16384, 4096, 800.f, 300.f, -700.f, 1000.f);
 	outlineMap = FBuffer(1920, 1080);
+	outlineMapNoLandscape = FBuffer(1920, 1080);
 
 	// WORLD SHADER INITIALIZATION
 	stbi_set_flip_vertically_on_load(true);
@@ -180,7 +181,6 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> callback
 
 		// Retrieve local positions and rotations of submeshes
 		for (int j = 0; j < gameState->entityList.at(i).localTransforms.size(); j++) {
-			//if (gameState->entityList.at(i).name.compare("landscape") == 0) continue;
 			vec3 localPosition = gameState->entityList.at(i).localTransforms.at(j)->getPosition();
 			quat localRotation = gameState->entityList.at(i).localTransforms.at(j)->getRotation();
 
@@ -200,12 +200,44 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> callback
 	glCullFace(GL_BACK);
 	outlineMap.cleanUp(callback_ptr);
 
+	glClear(GL_DEPTH_BUFFER_BIT);
+
+	// THIRD PASS: TOON OUTLINE 2 
+	outlineMapNoLandscape.update(projection, view);
+	glCullFace(GL_FRONT);
+	for (int i = 0; i < gameState->entityList.size(); i++) {
+		if (gameState->entityList.at(i).name.compare("landscape") == 0) continue;
+		// Retrieve global position and rotation
+		vec3 position = gameState->entityList.at(i).transform->getPosition();
+		quat rotation = gameState->entityList.at(i).transform->getRotation();
+
+		// Retrieve local positions and rotations of submeshes
+		for (int j = 0; j < gameState->entityList.at(i).localTransforms.size(); j++) {
+			vec3 localPosition = gameState->entityList.at(i).localTransforms.at(j)->getPosition();
+			quat localRotation = gameState->entityList.at(i).localTransforms.at(j)->getRotation();
+
+			// Set model matrix
+			model = mat4(1.0f);
+			model = translate(model, position);
+			model = model * toMat4(rotation);
+			model = translate(model, localPosition);
+			model = model * toMat4(localRotation);
+			model = scale(model, vec3(1.0f));
+			outlineMapNoLandscape.shader.setMat4("model", model);
+
+			// Draw model's meshes
+			gameState->entityList.at(i).model->meshes.at(j).Draw(outlineMapNoLandscape.shader);
+		}
+	}
+	glCullFace(GL_BACK);
+	outlineMapNoLandscape.cleanUp(callback_ptr);
+
 	//farShadowMap.render();		//Uncomment to see the far shadow map (light's perspective, near the car)
 	//nearShadowMap.render();		//Uncomment to see the near shadow map (light's perspective, the entire map)
 	//outlineMap.render();			//Uncomment to see the outline map (camera's position, just a depth map)
+	outlineMapNoLandscape.render();
 
 	glClear(GL_DEPTH_BUFFER_BIT);
-
 
 	// FOURTH PASS: CEL SHADE RENDER
 		// Use world shader
@@ -216,6 +248,8 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> callback
 	glBindTexture(GL_TEXTURE_2D, farShadowMap.depthMap);
 	glActiveTexture(GL_TEXTURE3);
 	glBindTexture(GL_TEXTURE_2D, outlineMap.depthMap);
+	glActiveTexture(GL_TEXTURE4);
+	glBindTexture(GL_TEXTURE_2D, outlineMapNoLandscape.depthMap);
 	setCelShaderUniforms();
 	celShader.setBool("renderingLand", false);
 
@@ -341,6 +375,7 @@ void RenderingSystem::setCelShaderUniforms() {
 	celShader.setInt("nearShadowMap", 1);
 	celShader.setInt("farShadowMap", 2);
 	celShader.setInt("outlineMap", 3);
+	celShader.setInt("outlineMapNoLandscape", 4);
 
 	celShader.setVec3("lightColor", lightColor);
 	celShader.setVec3("shadowColor", shadowColor);

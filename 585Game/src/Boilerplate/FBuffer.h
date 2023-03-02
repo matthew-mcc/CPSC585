@@ -16,6 +16,7 @@ public:
 	Shader shader = Shader();
 	unsigned int depthMapFBO;
 	unsigned int depthMap;
+	unsigned int depthMapCarOnly;
 
 
 private:

@@ -16,6 +16,7 @@ uniform sampler2D texture_diffuse1;
 uniform sampler2D nearShadowMap;
 uniform sampler2D farShadowMap;
 uniform sampler2D outlineMap;
+uniform sampler2D outlineMapNoLandscape;
 
 uniform bool renderingLand;
 
@@ -51,21 +52,36 @@ float OutlineCalculation(vec4 outlineFragPosSpace) {
     projCoords = projCoords * 0.5 + 0.5;                                // transform to [0,1] range
     float currentDepth = projCoords.z;                                  // get depth of current fragment from camera's perspective
     vec2 texelSize = 1.0 / textureSize(outlineMap, 0);
-    float outlineCount = 0.0;
-    for(int x = -2; x <= 2; ++x) {                                      // determine whether point should be part of an outline
-        for(int y = -2; y <= 2; ++y) {
+    float outlineCount1 = 0.0;
+    float outlineCount2 = 0.0;
+    float test1 = 0.0;
+    float test2 = 0.0;
+    for(int x = -1; x <= 1; ++x) {                                      // determine whether point should be part of an outline
+        for(int y = -1; y <= 1; ++y) {
             float pcfDepth = texture(outlineMap, projCoords.xy + vec2(x, y) * texelSize).r;
+            float pcfDepth2 = texture(outlineMapNoLandscape, projCoords.xy + vec2(x, y) * texelSize).r;
+
             if (length(WorldPos(currentDepth, projCoords.xy) - WorldPos(pcfDepth, projCoords.xy + vec2(x, y) * texelSize)) > outlineSensitivity) {
-                if (pcfDepth < outline || outline == 0.0) {
-                    outline = pcfDepth;
+                if (pcfDepth < test1 || test1 == 0.0) {
+                    test1 = pcfDepth;
                 }
-                outlineCount += 1.0;
+                outlineCount1 += 1.0;
+            }
+            if (length(WorldPos(currentDepth, projCoords.xy) - WorldPos(pcfDepth2, projCoords.xy + vec2(x, y) * texelSize)) > outlineSensitivity) {
+                if (pcfDepth2 < test2 || test2 == 0.0) {
+                    test2 = pcfDepth2;
+                }
+                outlineCount2 += 1.0;
             }
         }    
     }
-    outlineCount /= 25.0;
+    outlineCount1 /= 9.0;
+    outlineCount2 /= 9.0;
 
-    return 1.0 - (outline * outlineCount);
+    float ooga = 1.0 - (test1 * outlineCount1);
+    float booga = 1.0 - (test2 * outlineCount2);
+    if (booga > 0.0 && test2 == test1+1.0) return booga;
+    return ooga;
 }
 
 float ShadowCalculation(vec4 nearFragPosLightSpace, vec4 farFragPosLightSpace) {
