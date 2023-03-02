@@ -1,13 +1,14 @@
-#include "Shadow.h"
+#include "FBuffer.h"
 #include <stdio.h>
 #include <glm.hpp>
 #include <glad/glad.h>
 #include <gtc/matrix_transform.hpp>
 #include <Boilerplate/Shader.h>
 
-Shadow::Shadow() {}
+FBuffer::FBuffer() {}
 
-Shadow::Shadow(int width, int height) {
+// Constructor for shadow maps
+FBuffer::FBuffer(int width, int height) {
 	WIDTH = width;
 	HEIGHT = height;
 	glGenFramebuffers(1, &depthMapFBO);
@@ -38,7 +39,8 @@ Shadow::Shadow(int width, int height) {
 	quadVAO = 0;
 }
 
-Shadow::Shadow(unsigned int width, unsigned int height, float x, float y, float near_plane, float far_plane) {
+// Constructor for outline map
+FBuffer::FBuffer(unsigned int width, unsigned int height, float x, float y, float near_plane, float far_plane) {
 	WIDTH = width;
 	HEIGHT = height;
 	mapX = x;
@@ -74,7 +76,8 @@ Shadow::Shadow(unsigned int width, unsigned int height, float x, float y, float 
 	quadVAO = 0;
 }
 
-void Shadow::update(glm::vec3 lightPos, glm::vec3 playerPos) {
+// Update shadow map
+void FBuffer::update(glm::vec3 lightPos, glm::vec3 playerPos) {
 	ConfigureShaderAndMatrices(lightPos, playerPos);
 	shader.use();
 	shader.setMat4("lightSpaceMatrix", lightSpaceMatrix);
@@ -84,7 +87,9 @@ void Shadow::update(glm::vec3 lightPos, glm::vec3 playerPos) {
 	glClear(GL_DEPTH_BUFFER_BIT);
 	glActiveTexture(GL_TEXTURE0);
 }
-void Shadow::update(glm::mat4 proj, glm::mat4 view) {
+
+// Update outline map
+void FBuffer::update(glm::mat4 proj, glm::mat4 view) {
 	lightSpaceMatrix = proj * view;
 	shader.use();
 	shader.setMat4("lightSpaceMatrix", lightSpaceMatrix);
@@ -95,20 +100,21 @@ void Shadow::update(glm::mat4 proj, glm::mat4 view) {
 	glActiveTexture(GL_TEXTURE0);
 }
 
-void Shadow::cleanUp(std::shared_ptr<CallbackInterface> callback_ptr) {
+void FBuffer::cleanUp(std::shared_ptr<CallbackInterface> callback_ptr) {
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glViewport(0, 0, callback_ptr->xres, callback_ptr->yres);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 
-void Shadow::render() {
+// Draw framebuffer to screen for debug purposes
+void FBuffer::render() {
 	debugShader.use();
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, depthMap);
 	renderQuad();
 }
 
-void Shadow::ConfigureShaderAndMatrices(glm::vec3 lightPos, glm::vec3 playerPos) {
+void FBuffer::ConfigureShaderAndMatrices(glm::vec3 lightPos, glm::vec3 playerPos) {
 	glm::mat4 lightProjection = glm::ortho(-mapX, mapX, -mapY, mapY, nearPlane, farPlane);
 	glm::mat4 lightView = glm::lookAt(lightPos + playerPos,
 		playerPos,
@@ -116,7 +122,7 @@ void Shadow::ConfigureShaderAndMatrices(glm::vec3 lightPos, glm::vec3 playerPos)
 	lightSpaceMatrix = lightProjection * lightView;
 }
 
-void Shadow::renderQuad() {
+void FBuffer::renderQuad() {
 	if (quadVAO == 0)
 	{
 		float quadVertices[] = {

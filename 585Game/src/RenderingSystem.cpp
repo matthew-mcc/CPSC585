@@ -38,24 +38,18 @@ void RenderingSystem::initRenderer() {
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 
-	// SHADOW MAP INITIALIZATION
-		//shadowMap = Shadow(16384, 4096);
-	nearShadowMap = Shadow(8192, 2048, 40.f, 10.f, -500.f, 100.f);
-	farShadowMap = Shadow(16384, 4096, 800.f, 300.f, -700.f, 1000.f);
-	outlineMap = Shadow(1920, 1080);
+	// FRAME BUFFER INITIALIZATIONS
+	nearShadowMap = FBuffer(8192, 2048, 40.f, 10.f, -500.f, 100.f);
+	farShadowMap = FBuffer(16384, 4096, 800.f, 300.f, -700.f, 1000.f);
+	outlineMap = FBuffer(1920, 1080);
 
 	// WORLD SHADER INITIALIZATION
-		// Bind vertex and fragment shaders to world shader object
 	stbi_set_flip_vertically_on_load(true);
 	celShader = Shader("src/Shaders/celVertex.txt", "src/Shaders/celFragment.txt");
-	outlineShader = Shader("src/Shaders/outlineVertex.txt", "src/Shaders/outlineFragment.txt");
 
 	// FONT INITIALIZATION
-		// Create character map based on font file
 	textChars = initFont("assets/fonts/Rowdies-Regular.ttf");
-	// Create vertex array and buffer objects
 	initTextVAO(&textVAO, &textVBO);
-	// Create text shader
 	textShader = Shader("src/Shaders/textVertex.txt", "src/Shaders/textFragment.txt");
 	textShader.use();
 
@@ -67,33 +61,19 @@ void RenderingSystem::initRenderer() {
 // Update Renderer
 void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> callback_ptr, GameState* gameState, Timer* timer) {
 	// BACKGROUND
-		// Set Background (Sky) Color
-	glClearColor(skyColor.r, skyColor.g, skyColor.b, 1.0f);
+	glClearColor(skyColor.r, skyColor.g, skyColor.b, 1.0f);	// Set Background (Sky) Color
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 
 	// IMGUI INITIALIZATION
-		// Create IMGUI Window
 	ImGui_ImplOpenGL3_NewFrame();
 	ImGui_ImplGlfw_NewFrame();
 	ImGui::NewFrame();
 
-	// Draw outlines
-	/*outlineShader.use();
-	outlineShader.setMat4("model", model);
-	outlineShader.setMat4("view", view);
-	outlineShader.setMat4("projection", projection);
-	outlineShader.setFloat("thickness", 0.2f);
-	for (int i = 0; i < models.size(); i ++) {
-		models.at(i).Draw(outlineShader);
-	}*/
-
 	// CAMERA POSITION / LAG
-		// Find player entity
-	Entity playerEntity = gameState->findEntity("player_truck1");
+	Entity playerEntity = gameState->findEntity("player_truck1");	// Find player entity
 
 	// Retrieve player direction vectors
-	//camera_position_forward = camera_position_forward - (callback_ptr->camera_acceleration) / 15.f;
 	vec3 player_forward = playerEntity.transform->getForwardVector();
 	vec3 player_right = playerEntity.transform->getRightVector();
 	vec3 player_up = playerEntity.transform->getUpVector();
@@ -121,6 +101,7 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> callback
 	else {
 		view = lookAt(camera_previous_position + camOffset, playerEntity.transform->getPosition() + target_offset, world_up);
 	}
+
 	// Set projection and view matrices
 	projection = perspective(radians(fov), (float)callback_ptr->xres / (float)callback_ptr->yres, 0.1f, 1000.0f);
 
@@ -199,6 +180,7 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> callback
 
 		// Retrieve local positions and rotations of submeshes
 		for (int j = 0; j < gameState->entityList.at(i).localTransforms.size(); j++) {
+			//if (gameState->entityList.at(i).name.compare("landscape") == 0) continue;
 			vec3 localPosition = gameState->entityList.at(i).localTransforms.at(j)->getPosition();
 			quat localRotation = gameState->entityList.at(i).localTransforms.at(j)->getRotation();
 
@@ -218,9 +200,9 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> callback
 	glCullFace(GL_BACK);
 	outlineMap.cleanUp(callback_ptr);
 
-	//farShadowMap.render();		//Uncomment to see the shadow map (scene rendered from light's point of view)
-	//nearShadowMap.render();		//Uncomment to see the shadow map (scene rendered from light's point of view)
-	//outlineMap.render();
+	//farShadowMap.render();		//Uncomment to see the far shadow map (light's perspective, near the car)
+	//nearShadowMap.render();		//Uncomment to see the near shadow map (light's perspective, the entire map)
+	//outlineMap.render();			//Uncomment to see the outline map (camera's position, just a depth map)
 
 	glClear(GL_DEPTH_BUFFER_BIT);
 

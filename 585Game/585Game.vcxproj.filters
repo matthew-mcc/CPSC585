@@ -69,7 +69,7 @@
     <ClCompile Include="src\ControllerInput.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\Boilerplate\Shadow.cpp">
+    <ClCompile Include="src\Boilerplate\FBuffer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="snippetvehicle2common\base\Base.cpp">
@@ -174,7 +174,7 @@
     <ClInclude Include="libraries\imgui-1.89.2\imconfig.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\Boilerplate\Shadow.h">
+    <ClInclude Include="src\Boilerplate\FBuffer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="snippetcommon\SnippetPrint.h">

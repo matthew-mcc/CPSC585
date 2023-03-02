@@ -52,16 +52,18 @@ float OutlineCalculation(vec4 outlineFragPosSpace) {
     float currentDepth = projCoords.z;                                  // get depth of current fragment from camera's perspective
     vec2 texelSize = 1.0 / textureSize(outlineMap, 0);
     float outlineCount = 0.0;
-    for(int x = -1; x <= 1; ++x) {                                      // determine whether point should be part of an outline
-        for(int y = -1; y <= 1; ++y) {
+    for(int x = -2; x <= 2; ++x) {                                      // determine whether point should be part of an outline
+        for(int y = -2; y <= 2; ++y) {
             float pcfDepth = texture(outlineMap, projCoords.xy + vec2(x, y) * texelSize).r;
             if (length(WorldPos(currentDepth, projCoords.xy) - WorldPos(pcfDepth, projCoords.xy + vec2(x, y) * texelSize)) > outlineSensitivity) {
-                if (pcfDepth < outline || outline == 0.0) outline = pcfDepth;
+                if (pcfDepth < outline || outline == 0.0) {
+                    outline = pcfDepth;
+                }
                 outlineCount += 1.0;
             }
         }    
     }
-    outlineCount /= 9.0;
+    outlineCount /= 25.0;
 
     return 1.0 - (outline * outlineCount);
 }
@@ -107,20 +109,10 @@ float ShadowCalculation(vec4 nearFragPosLightSpace, vec4 farFragPosLightSpace) {
     return shadow;
 }
 
-void main(){
-    float nl = dot(normal, normalize(sun));
+vec3 LightCalculation(float shadow) {
     vec3 light;
+    float nl = dot(normal, normalize(sun));
     vec3 middleColor = (lightColor + shadowColor) / 2.0;
-    vec4 multiplier = vec4(1.0, 1.0, 1.0, 1.0);
-
-    float outline = OutlineCalculation(OutlineFragPosSpace);
-    float shadow = ShadowCalculation(NearFragPosLightSpace, FarFragPosLightSpace);    //Calculate if point is in shadow
-    if (outline > 0.0) {
-        //FragColor = vec4(0.0, 0.0, 0.0, 1.0);
-        //FragColor = vec4((1.0+shadow)*FragColor.xyz - (shadow)*fogColor, 1.0);
-        float test = outlineTransparency + (1.0 - outlineTransparency) * outline;
-        multiplier = vec4(test, test, test, 1.0);
-    }
 
     if (nl > shift + band + gradient) {
         light = (1.0 - shadow)*lightColor + (shadow)*middleColor;
@@ -157,7 +149,21 @@ void main(){
     else
         light = shadowColor;
 
+    return light;
+}
+
+void main(){
+    vec4 outlineMultiplier = vec4(1.0, 1.0, 1.0, 1.0);
+
+    float shadow = ShadowCalculation(NearFragPosLightSpace, FarFragPosLightSpace);      // Calculate if point is in shadow
+    vec3 light = LightCalculation(shadow);                                              // Calculate light color
+    float outline = OutlineCalculation(OutlineFragPosSpace);                            // Calculate if point is in an outline
+    if (outline > 0.0) {
+        float hardness = outlineTransparency + (1.0 - outlineTransparency) * outline;
+        outlineMultiplier = vec4(hardness, hardness, hardness, 1.0);
+    }
+
     FragColor = vec4(texture(texture_diffuse1, TexCoords).xyz * light, 1.0);
-    FragColor *= multiplier;
+    FragColor *= outlineMultiplier;
     FragColor = vec4((1.0-depth)*FragColor.xyz + (depth)*fogColor, 1.0);
 }

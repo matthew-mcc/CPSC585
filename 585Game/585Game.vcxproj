@@ -169,7 +169,7 @@
     <ClCompile Include="snippetvehicle2common\SnippetVehicleHelpers.cpp" />
     <ClCompile Include="src\Boilerplate\Mesh.cpp" />
     <ClCompile Include="src\Boilerplate\Shader.cpp" />
-    <ClCompile Include="src\Boilerplate\Shadow.cpp" />
+    <ClCompile Include="src\Boilerplate\FBuffer.cpp" />
     <ClCompile Include="src\Boilerplate\Text.cpp" />
     <ClCompile Include="src\Boilerplate\Texture.cpp" />
     <ClCompile Include="src\Boilerplate\stb_image.cpp" />
@@ -604,7 +604,7 @@
     <ClInclude Include="snippetvehicle2common\serialization\SerializationCommon.h" />
     <ClInclude Include="snippetvehicle2common\SnippetVehicleHelpers.h" />
     <ClInclude Include="src\Boilerplate\Cube.h" />
-    <ClInclude Include="src\Boilerplate\Shadow.h" />
+    <ClInclude Include="src\Boilerplate\FBuffer.h" />
     <ClInclude Include="src\Boilerplate\Mesh.h" />
     <ClInclude Include="src\Boilerplate\Model.h" />
     <ClInclude Include="src\Boilerplate\Text.h" />

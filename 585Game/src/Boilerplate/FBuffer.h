@@ -2,11 +2,11 @@
 #include <Boilerplate/Shader.h>
 #include <Boilerplate/Window.h>
 
-class Shadow {
+class FBuffer {
 public:
-	Shadow();
-	Shadow(int width, int height);
-	Shadow(unsigned int width, unsigned int height, float x, float y, float near, float far);
+	FBuffer();
+	FBuffer(int width, int height);
+	FBuffer(unsigned int width, unsigned int height, float x, float y, float near, float far);
 	void update(glm::vec3 lightPos, glm::vec3 playerPos);
 	void update(glm::mat4 proj, glm::mat4 view);
 	void cleanUp(std::shared_ptr<CallbackInterface> callback_ptr);

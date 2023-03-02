@@ -4,7 +4,7 @@
 #include <Boilerplate/Text.h>
 #include <Boilerplate/Model.h>
 #include <Boilerplate/Timer.h>
-#include <Boilerplate/Shadow.h>
+#include <Boilerplate/FBuffer.h>
 #include <GameState.h>
 //#include <Boilerplate/Input.h>
 
@@ -33,10 +33,10 @@ public:
 private:
 	void setCelShaderUniforms();
 
-	// Shadow Maps
-	Shadow nearShadowMap;
-	Shadow farShadowMap;
-	Shadow outlineMap;
+	// Frame buffers
+	FBuffer nearShadowMap;
+	FBuffer farShadowMap;
+	FBuffer outlineMap;
 
 	// Shaders
 	Shader textShader;
