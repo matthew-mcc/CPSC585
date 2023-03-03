@@ -6,12 +6,11 @@ class PlayerProperties {
 public:
 	void setPlayerControlled();
 	void setAiControlled();
+	void addScore(int toAdd);
+	int getScore();
 	void updateCallbacks (std::shared_ptr<CallbackInterface> callback_ptr);
 
 	void updateBoost();
-
-	bool playerControlled = false;
-	int playerScore = 0;
 
 	// Controls
 	float throttle = 0.f;
@@ -30,6 +29,9 @@ public:
 	bool addTrailer = false;
 
 private:
+	bool playerControlled = false;
+	int playerScore = 0;
+
 	bool boost_status = false;
 	bool boost_status_cb = false;
 

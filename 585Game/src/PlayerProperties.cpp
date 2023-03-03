@@ -9,6 +9,14 @@ void PlayerProperties::setAiControlled() {
 	playerControlled = false;
 }
 
+void PlayerProperties::addScore(int toAdd) {
+	playerScore = playerScore + toAdd;
+}
+
+int PlayerProperties::getScore() {
+	return playerScore;
+}
+
 // Takes all player vehicle input from callbacks and updates player properties variables
 void PlayerProperties::updateCallbacks(std::shared_ptr<CallbackInterface> callback_ptr) {
 

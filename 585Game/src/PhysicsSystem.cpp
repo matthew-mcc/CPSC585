@@ -13,8 +13,8 @@
 #include <map>
 
 //PhysX management class instances.
-PxDefaultAllocator		gAllocator;
-PxDefaultErrorCallback	gErrorCallback;
+PxDefaultAllocator gAllocator;
+PxDefaultErrorCallback gErrorCallback;
 PxFoundation* gFoundation = NULL;
 PxPhysics* gPhysics = NULL;
 PxDefaultCpuDispatcher* gDispatcher = NULL;
@@ -24,13 +24,13 @@ PxMaterial* trailerMat = NULL;
 PxPvd* gPvd = NULL;
 ContactReportCallback* gContactReportCallback;
 
+// Trailer dropoff globals
+float circle = 0.f;
 vector<PxRigidDynamic*> flyTrailer;
 
-
+// AI globals
 Pathfinder* pathfinder;
-
 AiController* aiController;
-
 
 // Vehicles
 vector<Vehicle*> vehicles;
@@ -45,12 +45,9 @@ vector<PxQuat> vehicleStartRotations = vector<PxQuat>{
 	PxQuat(0.0f, 0.0f, 0.0f, 1.0f),
 	PxQuat(0.0f, 0.0f, 0.0f, 1.0f)};
 
-// Cooking shit
+// Cooking
 PxCooking* gCooking = NULL;
 PxCookingParams* gParams;
-
-// box
-PxRigidDynamic* boxBody;
 
 //The path to the vehicle json files to be loaded.
 const char* gVehicleDataPath = NULL;
@@ -72,13 +69,9 @@ PxReal gPhysXDefaultMaterialFriction = 1.0f;
 //Give the vehicle a name so it can be identified in PVD.
 const char gVehicleName[] = "engineDrive";
 
+// Rigidbodies
 vector<PxRigidDynamic*> rigidBodies;
 int rigidBodyAddIndex;
-
-
-//A ground plane to drive on (this is our landscape stuff).
-PxRigidStatic* gGroundPlane = NULL;
-PxTriangleMesh* groundMesh = NULL;
 
 
 vec3 toGLMVec3(PxVec3 pxTransform) {
@@ -96,6 +89,22 @@ quat toGLMQuat(PxQuat pxTransform) {
 	quaternion.z = pxTransform.z;
 	quaternion.w = pxTransform.w;
 	return quaternion;
+}
+
+PxVec3 PhysicsSystem::randomSpawnPosition() {
+	int max = 250;
+	int min = -250;
+	int range = max - min + 1;
+	return PxVec3(rand() % range + min, 60.f, rand() % range + min);
+}
+
+int PhysicsSystem::getVehicleIndex(Vehicle* vehicle) {
+	for (int i = 0; i < vehicles.size(); i++) {
+		if (vehicles.at(i) == vehicle) {
+			return i;
+		}
+	}
+	return 0;
 }
 
 Vehicle* PhysicsSystem::getPullingVehicle(PxRigidDynamic* trailer) {
@@ -140,10 +149,7 @@ void PhysicsSystem::processTrailerCollision() {
 
 void PhysicsSystem::spawnTrailer() {
 	gameState->spawnTrailer();
-	int max = 250;
-	int min = -250;
-	int range = max - min + 1;
-	PxVec3 spawnPos = PxVec3(rand() % range + min, 20.f, rand() % range + min);
+	PxVec3 spawnPos = randomSpawnPosition();
 
 	PxShape* shape = gPhysics->createShape(PxBoxGeometry(.75f, .75f, .75f), *trailerMat);
 	PxFilterData boxFilter(COLLISION_FLAG_OBSTACLE, COLLISION_FLAG_OBSTACLE_AGAINST, 0, 0);
@@ -152,7 +158,7 @@ void PhysicsSystem::spawnTrailer() {
 	PxRigidDynamic* trailer;
 	trailer = gPhysics->createRigidDynamic(PxTransform(spawnPos));
 	trailer->attachShape(*shape);
-	trailer->setLinearDamping(1);
+	trailer->setLinearDamping(0.5);
 	trailer->setAngularDamping(1);
 	trailer->setMass(2);
 	gScene->addActor(*trailer);
@@ -229,7 +235,6 @@ void PhysicsSystem::detachTrailer(PxRigidDynamic* trailer, Vehicle* vehicle) {
 	vehicle->attachedTrailers = newTrailers;
 }
 
-float circle = 0.f;
 void PhysicsSystem::RoundFly() {
 	for (int i = 0; i < flyTrailer.size(); i++) {
 		PxVec3 dir = (PxVec3(0.0f, 0.0f, 32.0f) - flyTrailer.at(i)->getGlobalPose().p);
@@ -252,47 +257,43 @@ void PhysicsSystem::RoundFly() {
 		
 		// therefore, eventually we want the pulling force defeat spin force, which let them assemble to a point
 		// but we need to make the process reasonable slow that play can feel trailers are gradually pulling together rather than immediately.
-
 		flyTrailer.at(i)->addForce(dir*coffi2, PxForceMode().eVELOCITY_CHANGE);
 		flyTrailer.at(i)->addForce(PxVec3(-sinf(glm::radians(circle+i*55))* coffi, 0.5f, cosf(glm::radians(circle+i*55))*coffi), PxForceMode().eVELOCITY_CHANGE);
 	}
 }
 
-void PhysicsSystem::dropOffTrailer(Vehicle* car) {
+void PhysicsSystem::dropOffTrailer(Vehicle* vehicle) {
 	vector<PxD6Joint*> newJoints;
 	vector<PxRigidDynamic*> newTrailers;
-	bool needforHead = false;
-	bool droped = false;
-	for (int i = 0; i < car->attachedTrailers.size(); i++) {
-		flyTrailer.push_back(car->attachedTrailers.at(i));
-		car->attachedJoints.at(i)->release();
-		/*
-		PxTransform trailer_trans = car->attachedTrailers.at(i)->getGlobalPose();
-		PxVec3 position = trailer_trans.transform(PxVec3(0.f, 0.f, 0.f)); 
-		if (position.x < 15 && position.z < 45 && position.x>-15 && position.z>15 && !droped) {
-			if (i == 0) {
-				needforHead = true;
-			}
-			car->attachedJoints.at(i)->release();
-			flyTrailer.push_back(car->attachedTrailers.at(i));
-			//car->attachedTrailers.at(i)->addForce(trailer_trans.rotate(PxVec3(0.f, 100.f, 0.f)), PxForceMode().eVELOCITY_CHANGE); //setAngularDamping(1);
-			//car->attachedTrailers.at(i)->setLinearDamping(1);
-			//cout << "yes!" << endl;
-			droped = true;
-		}
-		else {
-			PxD6Joint* joint = car->attachedJoints.at(i);
-			if (needforHead) {
-				joint->setActors(car->vehicle.mPhysXState.physxActor.rigidBody, car->attachedTrailers.at(i));
-				needforHead = false;
-			}
-			newJoints.push_back(joint);
-			newTrailers.push_back(car->attachedTrailers.at(i));
-		} */
+	int nbTrailers = vehicle->attachedTrailers.size();
 
+	// Add trailers to flyTrailer list
+	// Release all joints attached to vehicle
+	for (int i = 0; i < nbTrailers; i++) {
+		flyTrailer.push_back(vehicle->attachedTrailers.at(i));
+		vehicle->attachedJoints.at(i)->release();
 	}
-	car->attachedJoints = newJoints;
-	car->attachedTrailers = newTrailers;
+
+	// Reset vehicle's joint and trailer lists
+	vehicle->attachedJoints = newJoints;
+	vehicle->attachedTrailers = newTrailers;
+
+	// Find entity of vehicle that triggered the dropoff
+	// Add score to this entity
+	Entity* vehicleEntity = gameState->findEntity("vehicle_" + to_string(getVehicleIndex(vehicle)));
+	vehicleEntity->playerProperties->addScore(nbTrailers);
+	cout << vehicleEntity->name << "'s new score: " << vehicleEntity->playerProperties->getScore() << "\n";		// For debugging
+}
+
+void PhysicsSystem::resetCollectedTrailers() {
+	for (int i = 0; i < flyTrailer.size(); i++) {
+		if (flyTrailer.at(i)->getGlobalPose().p.y > 40.0f) {
+			flyTrailer.at(i)->setGlobalPose(PxTransform(randomSpawnPosition()));
+			flyTrailer.at(i)->setLinearDamping(0.5);
+			flyTrailer.at(i)->setAngularDamping(1);
+			flyTrailer.erase(flyTrailer.begin() + i);
+		}
+	}
 }
 
 void PhysicsSystem::initPhysX() {
@@ -423,9 +424,9 @@ void PhysicsSystem::initMaterialFrictionTable() {
 	//If a material is encountered that is not mapped to a friction value, the friction value used is the specified default value.
 	//In this snippet there is only a single material so there can only be a single mapping between material and friction.
 	//In this snippet the same mapping is used by all tires.
-	gPhysXMaterialFrictions[0].friction = 2.0f;
+	gPhysXMaterialFrictions[0].friction = 3.0f;
 	gPhysXMaterialFrictions[0].material = gMaterial;
-	gPhysXDefaultMaterialFriction = 2.0f;
+	gPhysXDefaultMaterialFriction = 3.0f;
 	gNbPhysXMaterialFrictions = 1;
 }
 
@@ -534,7 +535,6 @@ void PhysicsSystem::initVehicles(int vehicleCount) {
 	gScene->setVisualizationParameter(physx::PxVisualizationParameter::eJOINT_LIMITS, 1.0f);
 }
 
-
 void PhysicsSystem::initPhysicsSystem(GameState* gameState, AiController* aiController) {
 	this->gameState = gameState;
 	this->aiController = aiController;
@@ -610,9 +610,6 @@ void PhysicsSystem::commandAI(Vehicle* vehicle) {
 }
 
 void PhysicsSystem::stepPhysics(shared_ptr<CallbackInterface> callback_ptr, Timer* timer) {
-	//cout << gContactReportCallback->AirOrNot << endl;
-	// Update Timestep
-	//cout << gameState->entityList[4].transform->getPosition().x << endl;
 	PxReal timestep;
 	if (timer->getDeltaTime() > 0.1) {	// Safety check: If deltaTime gets too large, default it to (1 / 60)
 		timestep = (1 / 60.f);
@@ -634,19 +631,21 @@ void PhysicsSystem::stepPhysics(shared_ptr<CallbackInterface> callback_ptr, Time
 		rigidBodyAddIndex++;
 	}
 
+	// Spinning motion for dropped off trailers
+	RoundFly();
+	if (circle > 360) circle = 0;
+	else circle++;
+
+	// Reset collected trailers that have risen to a high enough height
+	resetCollectedTrailers();
+
 	// Store entity list
+	// Update player callbacks
 	auto entityList = gameState->entityList;
-	
 	Entity* player = gameState->findEntity("vehicle_0");
-
-	//cout << player->transform->getPosition().x << ", " << player->transform->getPosition().y << ", " << player->transform->getPosition().z << endl;
 	player->playerProperties->updateCallbacks(callback_ptr);
-	// Super scuffed af. Right now, I just want to make playerProperties to work, so manually set our pointer?
-
 
 	// Loop through each vehicle, update input and step physics simulation
-	
-	
 	for (int i = 0; i < vehicles.size(); i++) {
 		//Forward integrate the vehicle by a single timestep.
 		//Apply substepping at low forward speed to improve simulation fidelity.
@@ -657,6 +656,14 @@ void PhysicsSystem::stepPhysics(shared_ptr<CallbackInterface> callback_ptr, Time
 		const PxU8 nbSubsteps = (forwardSpeed < 5.0f ? 3 : 1);
 		vehicles.at(i)->vehicle.mComponentSequence.setSubsteps(vehicles.at(i)->vehicle.mComponentSequenceSubstepGroupHandle, nbSubsteps);
 		vehicles.at(i)->vehicle.step(timestep, gVehicleSimulationContext);
+
+		// Trailer dropoff detection
+		if (vehicle_transform.p.x < 24 && vehicle_transform.p.x > -24 && vehicle_transform.p.z < 56 && vehicle_transform.p.z > 8) {
+			if (vehicles.at(i)->attachedTrailers.size() > 0) {
+				dropOffTrailer(vehicles.at(i));
+			}
+		}
+
 		// PLAYER VEHICLE INPUT
 		if (i == 0) {
 			// On Ground
@@ -681,35 +688,12 @@ void PhysicsSystem::stepPhysics(shared_ptr<CallbackInterface> callback_ptr, Time
 				vehicles.at(i)->vehicle.mPhysXState.physxActor.rigidBody->addTorque(vehicle_transform.rotate(PxVec3(player->playerProperties->AirPitch * 0.0075f, player->playerProperties->AirRoll * 0.01f, 0.f)), PxForceMode().eVELOCITY_CHANGE);
 			}
 			// EXPERIMENTAL - Simple Boost
-			
-			PxVec3 position = vehicle_transform.transform(PxVec3(0.f, 0.f, 0.f));
-			if (position.x < 30 && position.z < 60 && position.x>-30 && position.z>0) {
-				dropOffTrailer(vehicles.at(i));
-				//cout << "here we are?" << endl;
-			} // somehow, this area is our drop off ground! where is a circle with radius 30,  -30 < x <30 &&    0 < z < 60
 			vehicles.at(i)->vehicle.mPhysXState.physxActor.rigidBody->addForce(vehicle_transform.rotate(PxVec3(0.f, 0.f, player->playerProperties->boost)), PxForceMode().eVELOCITY_CHANGE);
-			
-			//dropOffTrailer(vehicles.at(i));
-			RoundFly();
-			if (circle > 360)
-				circle = 0;
-			else
-				circle++;
 		}
 
 		// PLACEHOLDER - AI VEHICLE INPUT
 		else {
 			commandAI(vehicles.at(i));
-
-			
-
-			
-			
-			
-
-
-			
-
 
 
 		}

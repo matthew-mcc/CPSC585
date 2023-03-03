@@ -59,12 +59,15 @@ private:
 	void initPhysXMeshes();
 	void initMaterialFrictionTable();
 	void initVehicles(int vehicleCount);
+	PxVec3 randomSpawnPosition();
 	void spawnTrailer();
 	void processTrailerCollision();
+	int getVehicleIndex(Vehicle* vehicle);
 	Vehicle* getPullingVehicle(PxRigidDynamic* trailer);
 	void attachTrailer(PxRigidDynamic* trailer, Vehicle* vehicle);
 	void detachTrailer(PxRigidDynamic* trailer, Vehicle* vehicle);
-	void dropOffTrailer(Vehicle* car);
+	void dropOffTrailer(Vehicle* vehicle);
+	void resetCollectedTrailers();
 	void RoundFly();
 	GameState* gameState;
 	AiController* aiController;

@@ -68,7 +68,7 @@ Entity* GameState::findEntity(string name) {
 			return &entityList.at(i);
 		}
 	}
-	return new Entity();
+	return NULL;
 }
 
 

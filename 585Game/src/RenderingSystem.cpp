@@ -324,31 +324,51 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> callback
 		vec3(0.2, 0.2f, 0.2f),
 		textChars);
 	
-	RenderText(textShader, textVAO, textVBO, "Boost Meter: " + std::to_string( (int) playerEntity->playerProperties->boost_meter),
+	// Display boost meter
+	RenderText(textShader, textVAO, textVBO, "Boost Meter: " + to_string((int)playerEntity->playerProperties->boost_meter),
 		20,
 		40, 0.6f,
 		vec3(0.2, 0.2f, 0.2f),
 		textChars);
 
-
-	/*
-	if (timer->getCountdownSecs() >= 10) {
-		RenderText(textShader, textVAO, textVBO, std::to_string(timer->getCountdownMins()) + ":" + std::to_string(timer->getCountdownSecs()),
-			callback_ptr->xres / 2.f - 10.f,
-			callback_ptr->yres - 32.f, 0.6f,
+	// Display player scores
+	string scoreText = "";
+	if (gameState->findEntity("vehicle_0") != NULL) {
+		scoreText = "Player: " + to_string(gameState->findEntity("vehicle_0")->playerProperties->getScore());
+		RenderText(textShader, textVAO, textVBO, scoreText,
+			callback_ptr->xres - (16 * (int)scoreText.size()),
+			callback_ptr->yres - 100.f, 
+			0.6f,
 			vec3(0.2, 0.2f, 0.2f),
 			textChars);
 	}
-
-
-	else {
-		RenderText(textShader, textVAO, textVBO, std::to_string(timer->getCountdownMins()) + ":0" + std::to_string(timer->getCountdownSecs()),
-			callback_ptr->xres / 2.f - 10.f,
-			callback_ptr->yres - 32.f, 0.6f,
+	if (gameState->findEntity("vehicle_1") != NULL) {
+		scoreText = "AI 1: " + to_string(gameState->findEntity("vehicle_1")->playerProperties->getScore());
+		RenderText(textShader, textVAO, textVBO, scoreText,
+			callback_ptr->xres - (15 * (int)scoreText.size()),
+			callback_ptr->yres - 150.f, 
+			0.6f,
 			vec3(0.2, 0.2f, 0.2f),
 			textChars);
 	}
-	*/
+	if (gameState->findEntity("vehicle_2") != NULL) {
+		scoreText = "AI 2: " + to_string(gameState->findEntity("vehicle_2")->playerProperties->getScore());
+		RenderText(textShader, textVAO, textVBO, scoreText,
+			callback_ptr->xres - (15 * (int)scoreText.size()),
+			callback_ptr->yres - 200.f, 
+			0.6f,
+			vec3(0.2, 0.2f, 0.2f),
+			textChars);
+	}
+	if (gameState->findEntity("vehicle_3") != NULL) {
+		scoreText = "AI 3: " + to_string(gameState->findEntity("vehicle_3")->playerProperties->getScore());
+		RenderText(textShader, textVAO, textVBO, scoreText,
+			callback_ptr->xres - (15 * (int)scoreText.size()),
+			callback_ptr->yres - 250.f,
+			0.6f,
+			vec3(0.2, 0.2f, 0.2f),
+			textChars);
+	}
 
 	// Imgui Window
 	ImGui::Begin("Super Space Salvagers - Debug Menu");
