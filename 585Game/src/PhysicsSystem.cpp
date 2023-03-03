@@ -235,12 +235,26 @@ void PhysicsSystem::RoundFly() {
 		PxVec3 dir = (PxVec3(0.0f, 0.0f, 32.0f) - flyTrailer.at(i)->getGlobalPose().p);
 		dir = 3.0f * (dir / dir.magnitude());
 		dir = PxVec3(dir.x, 0.0f, dir.z);
+		
+		// change the cof smaller will make the assemble process faseter. For example 10.f will looks like trailers immediately assemble to a point
+		// make cof bigger will slower down the process, so we can have a better spin animation of trailers assemble to a point
+		float cof = 40.0f;
+		float height = clamp(((flyTrailer.at(i)->getGlobalPose().p.y) / cof ),0.25f,100.f); // start from 0.25f, which makes 1/0.25f be 4.f
+		
+		// the pulling force for trailers that assemble them to the central point
+		dir = PxVec3(dir.x, 0.f, dir.z);
 
-		float height = clamp(1.0f / ((flyTrailer.at(i)->getGlobalPose().p.y) / 10.0f), 0.0f, 5.0f);
-		cout << height << "\n";
+		// the coefficient for spin force, this should be initially big and grow slowly. So assign it to 
+		float coffi = clamp((1.f/height),0.1f,4.f); // this will be 4.f at beginning
 
-		flyTrailer.at(i)->addForce(dir, PxForceMode().eVELOCITY_CHANGE);
-		flyTrailer.at(i)->addForce(PxVec3(-sinf(glm::radians(circle+i*55))*2.0f*height, 0.5f, cosf(glm::radians(circle+i*55))*2.0f*height), PxForceMode().eVELOCITY_CHANGE);
+		// the coefficient for pulling force, this should be initially small and grow fast. So assign it to a log function
+		float coffi2 = clamp(log2(height+2.f),1.f,100.f); // this will be 1.f at beginning
+		
+		// therefore, eventually we want the pulling force defeat spin force, which let them assemble to a point
+		// but we need to make the process reasonable slow that play can feel trailers are gradually pulling together rather than immediately.
+
+		flyTrailer.at(i)->addForce(dir*coffi2, PxForceMode().eVELOCITY_CHANGE);
+		flyTrailer.at(i)->addForce(PxVec3(-sinf(glm::radians(circle+i*55))* coffi, 0.5f, cosf(glm::radians(circle+i*55))*coffi), PxForceMode().eVELOCITY_CHANGE);
 	}
 }
 
@@ -671,7 +685,7 @@ void PhysicsSystem::stepPhysics(shared_ptr<CallbackInterface> callback_ptr, Time
 			PxVec3 position = vehicle_transform.transform(PxVec3(0.f, 0.f, 0.f));
 			if (position.x < 30 && position.z < 60 && position.x>-30 && position.z>0) {
 				dropOffTrailer(vehicles.at(i));
-				cout << "here we are?" << endl;
+				//cout << "here we are?" << endl;
 			} // somehow, this area is our drop off ground! where is a circle with radius 30,  -30 < x <30 &&    0 < z < 60
 			vehicles.at(i)->vehicle.mPhysXState.physxActor.rigidBody->addForce(vehicle_transform.rotate(PxVec3(0.f, 0.f, player->playerProperties->boost)), PxForceMode().eVELOCITY_CHANGE);
 			
