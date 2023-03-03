@@ -7,7 +7,7 @@
 #include <thread>
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
-#include <glm.hpp>
+#include <glm.hpp>				// include is here twice?
 #include <Boilerplate/Timer.h>
 
 GLFWwindow* initWindow();
