@@ -64,7 +64,8 @@ private:
 	Vehicle* getPullingVehicle(PxRigidDynamic* trailer);
 	void attachTrailer(PxRigidDynamic* trailer, Vehicle* vehicle);
 	void detachTrailer(PxRigidDynamic* trailer, Vehicle* vehicle);
-
+	void dropOffTrailer(Vehicle* car);
+	void RoundFly();
 	GameState* gameState;
 	AiController* aiController;
 };
@@ -94,7 +95,8 @@ private:
 			gate = 0;
 		}
 		contactPair = pairHeader;
-		contactDetected = true;
+		if(pairHeader.pairs->events.isSet(PxPairFlag::eNOTIFY_TOUCH_FOUND))
+			contactDetected = true;
 	}
 	void onConstraintBreak(physx::PxConstraintInfo* constraints, physx::PxU32 count) {}
 	void onWake(physx::PxActor** actors, physx::PxU32 count) {}

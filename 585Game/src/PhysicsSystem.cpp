@@ -24,6 +24,8 @@ PxMaterial* trailerMat = NULL;
 PxPvd* gPvd = NULL;
 ContactReportCallback* gContactReportCallback;
 
+vector<PxRigidDynamic*> flyTrailer;
+
 
 Pathfinder* pathfinder;
 
@@ -112,23 +114,25 @@ void PhysicsSystem::processTrailerCollision() {
 	gContactReportCallback->contactDetected = false;
 	PxRigidDynamic* trailer = (PxRigidDynamic*)gContactReportCallback->contactPair.actors[0];
 
-	// Find the colliding vehicle
-	for (int i = 0; i < vehicles.size(); i++) {
-		if (vehicles.at(i)->vehicle.mPhysXState.physxActor.rigidBody == gContactReportCallback->contactPair.actors[1]) {
-			// Find vehicle that is pulling the trailer (if one exists)
-			Vehicle* pullingVehicle = getPullingVehicle(trailer);
-			// If a pulling vehicle exists, detach the trailer
-			if (pullingVehicle != NULL) {
-				detachTrailer(trailer, pullingVehicle);
-				// If the pulling vehicle and colliding vehicle are different, attach the trailer to the colliding vehicle
-				if (pullingVehicle != vehicles.at(i)) {
+	if (std::find(flyTrailer.begin(), flyTrailer.end(), trailer) == flyTrailer.end()) {// if the trailer is not flying
+		// Find the colliding vehicle
+		for (int i = 0; i < vehicles.size(); i++) {
+			if (vehicles.at(i)->vehicle.mPhysXState.physxActor.rigidBody == gContactReportCallback->contactPair.actors[1]) {
+				// Find vehicle that is pulling the trailer (if one exists)
+				Vehicle* pullingVehicle = getPullingVehicle(trailer);
+				// If a pulling vehicle exists, detach the trailer
+				if (pullingVehicle != NULL) {
+					detachTrailer(trailer, pullingVehicle);
+					// If the pulling vehicle and colliding vehicle are different, attach the trailer to the colliding vehicle
+					if (pullingVehicle != vehicles.at(i)) {
+						attachTrailer(trailer, vehicles.at(i));
+					}
+					return;
+				}
+				// Otherwise if no pulling vehicle exists, simply attach trailer to colliding vehicle
+				else {
 					attachTrailer(trailer, vehicles.at(i));
 				}
-				return;
-			}
-			// Otherwise if no pulling vehicle exists, simply attach trailer to colliding vehicle
-			else {
-				attachTrailer(trailer, vehicles.at(i));
 			}
 		}
 	}
@@ -225,6 +229,47 @@ void PhysicsSystem::detachTrailer(PxRigidDynamic* trailer, Vehicle* vehicle) {
 	vehicle->attachedTrailers = newTrailers;
 }
 
+float circle = 0.f;
+void PhysicsSystem::RoundFly() {
+	for (int i = 0; i < flyTrailer.size(); i++) {
+		flyTrailer.at(i)->addForce(PxVec3(-sinf(glm::radians(circle+i*10))*2.f, 0.5f, cosf(glm::radians(circle+i*10))*2.f), PxForceMode().eVELOCITY_CHANGE);
+	}
+}
+
+void PhysicsSystem::dropOffTrailer(Vehicle*  car) {
+	vector<PxD6Joint*> newJoints;
+	vector<PxRigidDynamic*> newTrailers;
+	bool needforHead = false;
+	bool droped = false;
+	for (int i = 0; i < car->attachedTrailers.size(); i++) {
+		PxTransform trailer_trans = car->attachedTrailers.at(i)->getGlobalPose();
+		PxVec3 position = trailer_trans.transform(PxVec3(0.f, 0.f, 0.f)); 
+		if (position.x < 15 && position.z < 45 && position.x>-15 && position.z>15 && !droped) {
+			if (i == 0) {
+				needforHead = true;
+			}
+			car->attachedJoints.at(i)->release();
+			flyTrailer.push_back(car->attachedTrailers.at(i));
+			//car->attachedTrailers.at(i)->addForce(trailer_trans.rotate(PxVec3(0.f, 100.f, 0.f)), PxForceMode().eVELOCITY_CHANGE); //setAngularDamping(1);
+			//car->attachedTrailers.at(i)->setLinearDamping(1);
+			//cout << "yes!" << endl;
+			droped = true;
+		}
+		else {
+			PxD6Joint* joint = car->attachedJoints.at(i);
+			if (needforHead) {
+				joint->setActors(car->vehicle.mPhysXState.physxActor.rigidBody, car->attachedTrailers.at(i));
+				needforHead = false;
+			}
+			newJoints.push_back(joint);
+			newTrailers.push_back(car->attachedTrailers.at(i));
+		}
+
+	}
+	car->attachedJoints = newJoints;
+	car->attachedTrailers = newTrailers;
+}
+
 void PhysicsSystem::initPhysX() {
 	gFoundation = PxCreateFoundation(PX_PHYSICS_VERSION, gAllocator, gErrorCallback);
 	gPvd = PxCreatePvd(*gFoundation);
@@ -311,9 +356,9 @@ void PhysicsSystem::initPhysXMeshes() {
 					indicesArr.push_back(loader.LoadedMeshes[0].Indices[k]);
 				}
 
-	// Mesh Description for Triangle Mesh
-	PxTriangleMeshDesc meshDesc;
-	meshDesc.setToDefault();                                                                                                                                                            
+				// Mesh Description for Triangle Mesh
+				PxTriangleMeshDesc meshDesc;
+				meshDesc.setToDefault();                                                                                                                                                            
 
 				meshDesc.points.count = (PxU32)vertexArr.size();
 				meshDesc.points.stride = sizeof(PxVec3);
@@ -487,7 +532,7 @@ void PhysicsSystem::initPhysicsSystem(GameState* gameState, AiController* aiCont
 
 void PhysicsSystem::commandAI(Vehicle* vehicle) {
 
-	cout << aiController->selectedTrailer.first << endl;
+	//cout << aiController->selectedTrailer.first << endl;
 
 	/*Node* startNode = pathfinder->navMesh->nodes->find(1)->second;
 	Node* destNode = pathfinder->navMesh->nodes->find(2)->second;*/
@@ -539,7 +584,6 @@ void PhysicsSystem::commandAI(Vehicle* vehicle) {
 	}
 
 }
-
 void PhysicsSystem::stepPhysics(shared_ptr<CallbackInterface> callback_ptr, Timer* timer) {
 	//cout << gContactReportCallback->AirOrNot << endl;
 	// Update Timestep
@@ -577,6 +621,7 @@ void PhysicsSystem::stepPhysics(shared_ptr<CallbackInterface> callback_ptr, Time
 
 	// Loop through each vehicle, update input and step physics simulation
 	
+	
 	for (int i = 0; i < vehicles.size(); i++) {
 		//Forward integrate the vehicle by a single timestep.
 		//Apply substepping at low forward speed to improve simulation fidelity.
@@ -610,9 +655,19 @@ void PhysicsSystem::stepPhysics(shared_ptr<CallbackInterface> callback_ptr, Time
 				// Set Rotation based on air controls
 				vehicles.at(i)->vehicle.mPhysXState.physxActor.rigidBody->addTorque(vehicle_transform.rotate(PxVec3(player->playerProperties->AirPitch * 0.0075f, player->playerProperties->AirRoll * 0.01f, 0.f)), PxForceMode().eVELOCITY_CHANGE);
 			}
-
 			// EXPERIMENTAL - Simple Boost
+			
+			/*PxVec3 position = vehicle_transform.transform(PxVec3(0.f, 0.f, 0.f));
+			if (position.x < 30 && position.z < 60 && position.x>-30 && position.z>0)
+				cout << "here we are?" << endl;*/ // somehow, this area is our drop off ground! where is a circle with radius 30,  -30 < x <30 &&    0 < z < 60
 			vehicles.at(i)->vehicle.mPhysXState.physxActor.rigidBody->addForce(vehicle_transform.rotate(PxVec3(0.f, 0.f, player->playerProperties->boost)), PxForceMode().eVELOCITY_CHANGE);
+			
+			dropOffTrailer(vehicles.at(i));
+			RoundFly();
+			if (circle > 360)
+				circle = 0;
+			else
+				circle++;
 		}
 
 		// PLACEHOLDER - AI VEHICLE INPUT
@@ -631,6 +686,7 @@ void PhysicsSystem::stepPhysics(shared_ptr<CallbackInterface> callback_ptr, Time
 
 
 		}
+		
 	}
 
 	//Forward integrate the phsyx scene by a single timestep.

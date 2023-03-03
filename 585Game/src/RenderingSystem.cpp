@@ -272,6 +272,23 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> callback
 
 			// Draw model's mesh
 			gameState->entityList.at(i).model->meshes.at(j).Draw(celShader);
+			/*if (gameState->entityList.at(i).name == "platform_center") {
+				float x = 0;
+				float y = 0;
+				float z = 0;
+				for (int j = 0;j < gameState->entityList.at(i).model->meshes.at(0).vertices.size();j++) {
+					if (fabsl(gameState->entityList.at(i).model->meshes.at(0).vertices.at(j).Position.x) > x)
+						x = fabsl(gameState->entityList.at(i).model->meshes.at(0).vertices.at(j).Position.x);
+					if (fabsl(gameState->entityList.at(i).model->meshes.at(0).vertices.at(j).Position.y) > y)
+						y = fabsl(gameState->entityList.at(i).model->meshes.at(0).vertices.at(j).Position.y);
+					if (fabsl(gameState->entityList.at(i).model->meshes.at(0).vertices.at(j).Position.z) > z)
+						z = fabsl(gameState->entityList.at(i).model->meshes.at(0).vertices.at(j).Position.z);
+				}
+				cout << "biggest x is:" << x << endl; //30
+				cout << "biggest y is:" << y << endl;
+				cout << "biggest z is:" << z << endl; //60
+				
+			}*/	
 		}
 	}
 
