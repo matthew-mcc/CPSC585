@@ -232,16 +232,27 @@ void PhysicsSystem::detachTrailer(PxRigidDynamic* trailer, Vehicle* vehicle) {
 float circle = 0.f;
 void PhysicsSystem::RoundFly() {
 	for (int i = 0; i < flyTrailer.size(); i++) {
-		flyTrailer.at(i)->addForce(PxVec3(-sinf(glm::radians(circle+i*10))*2.f, 0.5f, cosf(glm::radians(circle+i*10))*2.f), PxForceMode().eVELOCITY_CHANGE);
+		PxVec3 dir = (PxVec3(0.0f, 0.0f, 32.0f) - flyTrailer.at(i)->getGlobalPose().p);
+		dir = 3.0f * (dir / dir.magnitude());
+		dir = PxVec3(dir.x, 0.0f, dir.z);
+
+		float height = clamp(1.0f / ((flyTrailer.at(i)->getGlobalPose().p.y) / 10.0f), 0.0f, 5.0f);
+		cout << height << "\n";
+
+		flyTrailer.at(i)->addForce(dir, PxForceMode().eVELOCITY_CHANGE);
+		flyTrailer.at(i)->addForce(PxVec3(-sinf(glm::radians(circle+i*55))*2.0f*height, 0.5f, cosf(glm::radians(circle+i*55))*2.0f*height), PxForceMode().eVELOCITY_CHANGE);
 	}
 }
 
-void PhysicsSystem::dropOffTrailer(Vehicle*  car) {
+void PhysicsSystem::dropOffTrailer(Vehicle* car) {
 	vector<PxD6Joint*> newJoints;
 	vector<PxRigidDynamic*> newTrailers;
 	bool needforHead = false;
 	bool droped = false;
 	for (int i = 0; i < car->attachedTrailers.size(); i++) {
+		flyTrailer.push_back(car->attachedTrailers.at(i));
+		car->attachedJoints.at(i)->release();
+		/*
 		PxTransform trailer_trans = car->attachedTrailers.at(i)->getGlobalPose();
 		PxVec3 position = trailer_trans.transform(PxVec3(0.f, 0.f, 0.f)); 
 		if (position.x < 15 && position.z < 45 && position.x>-15 && position.z>15 && !droped) {
@@ -263,7 +274,7 @@ void PhysicsSystem::dropOffTrailer(Vehicle*  car) {
 			}
 			newJoints.push_back(joint);
 			newTrailers.push_back(car->attachedTrailers.at(i));
-		}
+		} */
 
 	}
 	car->attachedJoints = newJoints;
@@ -529,7 +540,6 @@ void PhysicsSystem::initPhysicsSystem(GameState* gameState, AiController* aiCont
 	}
 }
 
-
 void PhysicsSystem::commandAI(Vehicle* vehicle) {
 
 	//cout << aiController->selectedTrailer.first << endl;
@@ -584,6 +594,7 @@ void PhysicsSystem::commandAI(Vehicle* vehicle) {
 	}
 
 }
+
 void PhysicsSystem::stepPhysics(shared_ptr<CallbackInterface> callback_ptr, Timer* timer) {
 	//cout << gContactReportCallback->AirOrNot << endl;
 	// Update Timestep
@@ -657,12 +668,14 @@ void PhysicsSystem::stepPhysics(shared_ptr<CallbackInterface> callback_ptr, Time
 			}
 			// EXPERIMENTAL - Simple Boost
 			
-			/*PxVec3 position = vehicle_transform.transform(PxVec3(0.f, 0.f, 0.f));
-			if (position.x < 30 && position.z < 60 && position.x>-30 && position.z>0)
-				cout << "here we are?" << endl;*/ // somehow, this area is our drop off ground! where is a circle with radius 30,  -30 < x <30 &&    0 < z < 60
+			PxVec3 position = vehicle_transform.transform(PxVec3(0.f, 0.f, 0.f));
+			if (position.x < 30 && position.z < 60 && position.x>-30 && position.z>0) {
+				dropOffTrailer(vehicles.at(i));
+				cout << "here we are?" << endl;
+			} // somehow, this area is our drop off ground! where is a circle with radius 30,  -30 < x <30 &&    0 < z < 60
 			vehicles.at(i)->vehicle.mPhysXState.physxActor.rigidBody->addForce(vehicle_transform.rotate(PxVec3(0.f, 0.f, player->playerProperties->boost)), PxForceMode().eVELOCITY_CHANGE);
 			
-			dropOffTrailer(vehicles.at(i));
+			//dropOffTrailer(vehicles.at(i));
 			RoundFly();
 			if (circle > 360)
 				circle = 0;
