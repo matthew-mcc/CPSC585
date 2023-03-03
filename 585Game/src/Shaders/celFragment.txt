@@ -80,7 +80,7 @@ float OutlineCalculation(vec4 outlineFragPosSpace) {
 
     float ooga = 1.0 - (test1 * outlineCount1);
     float booga = 1.0 - (test2 * outlineCount2);
-    if (booga > 0.0 && test2 == test1+1.0) return booga;
+    if (test2 == test1+1.0) return booga;
     return ooga;
 }
 

@@ -5,7 +5,7 @@
 class FBuffer {
 public:
 	FBuffer();
-	FBuffer(int width, int height);
+	FBuffer(int width, int height, std::string mode);
 	FBuffer(unsigned int width, unsigned int height, float x, float y, float near, float far);
 	void update(glm::vec3 lightPos, glm::vec3 playerPos);
 	void update(glm::mat4 proj, glm::mat4 view);
@@ -23,6 +23,7 @@ private:
 	Shader debugShader;
 	void ConfigureShaderAndMatrices(glm::vec3 lightPos, glm::vec3 playerPos);
 	void renderQuad();
+	void setup(std::string mode);
 
 	float mapX;
 	float mapY;

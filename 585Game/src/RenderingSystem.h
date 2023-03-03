@@ -31,13 +31,14 @@ public:
 	GLFWwindow* window;
 
 private:
-	void setCelShaderUniforms();
+	void setCelShaderUniforms(Shader* shader);
 
 	// Frame buffers
 	FBuffer nearShadowMap;
 	FBuffer farShadowMap;
 	FBuffer outlineMap;
 	FBuffer outlineMapNoLandscape;
+	FBuffer celMap;
 
 	// Shaders
 	Shader textShader;

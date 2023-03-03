@@ -8,33 +8,22 @@
 FBuffer::FBuffer() {}
 
 // Constructor for outline map
-FBuffer::FBuffer(int width, int height) {
+FBuffer::FBuffer(int width, int height, std::string mode) {
 	WIDTH = width;
 	HEIGHT = height;
-	glGenFramebuffers(1, &depthMapFBO);
-	glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
 
-	// Generate texture
-	glGenTextures(1, &depthMap);
-	glBindTexture(GL_TEXTURE_2D, depthMap);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT,
-		WIDTH, HEIGHT, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
-	float borderColor[] = { 1.0, 1.0, 1.0, 1.0 };
-	glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);
+	setup(mode);
 
-	// Attach texture to FBO
-	glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depthMap, 0);
-	glDrawBuffer(GL_NONE);
-	glReadBuffer(GL_NONE);
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-	shader = Shader("src/Shaders/shadowVertex.txt", "src/Shaders/shadowFragment.txt");
-	debugShader = Shader("src/Shaders/shadowDebugVertex.txt", "src/Shaders/shadowDebugFragment.txt");
+	if (mode.compare("o") == 0) {
+		shader = Shader("src/Shaders/shadowVertex.txt", "src/Shaders/shadowFragment.txt");
+		debugShader = Shader("src/Shaders/shadowDebugVertex.txt", "src/Shaders/shadowDebugFragment.txt");
+		debugShader.setBool("isDepth", true);
+	}
+	else if (mode.compare("c") == 0) {
+		shader = Shader("src/Shaders/celVertex.txt", "src/Shaders/celFragment.txt");
+		debugShader = Shader("src/Shaders/shadowDebugVertex.txt", "src/Shaders/shadowDebugFragment.txt");
+		debugShader.setBool("isDepth", false);
+	}
 
 	quadVAO = 0;
 }
@@ -48,32 +37,58 @@ FBuffer::FBuffer(unsigned int width, unsigned int height, float x, float y, floa
 	nearPlane = near_plane;
 	farPlane = far_plane;
 
+	setup("o");
+
+	shader = Shader("src/Shaders/shadowVertex.txt", "src/Shaders/shadowFragment.txt");
+	debugShader = Shader("src/Shaders/shadowDebugVertex.txt", "src/Shaders/shadowDebugFragment.txt");
+	debugShader.setBool("isDepth", true);
+
+	quadVAO = 0;
+}
+
+void FBuffer::setup(std::string mode) {
 	glGenFramebuffers(1, &depthMapFBO);
 	glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
 
 	// Generate texture
 	glGenTextures(1, &depthMap);
 	glBindTexture(GL_TEXTURE_2D, depthMap);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT,
+	if (mode.compare("o") == 0) {
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT,
 		WIDTH, HEIGHT, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
-	float borderColor[] = { 1.0, 1.0, 1.0, 1.0 };
-	glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+		float borderColor[] = { 1.0, 1.0, 1.0, 1.0 };
+		glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);
+	}
+	else if (mode.compare("c") == 0) {
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB,
+		WIDTH, HEIGHT, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	}
 
 	// Attach texture to FBO
 	glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depthMap, 0);
-	glDrawBuffer(GL_NONE);
-	glReadBuffer(GL_NONE);
+	if (mode.compare("o") == 0) {
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depthMap, 0);
+		glDrawBuffer(GL_NONE);
+		glReadBuffer(GL_NONE);
+	}
+	else if (mode.compare("c") == 0) {
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, depthMap, 0);
+		unsigned int rbo;
+		glGenRenderbuffers(1, &rbo);
+		glBindRenderbuffer(GL_RENDERBUFFER, rbo);
+		glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, WIDTH, HEIGHT); // use a single renderbuffer object for both a depth AND stencil buffer.
+		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rbo); // now actually attach it
+		// now that we actually created the framebuffer and added all attachments we want to check if it is actually complete now
+		if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+			std::cout << "ERROR::FRAMEBUFFER:: Framebuffer is not complete!" << std::endl;
+	}
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-	shader = Shader("src/Shaders/shadowVertex.txt", "src/Shaders/shadowFragment.txt");
-	debugShader = Shader("src/Shaders/shadowDebugVertex.txt", "src/Shaders/shadowDebugFragment.txt");
-
-	quadVAO = 0;
 }
 
 // Update shadow map
@@ -84,7 +99,7 @@ void FBuffer::update(glm::vec3 lightPos, glm::vec3 playerPos) {
 	shader.setMat4("model", glm::mat4(1.0f));
 	glViewport(0, 0, WIDTH, HEIGHT);
 	glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
-	glClear(GL_DEPTH_BUFFER_BIT);
+	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 	glActiveTexture(GL_TEXTURE0);
 }
 
@@ -96,7 +111,7 @@ void FBuffer::update(glm::mat4 proj, glm::mat4 view) {
 	shader.setMat4("model", glm::mat4(1.0f));
 	glViewport(0, 0, WIDTH, HEIGHT);
 	glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
-	glClear(GL_DEPTH_BUFFER_BIT);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glActiveTexture(GL_TEXTURE0);
 }
 
@@ -144,6 +159,7 @@ void FBuffer::renderQuad() {
 		glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
 	}
 	glBindVertexArray(quadVAO);
+	glBindTexture(GL_TEXTURE_2D, depthMap);
 	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 	glBindVertexArray(0);
 }

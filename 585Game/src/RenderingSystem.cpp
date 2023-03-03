@@ -41,8 +41,9 @@ void RenderingSystem::initRenderer() {
 	// FRAME BUFFER INITIALIZATIONS
 	nearShadowMap = FBuffer(8192, 2048, 40.f, 10.f, -500.f, 100.f);
 	farShadowMap = FBuffer(16384, 4096, 800.f, 300.f, -700.f, 1000.f);
-	outlineMap = FBuffer(1920, 1080);
-	outlineMapNoLandscape = FBuffer(1920, 1080);
+	outlineMap = FBuffer(1920, 1080, "o");
+	outlineMapNoLandscape = FBuffer(1920, 1080, "o");
+	celMap = FBuffer(1920, 1080, "c");
 
 	// WORLD SHADER INITIALIZATION
 	stbi_set_flip_vertically_on_load(true);
@@ -171,7 +172,7 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> callback
 
 	glClear(GL_DEPTH_BUFFER_BIT);
 
-	// THIRD PASS: TOON OUTLINE
+	// THIRD PASS: TOON OUTLINE (Landscape)
 	outlineMap.update(projection, view);
 	glCullFace(GL_FRONT);
 	for (int i = 0; i < gameState->entityList.size(); i++) {
@@ -202,7 +203,7 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> callback
 
 	glClear(GL_DEPTH_BUFFER_BIT);
 
-	// THIRD PASS: TOON OUTLINE 2 
+	// FOURTH PASS: TOON OUTLINE (Objects)
 	outlineMapNoLandscape.update(projection, view);
 	glCullFace(GL_FRONT);
 	for (int i = 0; i < gameState->entityList.size(); i++) {
@@ -232,16 +233,11 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> callback
 	glCullFace(GL_BACK);
 	outlineMapNoLandscape.cleanUp(callback_ptr);
 
-	//farShadowMap.render();		//Uncomment to see the far shadow map (light's perspective, near the car)
-	//nearShadowMap.render();		//Uncomment to see the near shadow map (light's perspective, the entire map)
-	//outlineMap.render();			//Uncomment to see the outline map (camera's position, just a depth map)
-	outlineMapNoLandscape.render();
-
 	glClear(GL_DEPTH_BUFFER_BIT);
 
-	// FOURTH PASS: CEL SHADE RENDER
-		// Use world shader
-	celShader.use();
+	// FIFTH PASS: SCENE TO TEXTURE
+	celMap.update(projection, view);
+	glCullFace(GL_FRONT);
 	glActiveTexture(GL_TEXTURE1);
 	glBindTexture(GL_TEXTURE_2D, nearShadowMap.depthMap);
 	glActiveTexture(GL_TEXTURE2);
@@ -250,7 +246,59 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> callback
 	glBindTexture(GL_TEXTURE_2D, outlineMap.depthMap);
 	glActiveTexture(GL_TEXTURE4);
 	glBindTexture(GL_TEXTURE_2D, outlineMapNoLandscape.depthMap);
-	setCelShaderUniforms();
+	glActiveTexture(GL_TEXTURE0);
+	for (int i = 0; i < gameState->entityList.size(); i++) {
+		// Retrieve global position and rotation
+		vec3 position = gameState->entityList.at(i).transform->getPosition();
+		quat rotation = gameState->entityList.at(i).transform->getRotation();
+
+		// Retrieve local positions and rotations of submeshes
+		for (int j = 0; j < gameState->entityList.at(i).localTransforms.size(); j++) {
+			vec3 localPosition = gameState->entityList.at(i).localTransforms.at(j)->getPosition();
+			quat localRotation = gameState->entityList.at(i).localTransforms.at(j)->getRotation();
+
+			// Set model matrix
+			model = mat4(1.0f);
+			model = translate(model, position);
+			model = model * toMat4(rotation);
+			model = translate(model, localPosition);
+			model = model * toMat4(localRotation);
+			model = scale(model, vec3(1.0f));
+			setCelShaderUniforms(&celMap.shader);
+
+			// Update relative light position
+			quat lightRotation = rotation;
+			quat localLightRotation = localRotation;
+			lightRotation.w *= -1.f;
+			localLightRotation *= -1.f;
+			vec3 newLight = (vec3)(toMat4(lightRotation) * vec4(lightPos, 0.f) * toMat4(localLightRotation));
+			celShader.setVec3("sun", newLight);
+
+			// Draw model's meshes
+			gameState->entityList.at(i).model->meshes.at(j).Draw(celMap.shader);
+		}
+	}
+	glCullFace(GL_BACK);
+	celMap.cleanUp(callback_ptr);
+
+	//farShadowMap.render();		//Uncomment to see the far shadow map (light's perspective, near the car)
+	//nearShadowMap.render();		//Uncomment to see the near shadow map (light's perspective, the entire map)
+	//outlineMap.render();			//Uncomment to see the outline map (camera's position, just a depth map)
+	//outlineMapNoLandscape.render();
+	celMap.render();
+
+	// SIXTH PASS PASS: CEL SHADE RENDER
+		// Use world shader
+	/*celShader.use();
+	glActiveTexture(GL_TEXTURE1);
+	glBindTexture(GL_TEXTURE_2D, nearShadowMap.depthMap);
+	glActiveTexture(GL_TEXTURE2);
+	glBindTexture(GL_TEXTURE_2D, farShadowMap.depthMap);
+	glActiveTexture(GL_TEXTURE3);
+	glBindTexture(GL_TEXTURE_2D, outlineMap.depthMap);
+	glActiveTexture(GL_TEXTURE4);
+	glBindTexture(GL_TEXTURE_2D, outlineMapNoLandscape.depthMap);
+	setCelShaderUniforms(&celShader);
 	celShader.setBool("renderingLand", false);
 
 	// Iteratively Draw Models
@@ -261,10 +309,10 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> callback
 
 		// Retrieve local positions and rotations of submeshes
 		for (int j = 0; j < gameState->entityList.at(i).localTransforms.size(); j++) {
-			/*if (gameState->entityList.at(i).name.compare("landscape") == 0) {
-				celShader.setBool("renderingLand", true);
-			}
-			else celShader.setBool("renderingLand", false);*/
+			//if (gameState->entityList.at(i).name.compare("landscape") == 0) {
+			//	celShader.setBool("renderingLand", true);
+			//}
+			//else celShader.setBool("renderingLand", false);
 
 			vec3 localPosition = gameState->entityList.at(i).localTransforms.at(j)->getPosition();
 			quat localRotation = gameState->entityList.at(i).localTransforms.at(j)->getRotation();
@@ -276,7 +324,7 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> callback
 			model = translate(model, localPosition);
 			model = model * toMat4(localRotation);
 			model = scale(model, vec3(1.0f));
-			celShader.setMat4("model", model);
+			setCelShaderUniforms(&celShader);
 
 			// Update relative light position
 			quat lightRotation = rotation;
@@ -287,9 +335,9 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> callback
 			celShader.setVec3("sun", newLight);
 
 			// Draw model's mesh
-			gameState->entityList.at(i).model->meshes.at(j).Draw(celShader);
+			//gameState->entityList.at(i).model->meshes.at(j).Draw(celShader);
 		}
-	}
+	}*/
 
 	// FIFTH PASS: GUI RENDER
 		// Use text shader
@@ -365,28 +413,28 @@ void RenderingSystem::shutdownImgui() {
 }
 
 
-void RenderingSystem::setCelShaderUniforms() {
-	celShader.setMat4("model", model);
-	celShader.setMat4("view", view);
-	celShader.setMat4("projection", projection);
-	celShader.setMat4("nearLightSpaceMatrix", nearShadowMap.lightSpaceMatrix);
-	celShader.setMat4("farLightSpaceMatrix", farShadowMap.lightSpaceMatrix);
-	celShader.setMat4("outlineSpaceMatrix", outlineMap.lightSpaceMatrix);
-	celShader.setInt("nearShadowMap", 1);
-	celShader.setInt("farShadowMap", 2);
-	celShader.setInt("outlineMap", 3);
-	celShader.setInt("outlineMapNoLandscape", 4);
+void RenderingSystem::setCelShaderUniforms(Shader* shader) {
+	(*shader).setMat4("model", model);
+	(*shader).setMat4("view", view);
+	(*shader).setMat4("projection", projection);
+	(*shader).setMat4("nearLightSpaceMatrix", nearShadowMap.lightSpaceMatrix);
+	(*shader).setMat4("farLightSpaceMatrix", farShadowMap.lightSpaceMatrix);
+	(*shader).setMat4("outlineSpaceMatrix", outlineMap.lightSpaceMatrix);
+	(*shader).setInt("nearShadowMap", 1);
+	(*shader).setInt("farShadowMap", 2);
+	(*shader).setInt("outlineMap", 3);
+	(*shader).setInt("outlineMapNoLandscape", 4);
 
-	celShader.setVec3("lightColor", lightColor);
-	celShader.setVec3("shadowColor", shadowColor);
-	celShader.setVec3("fogColor", fogColor);
-	celShader.setFloat("fogDepth", fogDepth);
-	celShader.setVec3("sun", lightPos);
-	celShader.setFloat("band", band);
-	celShader.setFloat("gradient", gradient);
-	celShader.setFloat("shift", shift);
-	celShader.setFloat("minBias", minBias);
-	celShader.setFloat("maxBias", maxBias);
-	celShader.setFloat("outlineTransparency", outlineTransparency);
-	celShader.setFloat("outlineSensitivity", outlineSensitivity);
+	(*shader).setVec3("lightColor", lightColor);
+	(*shader).setVec3("shadowColor", shadowColor);
+	(*shader).setVec3("fogColor", fogColor);
+	(*shader).setFloat("fogDepth", fogDepth);
+	(*shader).setVec3("sun", lightPos);
+	(*shader).setFloat("band", band);
+	(*shader).setFloat("gradient", gradient);
+	(*shader).setFloat("shift", shift);
+	(*shader).setFloat("minBias", minBias);
+	(*shader).setFloat("maxBias", maxBias);
+	(*shader).setFloat("outlineTransparency", outlineTransparency);
+	(*shader).setFloat("outlineSensitivity", outlineSensitivity);
 }
