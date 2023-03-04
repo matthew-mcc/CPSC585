@@ -49,7 +49,7 @@ public:
 	// Changed to PlayerProperties
 	//void stepPhysics(std::shared_ptr<CallbackInterface> callback_ptr, Timer* timer);
 	void stepPhysics(std::shared_ptr<CallbackInterface> callback_ptr, Timer* timer);
-	//void commandAI(Vehicle* vehicle); // Not sure if this needs to be public
+	
 
 	
 
@@ -80,9 +80,9 @@ private:
 	void AI_FindTrailer(Vehicle* vehicle);
 	void AI_CollectTrailer(Vehicle* vehicle);
 	void AI_DropOff(Vehicle* vehicle);
-	void AI_BumpPlayer();
+	void AI_BumpPlayer(Vehicle* vehicle);
 	void AI_StateController(Vehicle* vehicle);
-	void commandAI(Vehicle* vehicle); // Not sure if this needs to be public
+	
 };
 
 
