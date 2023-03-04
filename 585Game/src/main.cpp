@@ -48,6 +48,7 @@ int main() {
 			// Update Physics System
 			physics.stepPhysics(callback_ptr, timer);
 			aiController->StateController();
+
 		}
 
 		// Update Input Drivers
