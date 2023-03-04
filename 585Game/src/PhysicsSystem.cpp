@@ -729,6 +729,10 @@ void PhysicsSystem::AI_FindTrailer(Vehicle* vehicle) {
 			i++;
 		}
 
+		if (rigidBodies[i] == NULL) {
+			continue;
+		}
+
 		PxVec3 delta = rigidBodies[i]->getGlobalPose().p - vehicle->vehicle.mPhysXState.physxActor.rigidBody->getGlobalPose().p;
 		PxReal distanceSq = delta.x * delta.x + delta.z * delta.z;
 
