@@ -19,8 +19,6 @@ int main() {
 	XboxInput xInput;
 	AiController* aiController =  new AiController();
 
-	
-
 	// Flags
 	bool isLoaded = false;	// false if first render update hasn't finished, true otherwise
 
@@ -41,6 +39,11 @@ int main() {
 		if (isLoaded) {
 			// Update Timer
 			timer->update();
+
+			// End Game if Time is Up
+			if (timer->getCountdown() <= 0 && !gameState->gameEnded) {
+				gameState->endGame();
+			}
 
 			// Update Physics System
 			physics.stepPhysics(callback_ptr, timer);

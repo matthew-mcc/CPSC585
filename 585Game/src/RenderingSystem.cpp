@@ -303,71 +303,95 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> callback
 	if (fpsTest != NULL) fps = fpsTest;				// Set fps if fpsTest isn't null
 	RenderText(textShader, textVAO, textVBO, "FPS: " + std::to_string(fps), 8.f, callback_ptr->yres - 32.f, 0.6f, vec3(0.2, 0.2f, 0.2f), textChars);
 
-	// Display game timer / countdown
-	std::string timerMins = std::to_string(abs(timer->getCountdownMins()));
-	std::string timerSeconds = std::to_string(abs(timer->getCountdownSecs()));
-	std::string overtime = "Overtime: ";
-	std::string zero = "0";
-	float timer_xoffset = callback_ptr->xres / 2.f - 10.f;
+	// Game Ended Screen
+	if (gameState->gameEnded) {
+		string winnerText;
+		if (gameState->winner == NULL) {
+			winnerText = "Tie Game!";
+		}
+		else {
+			string winnerName = gameState->winner->name;
+			if (winnerName == "vehicle_0") winnerText = "Salvager #1 Wins!";
+			if (winnerName == "vehicle_1") winnerText = "Salvager #2 Wins!";
+			if (winnerName == "vehicle_2") winnerText = "Salvager #3 Wins!";
+			if (winnerName == "vehicle_3") winnerText = "Salvager #4 Wins!";
+		}
+		RenderText(textShader, textVAO, textVBO, winnerText,
+			callback_ptr->xres / 2 - (18 * winnerText.length()),
+			callback_ptr->yres / 2 + 150,
+			1.5f,
+			vec3(0.2, 0.2f, 0.2f),
+			textChars);
+	}
 
-	if (timerSeconds.size() < 2) {
-		timerSeconds.insert(0, zero);
-	}
-	if (timer->getCountdown() < 0) {
-		timerMins.insert(0, overtime);
-		timer_xoffset = callback_ptr->xres / 2.f - 100.f;
-	}
+	// Normal Gameplay Screen
+	else {
+		// Display game timer / countdown
+		std::string timerMins = std::to_string(abs(timer->getCountdownMins()));
+		std::string timerSeconds = std::to_string(abs(timer->getCountdownSecs()));
+		std::string overtime = "Overtime: ";
+		std::string zero = "0";
+		float timer_xoffset = callback_ptr->xres / 2.f - 10.f;
 
-	RenderText(textShader, textVAO, textVBO, timerMins + ":" + timerSeconds,
-		timer_xoffset,
-		callback_ptr->yres - 32.f, 0.6f,
-		vec3(0.2, 0.2f, 0.2f),
-		textChars);
-	
-	// Display boost meter
-	RenderText(textShader, textVAO, textVBO, "Boost Meter: " + to_string((int)playerEntity->playerProperties->boost_meter),
-		20,
-		40, 0.6f,
-		vec3(0.2, 0.2f, 0.2f),
-		textChars);
+		if (timerSeconds.size() < 2) {
+			timerSeconds.insert(0, zero);
+		}
+		if (timer->getCountdown() < 0) {
+			timerMins.insert(0, overtime);
+			timer_xoffset = callback_ptr->xres / 2.f - 100.f;
+		}
 
-	// Display player scores
-	string scoreText = "";
-	if (gameState->findEntity("vehicle_0") != NULL) {
-		scoreText = "Player: " + to_string(gameState->findEntity("vehicle_0")->playerProperties->getScore());
-		RenderText(textShader, textVAO, textVBO, scoreText,
-			callback_ptr->xres - (16 * (int)scoreText.size()),
-			callback_ptr->yres - 100.f, 
-			0.6f,
+		RenderText(textShader, textVAO, textVBO, timerMins + ":" + timerSeconds,
+			timer_xoffset,
+			callback_ptr->yres - 32.f, 0.6f,
 			vec3(0.2, 0.2f, 0.2f),
 			textChars);
-	}
-	if (gameState->findEntity("vehicle_1") != NULL) {
-		scoreText = "AI 1: " + to_string(gameState->findEntity("vehicle_1")->playerProperties->getScore());
-		RenderText(textShader, textVAO, textVBO, scoreText,
-			callback_ptr->xres - (15 * (int)scoreText.size()),
-			callback_ptr->yres - 150.f, 
-			0.6f,
+
+		// Display boost meter
+		RenderText(textShader, textVAO, textVBO, "Boost Meter: " + to_string((int)playerEntity->playerProperties->boost_meter),
+			20,
+			40, 0.6f,
 			vec3(0.2, 0.2f, 0.2f),
 			textChars);
-	}
-	if (gameState->findEntity("vehicle_2") != NULL) {
-		scoreText = "AI 2: " + to_string(gameState->findEntity("vehicle_2")->playerProperties->getScore());
-		RenderText(textShader, textVAO, textVBO, scoreText,
-			callback_ptr->xres - (15 * (int)scoreText.size()),
-			callback_ptr->yres - 200.f, 
-			0.6f,
-			vec3(0.2, 0.2f, 0.2f),
-			textChars);
-	}
-	if (gameState->findEntity("vehicle_3") != NULL) {
-		scoreText = "AI 3: " + to_string(gameState->findEntity("vehicle_3")->playerProperties->getScore());
-		RenderText(textShader, textVAO, textVBO, scoreText,
-			callback_ptr->xres - (15 * (int)scoreText.size()),
-			callback_ptr->yres - 250.f,
-			0.6f,
-			vec3(0.2, 0.2f, 0.2f),
-			textChars);
+
+		// Display player scores
+		string scoreText = "";
+		if (gameState->findEntity("vehicle_0") != NULL) {
+			scoreText = "Salvager #1: " + to_string(gameState->findEntity("vehicle_0")->playerProperties->getScore());
+			RenderText(textShader, textVAO, textVBO, scoreText,
+				callback_ptr->xres - (16 * (int)scoreText.size()),
+				callback_ptr->yres - 100.f,
+				0.6f,
+				vec3(0.2, 0.2f, 0.2f),
+				textChars);
+		}
+		if (gameState->findEntity("vehicle_1") != NULL) {
+			scoreText = "Salvager #2: " + to_string(gameState->findEntity("vehicle_1")->playerProperties->getScore());
+			RenderText(textShader, textVAO, textVBO, scoreText,
+				callback_ptr->xres - (16 * (int)scoreText.size()),
+				callback_ptr->yres - 150.f,
+				0.6f,
+				vec3(0.2, 0.2f, 0.2f),
+				textChars);
+		}
+		if (gameState->findEntity("vehicle_2") != NULL) {
+			scoreText = "Salvager #3: " + to_string(gameState->findEntity("vehicle_2")->playerProperties->getScore());
+			RenderText(textShader, textVAO, textVBO, scoreText,
+				callback_ptr->xres - (16 * (int)scoreText.size()),
+				callback_ptr->yres - 200.f,
+				0.6f,
+				vec3(0.2, 0.2f, 0.2f),
+				textChars);
+		}
+		if (gameState->findEntity("vehicle_3") != NULL) {
+			scoreText = "Salvager #4: " + to_string(gameState->findEntity("vehicle_3")->playerProperties->getScore());
+			RenderText(textShader, textVAO, textVBO, scoreText,
+				callback_ptr->xres - (16 * (int)scoreText.size()),
+				callback_ptr->yres - 250.f,
+				0.6f,
+				vec3(0.2, 0.2f, 0.2f),
+				textChars);
+		}
 	}
 
 	// Imgui Window
