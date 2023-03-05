@@ -494,17 +494,18 @@ void PhysicsSystem::initVehicles(int vehicleCount) {
 		//sha->setFlag(PxShapeFlag::eTRIGGER_SHAPE, true);//set a trigger, for reset AirOrNot condition, it doesn't take part during physics simulation
 		//gVehicle.mPhysXState.physxActor.rigidBody->attachShape(*sha); //not really work as expected
 		PxU32 shapes = vehicles.back()->vehicle.mPhysXState.physxActor.rigidBody->getNbShapes();
-		
+		PxBoxGeometry chassisShape = PxBoxGeometry(0.9f, 0.5f, 2.f);
+
 		if (i == 0){// only simulate for player
 			for (PxU32 j = 0; j < shapes; j++) {
 				PxShape* shape = NULL;
 				vehicles.back()->vehicle.mPhysXState.physxActor.rigidBody->getShapes(&shape, 1, j);
-				//if (shape == sha)continue;
 				shape->setFlag(PxShapeFlag::eSCENE_QUERY_SHAPE, true);
 				if (j == 0) {
 					shape->setContactOffset(0.7f);
 					shape->setSimulationFilterData(vehicleFilter);
 					shape->setFlag(PxShapeFlag::eSIMULATION_SHAPE, true);
+					shape->setGeometry(chassisShape);
 				}
 				else if (j == 1 || j == 6) {
 					shape->setContactOffset(0.03f);
@@ -522,6 +523,9 @@ void PhysicsSystem::initVehicles(int vehicleCount) {
 				shape->setFlag(PxShapeFlag::eSCENE_QUERY_SHAPE, true);
 				shape->setFlag(PxShapeFlag::eSIMULATION_SHAPE, true);
 				shape->setFlag(PxShapeFlag::eTRIGGER_SHAPE, false);
+				if (j == 0) {
+					shape->setGeometry(chassisShape);
+				}
 			}
 		}
 			//shape->setFlag(PxShapeFlag::eTRIGGER_SHAPE, false);
