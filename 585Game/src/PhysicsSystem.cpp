@@ -487,7 +487,7 @@ void PhysicsSystem::initPhysicsSystem(GameState* gameState, AiController* aiCont
 
 void PhysicsSystem::commandAI(Vehicle* vehicle) {
 
-	cout << aiController->selectedTrailer.first << endl;
+	//cout << aiController->selectedTrailer.first << endl;
 
 	/*Node* startNode = pathfinder->navMesh->nodes->find(1)->second;
 	Node* destNode = pathfinder->navMesh->nodes->find(2)->second;*/
