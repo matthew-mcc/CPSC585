@@ -51,9 +51,15 @@ int main() {
 			// Update Timer
 			timer->update();
 
+			// End Game if Time is Up
+			if (timer->getCountdown() <= 0 && !gameState->gameEnded) {
+				gameState->endGame();
+			}
+
 			// Update Physics System
 			physics.stepPhysics(callback_ptr, timer);
 			aiController->StateController();
+
 		}
 
 		// Update Input Drivers

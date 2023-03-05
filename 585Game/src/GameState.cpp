@@ -28,7 +28,6 @@ void GameState::initGameState() {
 		"assets/models/platform1/platform1.obj"});
 }
 
-
 Entity* GameState::addEntity(string name, PhysType type, Transform* transform, vector<string> modelPaths) {
 	// Create new entity at end of list
 	entityList.emplace_back();
@@ -61,16 +60,14 @@ Entity* GameState::addEntity(string name, PhysType type, Transform* transform, v
 	return &entityList.back();
 }
 
-
 Entity* GameState::findEntity(string name) {
 	for (int i = 0; i < entityList.size(); i++) {
 		if (entityList.at(i).name == name) {
 			return &entityList.at(i);
 		}
 	}
-	return new Entity();
+	return NULL;
 }
-
 
 Entity* GameState::spawnTrailer() {
 	Entity* e;
@@ -104,7 +101,6 @@ Entity* GameState::spawnTrailer() {
 	return e;
 }
 
-
 Entity* GameState::spawnVehicle() {
 	string name = "vehicle_" + to_string(vehiclesSpawned);
 	addEntity(name, PhysType::Vehicle, new Transform(), vector<string>{
@@ -116,4 +112,34 @@ Entity* GameState::spawnVehicle() {
 		"assets/models/tire1/tire1_back1.obj",
 		"assets/models/tire1/tire1_back2.obj"});
 	vehiclesSpawned++;
+}
+
+void GameState::endGame() {
+	// Give a default vehicle to compare against
+	Entity* winningVehicle = findEntity("vehicle_0");
+
+	// Get list of vehicles
+	vector<Entity*> vehicles;
+	for (int i = 0; i < vehiclesSpawned; i++) {
+		string name = "vehicle_" + to_string(i);
+		vehicles.push_back(findEntity(name));
+	}
+
+	// Determine vehicle with highest score
+	for (int i = 0; i < vehicles.size(); i++) {
+		if (vehicles.at(i)->playerProperties->getScore() > winningVehicle->playerProperties->getScore()) {
+			winningVehicle = vehicles.at(i);
+		}
+	}
+	// Check for ties
+	for (int i = 0; i < vehicles.size(); i++) {
+		if (winningVehicle->playerProperties->getScore() == vehicles.at(i)->playerProperties->getScore()) {
+			if (winningVehicle != vehicles.at(i)) {
+				winningVehicle = NULL;
+				break;
+			}
+		}
+	}
+	winner = winningVehicle;
+	gameEnded = true;
 }

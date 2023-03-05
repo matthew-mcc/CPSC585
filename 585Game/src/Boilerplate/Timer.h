@@ -87,4 +87,5 @@ private:
     double lastDeltaTime;
     double lastFPSTime;
     double countdown = 300.f;
+
 };

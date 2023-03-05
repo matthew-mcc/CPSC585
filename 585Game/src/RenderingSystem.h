@@ -73,7 +73,7 @@ private:
 
 	// Camera Position / Orientation
 	float camera_position_forward = -7.5f;
-	float camera_position_up = 2.25f;
+	float camera_position_up = 3.5f;
 	float camera_position_right = 0.0f;
 	float camera_target_forward = 0.0f;
 	float camera_target_up = 1.5f;
