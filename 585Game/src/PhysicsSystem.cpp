@@ -281,7 +281,11 @@ void PhysicsSystem::dropOffTrailer(Vehicle* vehicle) {
 	// Find entity of vehicle that triggered the dropoff
 	// Add score to this entity
 	Entity* vehicleEntity = gameState->findEntity("vehicle_" + to_string(getVehicleIndex(vehicle)));
-	vehicleEntity->playerProperties->addScore(nbTrailers);
+	int scoreToAdd = 0;
+	for (int i = nbTrailers; i > 0; i--) {
+		scoreToAdd += i;
+	}
+	vehicleEntity->playerProperties->addScore(scoreToAdd);
 	cout << vehicleEntity->name << "'s new score: " << vehicleEntity->playerProperties->getScore() << "\n";		// For debugging
 }
 
@@ -433,15 +437,7 @@ void PhysicsSystem::initMaterialFrictionTable() {
 void PhysicsSystem::initVehicles(int vehicleCount) {
 	// Init AI
 	NavMesh* navMesh = new NavMesh();
-	/*Pathfinder* path = new Pathfinder(navMesh);*/
 	pathfinder = new Pathfinder(navMesh);
-	
-	
-	//cout << path->navMesh->nodes->size() << endl;
-
-	
-	
-
 
 	for (int i = 0; i < vehicleCount; i++) {
 		// Create a new vehicle entity and physics struct
@@ -545,21 +541,12 @@ void PhysicsSystem::initPhysicsSystem(GameState* gameState, AiController* aiCont
 	initMaterialFrictionTable();
 	initVehicles(2);
 
-	
-
-	
-	
-
 	for (int i = 0; i < 30; i++) {
 		spawnTrailer();
 	}
 }
 
-
 void PhysicsSystem::stepPhysics(shared_ptr<CallbackInterface> callback_ptr, Timer* timer) {
-
-	
-	
 	PxReal timestep;
 	if (timer->getDeltaTime() > 0.1) {	// Safety check: If deltaTime gets too large, default it to (1 / 60)
 		timestep = (1 / 60.f);
@@ -695,7 +682,6 @@ void PhysicsSystem::stepPhysics(shared_ptr<CallbackInterface> callback_ptr, Time
 }
 
 void PhysicsSystem::AI_StateController(Vehicle* vehicle) {
-	
 	//cout << currTrailerIndex << endl;
 	//cout << vehicles.at(0)->vehicle.mPhysXState.physxActor.rigidBody->getGlobalPose().p.x << " " << vehicles.at(0)->vehicle.mPhysXState.physxActor.rigidBody->getGlobalPose().p.y << " " << vehicles.at(0)->vehicle.mPhysXState.physxActor.rigidBody->getGlobalPose().p.x << endl;
 	if (AI_State == 0) {
@@ -718,22 +704,24 @@ void PhysicsSystem::AI_InitSystem() {
 }
 
 void PhysicsSystem::AI_FindTrailer(Vehicle* vehicle) {
-
-	
 	int tempIdx = 0;
 	PxReal closestDistanceSq = PX_MAX_REAL;
 	
 	for (int i = 0; i < rigidBodies.size(); i++) {
 
-		if (find(vehicle->attachedTrailers.begin(), vehicle->attachedTrailers.end(), rigidBodies.at(i)) != vehicle->attachedTrailers.end()) {
-			i++;
+		// Safety Checks: Make sure pointers aren't NULL
+		if (rigidBodies.at(i) == NULL || vehicle == NULL) {
+			continue;
 		}
-
-		if (rigidBodies[i] == NULL) {
+		if (vehicle->vehicle.mPhysXState.physxActor.rigidBody == NULL) {
 			continue;
 		}
 
-		PxVec3 delta = rigidBodies[i]->getGlobalPose().p - vehicle->vehicle.mPhysXState.physxActor.rigidBody->getGlobalPose().p;
+		if (find(vehicle->attachedTrailers.begin(), vehicle->attachedTrailers.end(), rigidBodies.at(i)) != vehicle->attachedTrailers.end()) {
+			continue;
+		}
+
+		PxVec3 delta = rigidBodies.at(i)->getGlobalPose().p - vehicle->vehicle.mPhysXState.physxActor.rigidBody->getGlobalPose().p;
 		PxReal distanceSq = delta.x * delta.x + delta.z * delta.z;
 
 
@@ -750,16 +738,6 @@ void PhysicsSystem::AI_FindTrailer(Vehicle* vehicle) {
 	}
 
 	currTrailerIndex = tempIdx;
-
-	
-
-	
-
-
-
-	
-	
-
 }
 
 void PhysicsSystem::AI_CollectTrailer(Vehicle* vehicle) {
@@ -845,7 +823,7 @@ void PhysicsSystem::AI_CollectTrailer(Vehicle* vehicle) {
 	if (dotProductPlayer > 0) {
 		if (distanceSq < 2500.f) {
 			AI_State = 2;
-			cout << "ATTACK!" << endl;
+			//cout << "ATTACK!" << endl;
 
 		}
 	}
@@ -919,6 +897,7 @@ void PhysicsSystem::AI_DropOff(Vehicle* vehicle) {
 
 
 }
+
 void PhysicsSystem::AI_BumpPlayer(Vehicle* vehicle) {
 
 	PxVec3 delta = vehicles.at(0)->vehicle.mPhysXState.physxActor.rigidBody->getGlobalPose().p - vehicle->vehicle.mPhysXState.physxActor.rigidBody->getGlobalPose().p;
