@@ -40,10 +40,10 @@ private:
 	float boost_reset_time = 1.0f;
 	float boost_reset_countdown = 0.0f;
 
-	float boost_speed_limit = 0.5f;
+	float boost_speed_limit = 0.2f;
 	float boost_increase_rate = 0.05f;				// How much boost is added when holding down boost button
-	float boost_consumption_rate = 0.1f;			// How much meter is consumed when holding down boost button
-	float boost_recovery_rate = 0.1f;				// How fast meter recovers when not holding down boost button
+	float boost_consumption_rate = 0.25f;			// How much meter is consumed when holding down boost button
+	float boost_recovery_rate = 0.3f;				// How fast meter recovers when not holding down boost button
 };
 
 
