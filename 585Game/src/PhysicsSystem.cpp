@@ -551,7 +551,9 @@ void PhysicsSystem::initPhysicsSystem(GameState* gameState, AiController* aiCont
 		spawnTrailer();
 	}
 }
+
 PxRaycastBuffer AircontrolBuffer;
+
 void PhysicsSystem::stepPhysics(shared_ptr<CallbackInterface> callback_ptr, Timer* timer) {
 	PxReal timestep;
 	if (timer->getDeltaTime() > 0.1) {	// Safety check: If deltaTime gets too large, default it to (1 / 60)

@@ -1,5 +1,5 @@
 #pragma once
-#include<string>
+#include <string>
 #include "Boilerplate/Model.h"
 #include "Transform.h"
 #include "PlayerProperties.h"
