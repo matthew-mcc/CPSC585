@@ -98,6 +98,7 @@ public:
 
 	// Debug - Add Trailer
 	bool addTrailer = false;
+	bool audioTest = false;
 
 	// GAMEPAD VEHICLE INPUT
 

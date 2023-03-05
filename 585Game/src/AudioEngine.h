@@ -76,6 +76,8 @@ public:
 	float VolumeTodb(float volume);
 	FMOD_VECTOR VectorToFmod(const glm::vec3 &vPosition);
 
+
+
 };
 
 

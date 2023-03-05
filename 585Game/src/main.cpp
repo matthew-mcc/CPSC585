@@ -5,6 +5,7 @@
 #include <Boilerplate/Timer.h>
 #include "NavMesh.h"
 #include "AiController.h"
+#include "AudioEngine.h"
 
 
 // Main
@@ -18,8 +19,7 @@ int main() {
 	PhysicsSystem physics = PhysicsSystem();
 	XboxInput xInput;
 	AiController* aiController =  new AiController();
-
-	
+	CAudioEngine audio;
 
 	// Flags
 	bool isLoaded = false;	// false if first render update hasn't finished, true otherwise
@@ -29,10 +29,14 @@ int main() {
 	gameState->initGameState();
 	physics.initPhysicsSystem(gameState, aiController);
 	aiController->initAiSystem(gameState);
-	
+	audio.Init();
+
 	//aiController.initAiSystem(gameState, gameState->findEntity("vehicle_1"));
 	std::shared_ptr<CallbackInterface> callback_ptr = processInput(renderer.window);
 	renderer.SetupImgui();
+
+	std::string audioPath = "assets/audio/testbank.bank";
+	audio.LoadSound(audioPath, true, false, false);
 
 	// PRIMARY GAME LOOP
 	while (!glfwWindowShouldClose(renderer.window)) {
@@ -50,6 +54,9 @@ int main() {
 		// Update Input Drivers
 		xInput.update();
 		callback_ptr->XboxUpdate(xInput, timer);
+		if (callback_ptr->audioTest) {
+			audio.PlayEvent("testing_1");
+		}
 
 		// Update Rendering System
 		renderer.updateRenderer(callback_ptr, gameState, timer);
@@ -59,10 +66,13 @@ int main() {
 			timer->init();
 			isLoaded = true;
 		}
+		
+
 
 	}
-  
+	
 	// Terminate program
+	audio.Shutdown();
 	renderer.shutdownImgui();
 	xInput.stop();
 	glfwTerminate();

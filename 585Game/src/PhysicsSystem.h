@@ -16,6 +16,7 @@
 #include <PlayerProperties.h>
 #include "AiController.h"
 
+#include "AudioEngine.h"
 
 
 using namespace physx;

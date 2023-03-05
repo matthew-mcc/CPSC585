@@ -169,6 +169,7 @@
     <ClCompile Include="snippetvehicle2common\SnippetVehicleHelpers.cpp" />
     <ClCompile Include="src\AiController.cpp" />
     <ClCompile Include="src\AudioEngine.cpp" />
+    <ClCompile Include="src\AudioManager.cpp" />
     <ClCompile Include="src\Boilerplate\Mesh.cpp" />
     <ClCompile Include="src\Boilerplate\Shader.cpp" />
     <ClCompile Include="src\Boilerplate\Shadow.cpp" />
@@ -612,6 +613,7 @@
     <ClInclude Include="snippetvehicle2common\SnippetVehicleHelpers.h" />
     <ClInclude Include="src\AiController.h" />
     <ClInclude Include="src\AudioEngine.h" />
+    <ClInclude Include="src\AudioManager.h" />
     <ClInclude Include="src\Boilerplate\Cube.h" />
     <ClInclude Include="src\Boilerplate\Shadow.h" />
     <ClInclude Include="src\Boilerplate\Mesh.h" />
