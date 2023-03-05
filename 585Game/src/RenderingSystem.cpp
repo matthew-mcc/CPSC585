@@ -98,7 +98,11 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> callback
 
 	// Camera lag: Generate target_position - prev_position creating a vector. Scale by constant factor, then add to prev and update
 	vec3 camera_target_position = playerEntity->transform->getPosition() + eye_offset;
+	float y = playerEntity->transform->getPosition().y + camera_position_up + (float)playerEntity->nbChildEntities * 0.4f;
+	camera_target_position.y = y;
+
 	vec3 camera_track_vector = camera_target_position - camera_previous_position;
+
 	camera_track_vector = camera_track_vector * camera_lag;
 	camera_previous_position = vec3(translate(mat4(1.0f), camera_track_vector) * vec4(camera_previous_position, 1.0f));
 
