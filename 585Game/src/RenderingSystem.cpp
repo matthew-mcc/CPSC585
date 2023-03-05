@@ -58,9 +58,6 @@ void RenderingSystem::initRenderer() {
 	// Create text shader
 	textShader = Shader("src/Shaders/textVertex.txt", "src/Shaders/textFragment.txt");
 	textShader.use();
-
-	// CAMERA POSITION
-	camera_previous_position = vec3(1.0f);
 }
 
 
@@ -78,51 +75,58 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> callback
 	ImGui_ImplGlfw_NewFrame();
 	ImGui::NewFrame();
 
-	// Draw outlines
-	/*outlineShader.use();
-	outlineShader.setMat4("model", model);
-	outlineShader.setMat4("view", view);
-	outlineShader.setMat4("projection", projection);
-	outlineShader.setFloat("thickness", 0.2f);
-	for (int i = 0; i < models.size(); i ++) {
-		models.at(i).Draw(outlineShader);
-	}*/
 
 	// CAMERA POSITION / LAG
 		// Find player entity
-	Entity playerEntity = gameState->findEntity("player_truck1");
+	Entity* playerEntity = gameState->findEntity("vehicle_0");
 
 	// Retrieve player direction vectors
 	//camera_position_forward = camera_position_forward - (callback_ptr->camera_acceleration) / 15.f;
-	vec3 player_forward = playerEntity.transform->getForwardVector();
-	vec3 player_right = playerEntity.transform->getRightVector();
-	vec3 player_up = playerEntity.transform->getUpVector();
+	vec3 player_forward = playerEntity->transform->getForwardVector();
+	vec3 player_right = playerEntity->transform->getRightVector();
+	vec3 player_up = playerEntity->transform->getUpVector();
+
+	// Dynamically adjust camera zoom based on number of trailers attached
+	float camera_zoom_forward = clamp(1.0f + (float)playerEntity->nbChildEntities * 0.5f, 1.0f, 11.0f);
+	float camera_zoom_up = clamp(1.0f + (float)playerEntity->nbChildEntities * 0.4f, 1.0f, 11.0f);
 
 	// Chase Camera: Compute eye and target offsets
 		// Eye Offset: Camera position (world space)
 		// Target Offset: Camera focus point (world space)
-	vec3 eye_offset = (camera_position_forward * player_forward) + (camera_position_right * player_right) + (camera_position_up * player_up);
+	vec3 eye_offset = (camera_position_forward * player_forward * camera_zoom_forward) + (camera_position_right * player_right) + (camera_position_up * vec3(0.0f, 1.0f, 0.0f) * camera_zoom_up);
 	vec3 target_offset = (camera_target_forward * player_forward) + (camera_target_right * player_right) + (camera_target_up * player_up);
 
 	// Camera lag: Generate target_position - prev_position creating a vector. Scale by constant factor, then add to prev and update
-	vec3 camera_target_position = playerEntity.transform->getPosition() + eye_offset;
+	vec3 camera_target_position = playerEntity->transform->getPosition() + eye_offset;
+	float y = playerEntity->transform->getPosition().y + camera_position_up + (float)playerEntity->nbChildEntities * 0.4f;
+	camera_target_position.y = y;
+
 	vec3 camera_track_vector = camera_target_position - camera_previous_position;
+
 	camera_track_vector = camera_track_vector * camera_lag;
 	camera_previous_position = vec3(translate(mat4(1.0f), camera_track_vector) * vec4(camera_previous_position, 1.0f));
 
 	// If user is controlling camera, set view accordingly
 	vec3 camOffset = vec3(0.f);
 	if (callback_ptr->moveCamera) {
-		camOffset = camera_previous_position - playerEntity.transform->getPosition();
+		camOffset = camera_previous_position - playerEntity->transform->getPosition();
 		camOffset = vec4(camOffset, 0.f) * glm::rotate(glm::mat4(1.f), callback_ptr->xAngle, world_up);
-		camOffset += playerEntity.transform->getPosition();
-		view = lookAt(camOffset, playerEntity.transform->getPosition() + target_offset, world_up);
+		camOffset += playerEntity->transform->getPosition();
+		view = lookAt(camOffset, playerEntity->transform->getPosition() + target_offset, world_up);
 	}
 	else {
-		view = lookAt(camera_previous_position + camOffset, playerEntity.transform->getPosition() + target_offset, world_up);
+		view = lookAt(camera_previous_position + camOffset, playerEntity->transform->getPosition() + target_offset, world_up);
 	}
 	// Set projection and view matrices
 	projection = perspective(radians(fov), (float)callback_ptr->xres / (float)callback_ptr->yres, 0.1f, 1000.0f);
+
+
+	// MESH ANIMATIONS
+	// Center Portal
+	Entity* portalEntity = gameState->findEntity("portal_center");
+	vec3 rot(0.0f, 0.3f * timer->getDeltaTime(), 0.0f);
+	portalEntity->localTransforms.at(0)->setRotation(normalize(portalEntity->localTransforms.at(0)->getRotation() * quat(rot)));
+
 
 	// FIRST PASS: FAR SHADOWMAP RENDER
 	lightPos = vec3(sin(lightRotation) * cos(lightAngle), sin(lightAngle), cos(lightRotation) * cos(lightAngle)) * 200.f;
@@ -159,7 +163,7 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> callback
 
 	// SECOND PASS: NEAR SHADOWMAP RENDER
 	lightPos = vec3(sin(lightRotation) * cos(lightAngle), sin(lightAngle), cos(lightRotation) * cos(lightAngle)) * 40.f;
-	nearShadowMap.update(lightPos, playerEntity.transform->getPosition());
+	nearShadowMap.update(lightPos, playerEntity->transform->getPosition());
 	glCullFace(GL_FRONT);
 	for (int i = 0; i < gameState->entityList.size(); i++) {
 		// Retrieve global position and rotation
@@ -272,6 +276,23 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> callback
 
 			// Draw model's mesh
 			gameState->entityList.at(i).model->meshes.at(j).Draw(celShader);
+			/*if (gameState->entityList.at(i).name == "platform_center") {
+				float x = 0;
+				float y = 0;
+				float z = 0;
+				for (int j = 0;j < gameState->entityList.at(i).model->meshes.at(0).vertices.size();j++) {
+					if (fabsl(gameState->entityList.at(i).model->meshes.at(0).vertices.at(j).Position.x) > x)
+						x = fabsl(gameState->entityList.at(i).model->meshes.at(0).vertices.at(j).Position.x);
+					if (fabsl(gameState->entityList.at(i).model->meshes.at(0).vertices.at(j).Position.y) > y)
+						y = fabsl(gameState->entityList.at(i).model->meshes.at(0).vertices.at(j).Position.y);
+					if (fabsl(gameState->entityList.at(i).model->meshes.at(0).vertices.at(j).Position.z) > z)
+						z = fabsl(gameState->entityList.at(i).model->meshes.at(0).vertices.at(j).Position.z);
+				}
+				cout << "biggest x is:" << x << endl; //30
+				cout << "biggest y is:" << y << endl;
+				cout << "biggest z is:" << z << endl; //60
+				
+			}*/	
 		}
 	}
 
@@ -286,20 +307,95 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> callback
 	if (fpsTest != NULL) fps = fpsTest;				// Set fps if fpsTest isn't null
 	RenderText(textShader, textVAO, textVBO, "FPS: " + std::to_string(fps), 8.f, callback_ptr->yres - 32.f, 0.6f, vec3(0.2, 0.2f, 0.2f), textChars);
 
-	// Display game timer / countdown
-	if (timer->getCountdownSecs() >= 10) {
-		RenderText(textShader, textVAO, textVBO, std::to_string(timer->getCountdownMins()) + ":" + std::to_string(timer->getCountdownSecs()),
-			callback_ptr->xres / 2.f - 10.f,
-			callback_ptr->yres - 32.f, 0.6f,
+	// Game Ended Screen
+	if (gameState->gameEnded) {
+		string winnerText;
+		if (gameState->winner == NULL) {
+			winnerText = "Tie Game!";
+		}
+		else {
+			string winnerName = gameState->winner->name;
+			if (winnerName == "vehicle_0") winnerText = "Salvager #1 Wins!";
+			if (winnerName == "vehicle_1") winnerText = "Salvager #2 Wins!";
+			if (winnerName == "vehicle_2") winnerText = "Salvager #3 Wins!";
+			if (winnerName == "vehicle_3") winnerText = "Salvager #4 Wins!";
+		}
+		RenderText(textShader, textVAO, textVBO, winnerText,
+			callback_ptr->xres / 2 - (18 * winnerText.length()),
+			callback_ptr->yres / 2 + 150,
+			1.5f,
 			vec3(0.2, 0.2f, 0.2f),
 			textChars);
 	}
+
+	// Normal Gameplay Screen
 	else {
-		RenderText(textShader, textVAO, textVBO, std::to_string(timer->getCountdownMins()) + ":0" + std::to_string(timer->getCountdownSecs()),
-			callback_ptr->xres / 2.f - 10.f,
+		// Display game timer / countdown
+		std::string timerMins = std::to_string(abs(timer->getCountdownMins()));
+		std::string timerSeconds = std::to_string(abs(timer->getCountdownSecs()));
+		std::string overtime = "Overtime: ";
+		std::string zero = "0";
+		float timer_xoffset = callback_ptr->xres / 2.f - 10.f;
+
+		if (timerSeconds.size() < 2) {
+			timerSeconds.insert(0, zero);
+		}
+		if (timer->getCountdown() < 0) {
+			timerMins.insert(0, overtime);
+			timer_xoffset = callback_ptr->xres / 2.f - 100.f;
+		}
+
+		RenderText(textShader, textVAO, textVBO, timerMins + ":" + timerSeconds,
+			timer_xoffset,
 			callback_ptr->yres - 32.f, 0.6f,
 			vec3(0.2, 0.2f, 0.2f),
 			textChars);
+
+		// Display boost meter
+		RenderText(textShader, textVAO, textVBO, "Boost Meter: " + to_string((int)playerEntity->playerProperties->boost_meter),
+			20,
+			40, 0.6f,
+			vec3(0.2, 0.2f, 0.2f),
+			textChars);
+
+		// Display player scores
+		string scoreText = "";
+		if (gameState->findEntity("vehicle_0") != NULL) {
+			scoreText = "Salvager #1: " + to_string(gameState->findEntity("vehicle_0")->playerProperties->getScore());
+			RenderText(textShader, textVAO, textVBO, scoreText,
+				callback_ptr->xres - (16 * (int)scoreText.size()),
+				callback_ptr->yres - 100.f,
+				0.6f,
+				vec3(0.2, 0.2f, 0.2f),
+				textChars);
+		}
+		if (gameState->findEntity("vehicle_1") != NULL) {
+			scoreText = "Salvager #2: " + to_string(gameState->findEntity("vehicle_1")->playerProperties->getScore());
+			RenderText(textShader, textVAO, textVBO, scoreText,
+				callback_ptr->xres - (16 * (int)scoreText.size()),
+				callback_ptr->yres - 150.f,
+				0.6f,
+				vec3(0.2, 0.2f, 0.2f),
+				textChars);
+		}
+		if (gameState->findEntity("vehicle_2") != NULL) {
+			scoreText = "Salvager #3: " + to_string(gameState->findEntity("vehicle_2")->playerProperties->getScore());
+			RenderText(textShader, textVAO, textVBO, scoreText,
+				callback_ptr->xres - (16 * (int)scoreText.size()),
+				callback_ptr->yres - 200.f,
+				0.6f,
+				vec3(0.2, 0.2f, 0.2f),
+				textChars);
+		}
+		if (gameState->findEntity("vehicle_3") != NULL) {
+			scoreText = "Salvager #4: " + to_string(gameState->findEntity("vehicle_3")->playerProperties->getScore());
+			RenderText(textShader, textVAO, textVBO, scoreText,
+				callback_ptr->xres - (16 * (int)scoreText.size()),
+				callback_ptr->yres - 250.f,
+				0.6f,
+				vec3(0.2, 0.2f, 0.2f),
+				textChars);
+		}
 	}
 
 	// Imgui Window
@@ -322,8 +418,8 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> callback
 	ImGui::SliderFloat("Max bias", &maxBias, 0.0f, 0.1f);
 
 	ImGui::Text("Camera Parameters");
-	ImGui::SliderFloat("Camera Position Forward", &camera_position_forward, -30.f, 30.f);
-	ImGui::SliderFloat("Camera Position Up", &camera_position_up, -30.f, 30.f);
+	ImGui::SliderFloat("Camera Position Forward", &camera_position_forward, -200.f, 200.f);
+	ImGui::SliderFloat("Camera Position Up", &camera_position_up, -200.f, 200.f);
 	ImGui::SliderFloat("Camera Position Right", &camera_position_right, -30.f, 30.f);
 	ImGui::SliderFloat("Camera Target Forward", &camera_target_forward, -30.f, 30.f);
 	ImGui::SliderFloat("Camera Target Up", &camera_target_up, -30.f, 30.f);

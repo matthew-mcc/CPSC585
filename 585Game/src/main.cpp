@@ -3,6 +3,8 @@
 #include <PhysicsSystem.h>
 #include <GameState.h>
 #include <Boilerplate/Timer.h>
+#include "NavMesh.h"
+#include "AiController.h"
 
 
 // Main
@@ -15,6 +17,7 @@ int main() {
 	RenderingSystem renderer = RenderingSystem();
 	PhysicsSystem physics = PhysicsSystem();
 	XboxInput xInput;
+	AiController* aiController =  new AiController();
 
 	// Flags
 	bool isLoaded = false;	// false if first render update hasn't finished, true otherwise
@@ -22,25 +25,35 @@ int main() {
 	// Initialize Systems
 	xInput.run();
 	gameState->initGameState();
-	physics.initPhysicsSystem(gameState);
+	physics.initPhysicsSystem(gameState, aiController);
+	aiController->initAiSystem(gameState);
+	
+	//aiController.initAiSystem(gameState, gameState->findEntity("vehicle_1"));
 	std::shared_ptr<CallbackInterface> callback_ptr = processInput(renderer.window);
 	renderer.SetupImgui();
 
 	// PRIMARY GAME LOOP
 	while (!glfwWindowShouldClose(renderer.window)) {
-		
-		// Update Input Drivers
-		xInput.update();
-		callback_ptr->XboxUpdate(xInput);
-		
+
 		// Post-Load
 		if (isLoaded) {
 			// Update Timer
 			timer->update();
 
+			// End Game if Time is Up
+			if (timer->getCountdown() <= 0 && !gameState->gameEnded) {
+				gameState->endGame();
+			}
+
 			// Update Physics System
-			physics.stepPhysics(callback_ptr, gameState, timer);
+			physics.stepPhysics(callback_ptr, timer);
+			aiController->StateController();
+
 		}
+
+		// Update Input Drivers
+		xInput.update();
+		callback_ptr->XboxUpdate(xInput, timer);
 
 		// Update Rendering System
 		renderer.updateRenderer(callback_ptr, gameState, timer);

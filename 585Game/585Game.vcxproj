@@ -167,6 +167,7 @@
     <ClCompile Include="snippetvehicle2common\serialization\EngineDrivetrainSerialization.cpp" />
     <ClCompile Include="snippetvehicle2common\serialization\SerializationCommon.cpp" />
     <ClCompile Include="snippetvehicle2common\SnippetVehicleHelpers.cpp" />
+    <ClCompile Include="src\AiController.cpp" />
     <ClCompile Include="src\Boilerplate\Mesh.cpp" />
     <ClCompile Include="src\Boilerplate\Shader.cpp" />
     <ClCompile Include="src\Boilerplate\Shadow.cpp" />
@@ -177,9 +178,12 @@
     <ClCompile Include="src\Boilerplate\glad.c" />
     <ClCompile Include="src\GameState.cpp" />
     <ClCompile Include="src\main.cpp" />
+    <ClCompile Include="src\NavMesh.cpp" />
+    <ClCompile Include="src\Pathfinder.cpp" />
     <ClCompile Include="src\PhysicsSystem.cpp" />
     <ClCompile Include="src\RenderingSystem.cpp" />
     <ClCompile Include="src\ControllerInput.cpp" />
+    <ClCompile Include="src\PlayerProperties.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include=".gitignore" />
@@ -603,6 +607,7 @@
     <ClInclude Include="snippetvehicle2common\serialization\EngineDrivetrainSerialization.h" />
     <ClInclude Include="snippetvehicle2common\serialization\SerializationCommon.h" />
     <ClInclude Include="snippetvehicle2common\SnippetVehicleHelpers.h" />
+    <ClInclude Include="src\AiController.h" />
     <ClInclude Include="src\Boilerplate\Cube.h" />
     <ClInclude Include="src\Boilerplate\Shadow.h" />
     <ClInclude Include="src\Boilerplate\Mesh.h" />
@@ -616,9 +621,13 @@
     <ClInclude Include="src\Entity.h" />
     <ClInclude Include="src\GameState.h" />
     <ClInclude Include="src\Boilerplate\OBJ_Loader.h" />
+    <ClInclude Include="src\NavMesh.h" />
+    <ClInclude Include="src\Node.h" />
+    <ClInclude Include="src\Pathfinder.h" />
     <ClInclude Include="src\PhysicsSystem.h" />
     <ClInclude Include="src\RenderingSystem.h" />
     <ClInclude Include="src\Transform.h" />
+    <ClInclude Include="src\PlayerProperties.h" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="assets\textures\container.jpg" />

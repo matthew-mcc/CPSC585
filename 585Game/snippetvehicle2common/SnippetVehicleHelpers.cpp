@@ -43,26 +43,46 @@ using namespace physx;
 namespace snippetvehicle2
 {
 
-PxFilterFlags VehicleFilterShader(
-PxFilterObjectAttributes attributes0, PxFilterData filterData0,
-PxFilterObjectAttributes attributes1, PxFilterData filterData1,
-PxPairFlags& pairFlags, const void* constantBlock, PxU32 constantBlockSize)
-{
-	/*PX_UNUSED(attributes0);
-	PX_UNUSED(filterData0);
-	PX_UNUSED(attributes1);
-	PX_UNUSED(filterData1);
-	PX_UNUSED(pairFlags);
-	PX_UNUSED(constantBlock);
-	PX_UNUSED(constantBlockSize);*/
+	PxFilterFlags VehicleFilterShader(
+		PxFilterObjectAttributes attributes0, PxFilterData filterData0,
+		PxFilterObjectAttributes attributes1, PxFilterData filterData1,
+		PxPairFlags& pairFlags, const void* constantBlock, PxU32 constantBlockSize)
+	{
+		/*PX_UNUSED(attributes0);
+		PX_UNUSED(filterData0);
+		PX_UNUSED(attributes1);
+		PX_UNUSED(filterData1);
+		PX_UNUSED(pairFlags);
+		PX_UNUSED(constantBlock);
+		PX_UNUSED(constantBlockSize);*/
+		
 	pairFlags = physx::PxPairFlag::eCONTACT_DEFAULT;
-
+	/*if (PxFilterObjectIsTrigger(attributes0) || PxFilterObjectIsTrigger(attributes1)) {
+		if ((filterData0.word0 == COLLISION_FLAG_WHEEL && filterData1.word0 == COLLISION_FLAG_GROUND)) {
+			pairFlags |= physx::PxPairFlag::eNOTIFY_TOUCH_FOUND;
+		}
+	}*/
+	//if ((filterData0.word0 == COLLISION_FLAG_CHASSIS && filterData1.word0 == COLLISION_FLAG_GROUND)) {
+		//pairFlags |= physx::PxPairFlag::eNOTIFY_TOUCH_FOUND;
+	//}
 	if ((filterData0.word0 == COLLISION_FLAG_OBSTACLE && filterData1.word0 == COLLISION_FLAG_CHASSIS) ||
 		(filterData0.word0 == COLLISION_FLAG_CHASSIS && filterData1.word0 == COLLISION_FLAG_OBSTACLE)) {
 		pairFlags |= physx::PxPairFlag::eNOTIFY_TOUCH_FOUND;
-		std::cout << "Whoa there" << std::endl;
+		//std::cout << "Whoa there" << std::endl;
 	}
-	pairFlags |= physx::PxPairFlags(physx::PxU16(filterData0.word2 | filterData1.word2));
+	/*if ((filterData0.word0 == COLLISION_FLAG_CHASSIS && filterData1.word0 == COLLISION_FLAG_GROUND) ||
+		(filterData0.word0 == COLLISION_FLAG_CHASSIS && filterData1.word1 == COLLISION_FLAG_GROUND_AGAINST)||
+		(filterData0.word0 == COLLISION_FLAG_GROUND && filterData1.word0 == COLLISION_FLAG_CHASSIS) ||
+		(filterData0.word0 == COLLISION_FLAG_GROUND_AGAINST && filterData1.word1 == COLLISION_FLAG_CHASSIS)) {
+		pairFlags |= physx::PxPairFlag::eNOTIFY_TOUCH_LOST;
+	}*/
+	//if ((filterData0.word0 == COLLISION_FLAG_GROUND && filterData1.word0 == COLLISION_FLAG_WHEEL) ||
+		//(filterData0.word0 == COLLISION_FLAG_WHEEL && filterData1.word0 == COLLISION_FLAG_GROUND) ) {
+		//pairFlags |= physx::PxPairFlag::eNOTIFY_TOUCH_FOUND;
+	//}
+	
+
+		//pairFlags |= physx::PxPairFlags(physx::PxU16(filterData0.word2 | filterData1.word2));
 
 	return physx::PxFilterFlags();
 }
