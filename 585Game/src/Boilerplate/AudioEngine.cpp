@@ -2,7 +2,7 @@
 
 
 // Error checks if all FMOD calls are successful
-Implementation::Implementation() {
+Instance::Instance() {
 	mpStudioSystem = NULL;
 	CAudioEngine::ErrorCheck(FMOD::Studio::System::create(&mpStudioSystem));
 	CAudioEngine::ErrorCheck(mpStudioSystem->initialize(32, FMOD_STUDIO_INIT_LIVEUPDATE, FMOD_INIT_PROFILE_ENABLE, NULL));
@@ -12,13 +12,13 @@ Implementation::Implementation() {
 }
 
 // If a channel has stopped playing, destroy and clean up
-Implementation::~Implementation() {
+Instance::~Instance() {
 	CAudioEngine::ErrorCheck(mpStudioSystem->unloadAll());
 	CAudioEngine::ErrorCheck(mpStudioSystem->release());
 }
 
 // Updates the event sounds
-void Implementation::Update() {
+void Instance::Update() {
 	std::vector<ChannelMap::iterator> pStoppedChannels;
 	for (auto it = mChannels.begin(), itEnd = mChannels.end(); it != itEnd; ++it) {
 		bool bIsPlaying = false;
@@ -34,11 +34,11 @@ void Implementation::Update() {
 }
 
 // Instance of implementation to be used
-Implementation* sgpImplementation = nullptr;
+Instance* sgpImplementation = nullptr;
 
 
 void CAudioEngine::Init() {
-	sgpImplementation = new Implementation;
+	sgpImplementation = new Instance;
 }
 
 void CAudioEngine::Update() {

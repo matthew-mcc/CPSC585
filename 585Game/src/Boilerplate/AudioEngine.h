@@ -27,9 +27,9 @@ struct Vector3 {
 
 };
 
-struct Implementation {
-	Implementation();
-	~Implementation();
+struct Instance {
+	Instance();
+	~Instance();
 
 	void Update();
 
