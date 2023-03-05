@@ -502,7 +502,7 @@ void PhysicsSystem::initVehicles(int vehicleCount) {
 				vehicles.back()->vehicle.mPhysXState.physxActor.rigidBody->getShapes(&shape, 1, j);
 				shape->setFlag(PxShapeFlag::eSCENE_QUERY_SHAPE, true);
 				if (j == 0) {
-					shape->setContactOffset(0.7f);
+					shape->setContactOffset(0.8f);
 					shape->setSimulationFilterData(vehicleFilter);
 					shape->setFlag(PxShapeFlag::eSIMULATION_SHAPE, true);
 					shape->setGeometry(chassisShape);
@@ -626,7 +626,7 @@ void PhysicsSystem::stepPhysics(shared_ptr<CallbackInterface> callback_ptr, Time
 			// In Air
 			else { 
 				// Set Rotation based on air controls
-				vehicles.at(i)->vehicle.mPhysXState.physxActor.rigidBody->addTorque(vehicle_transform.rotate(PxVec3(player->playerProperties->AirPitch * 0.0075f, player->playerProperties->AirRoll * 0.01f, 0.f)), PxForceMode().eVELOCITY_CHANGE);
+				vehicles.at(i)->vehicle.mPhysXState.physxActor.rigidBody->addTorque(vehicle_transform.rotate(PxVec3(player->playerProperties->AirPitch * 0.055f, player->playerProperties->AirRoll * 0.05f, 0.f)), PxForceMode().eVELOCITY_CHANGE);
 			}
 			// EXPERIMENTAL - Simple Boost
 			vehicles.at(i)->vehicle.mPhysXState.physxActor.rigidBody->addForce(vehicle_transform.rotate(PxVec3(0.f, 0.f, player->playerProperties->boost)), PxForceMode().eVELOCITY_CHANGE);
