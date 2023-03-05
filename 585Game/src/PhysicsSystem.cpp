@@ -502,17 +502,17 @@ void PhysicsSystem::initVehicles(int vehicleCount) {
 				vehicles.back()->vehicle.mPhysXState.physxActor.rigidBody->getShapes(&shape, 1, j);
 				shape->setFlag(PxShapeFlag::eSCENE_QUERY_SHAPE, true);
 				if (j == 0) {
-					shape->setContactOffset(0.8f);
+					//shape->setContactOffset(0.f);
 					shape->setSimulationFilterData(vehicleFilter);
 					shape->setFlag(PxShapeFlag::eSIMULATION_SHAPE, true);
 					shape->setGeometry(chassisShape);
 				}
-				else if (j == 1 || j == 6) {
+				/*else if (j == 1 || j == 6) {
 					shape->setContactOffset(0.03f);
 					shape->setSimulationFilterData(wheelFilter);
 					shape->setFlag(PxShapeFlag::eTRIGGER_SHAPE, true);
 					gContactReportCallback->wheelshapes.push_back(shape);
-				}
+				}*/
 			}
 		}
 		else { //AI cars 
@@ -549,7 +549,7 @@ void PhysicsSystem::initPhysicsSystem(GameState* gameState, AiController* aiCont
 		spawnTrailer();
 	}
 }
-
+PxRaycastBuffer AircontrolBuffer;
 void PhysicsSystem::stepPhysics(shared_ptr<CallbackInterface> callback_ptr, Timer* timer) {
 	PxReal timestep;
 	if (timer->getDeltaTime() > 0.1) {	// Safety check: If deltaTime gets too large, default it to (1 / 60)
@@ -604,11 +604,15 @@ void PhysicsSystem::stepPhysics(shared_ptr<CallbackInterface> callback_ptr, Time
 				dropOffTrailer(vehicles.at(i));
 			}
 		}
-
+		
 		// PLAYER VEHICLE INPUT
 		if (i == 0) {
+			
+			
 			// On Ground
-			if (!gContactReportCallback->AirOrNot) {
+			//if (!gContactReportCallback->AirOrNot) {
+			if (gScene->raycast(vehicle_transform.p, PxVec3(0.f, -1.f, 0.f), 0.7f, AircontrolBuffer) // raycasting! just like that??? 
+				&& AircontrolBuffer.block.shape->getSimulationFilterData().word0 == COLLISION_FLAG_GROUND){
 				//Apply the brake, forward throttle and steer inputs to the vehicle's command state
 				if (forwardSpeed > 0.1f) {
 					vehicles.at(i)->vehicle.mCommandState.brakes[0] = player->playerProperties->brake;
@@ -620,6 +624,8 @@ void PhysicsSystem::stepPhysics(shared_ptr<CallbackInterface> callback_ptr, Time
 					vehicles.at(i)->vehicle.mCommandState.nbBrakes = 1;
 					vehicles.at(i)->vehicle.mPhysXState.physxActor.rigidBody->addForce(vehicle_transform.rotate(PxVec3(0.f, 0.f, -player->playerProperties->reverse * 0.2f)), PxForceMode().eVELOCITY_CHANGE);
 				}
+				//cout << vehicles.at(i)->vehicle.mPhysXState.physxActor.rigidBody->getGlobalPose().p.x << endl;
+				
 				vehicles.at(i)->vehicle.mCommandState.throttle = player->playerProperties->throttle;
 				vehicles.at(i)->vehicle.mCommandState.steer = player->playerProperties->steer;
 			}

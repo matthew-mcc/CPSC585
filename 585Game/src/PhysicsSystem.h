@@ -102,13 +102,13 @@ private:
 		/*if (pairHeader.pairs->events.isSet(PxPairFlag::eNOTIFY_TOUCH_FOUND)) {
 			std::cout << "Collision Detected!" << std::endl;
 			//AirOrNot = false;
-		}*/
+		}
 		if (pairHeader.pairs->events.isSet(PxPairFlag::eNOTIFY_TOUCH_LOST) 
 			&& (cars.at(0)->vehicle.mPhysXState.physxActor.rigidBody == pairHeader.actors[0] ||
 				cars.at(0)->vehicle.mPhysXState.physxActor.rigidBody == pairHeader.actors[1])) {
 			AirOrNot = true;
 			gate = 0;
-		}
+		}*/
 		contactPair = pairHeader;
 		if(pairHeader.pairs->events.isSet(PxPairFlag::eNOTIFY_TOUCH_FOUND))
 			contactDetected = true;
@@ -117,7 +117,7 @@ private:
 	void onWake(physx::PxActor** actors, physx::PxU32 count) {}
 	void onSleep(physx::PxActor** actors, physx::PxU32 count) {}
 	void onTrigger(physx::PxTriggerPair* pairs, physx::PxU32 count) {
-		if (pairs->status == PxPairFlag::eNOTIFY_TOUCH_FOUND && gate == 3) {
+		/*if (pairs->status == PxPairFlag::eNOTIFY_TOUCH_FOUND && gate == 3) {
 			AirOrNot = false;
 			//cout << count << endl;
 		}
@@ -126,7 +126,7 @@ private:
 				gate |= shape1;
 			else if (pairs->triggerShape == wheelshapes[1])
 				gate |= shape2;
-		}
+		}*/
 	}
 	void onAdvance(const physx::PxRigidBody* const* bodyBuffer,
 		const physx::PxTransform* poseBuffer,
