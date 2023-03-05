@@ -436,13 +436,15 @@ void PhysicsSystem::initMaterialFrictionTable() {
 
 void PhysicsSystem::initVehicles(int vehicleCount) {
 	// Init AI
-	NavMesh* navMesh = new NavMesh();
-	pathfinder = new Pathfinder(navMesh);
-
+	
 	for (int i = 0; i < vehicleCount; i++) {
 		// Create a new vehicle entity and physics struct
 		gameState->spawnVehicle();
 		vehicles.push_back(new Vehicle());
+
+		// Init AI_State
+		vehicles[i]->AI_State = 0;
+		vehicles[i]->AI_CurrTrailerIndex = 0;
 
 		//Load the params from json or set directly.
 		gVehicleDataPath = "assets/vehicledata";
@@ -543,7 +545,7 @@ void PhysicsSystem::initPhysicsSystem(GameState* gameState, AiController* aiCont
 	initPhysX();
 	initPhysXMeshes();
 	initMaterialFrictionTable();
-	initVehicles(2);
+	initVehicles(4);
 
 	for (int i = 0; i < 30; i++) {
 		spawnTrailer();
@@ -694,20 +696,21 @@ void PhysicsSystem::stepPhysics(shared_ptr<CallbackInterface> callback_ptr, Time
 void PhysicsSystem::AI_StateController(Vehicle* vehicle) {
 	//cout << currTrailerIndex << endl;
 	//cout << vehicles.at(0)->vehicle.mPhysXState.physxActor.rigidBody->getGlobalPose().p.x << " " << vehicles.at(0)->vehicle.mPhysXState.physxActor.rigidBody->getGlobalPose().p.y << " " << vehicles.at(0)->vehicle.mPhysXState.physxActor.rigidBody->getGlobalPose().p.x << endl;
-	if (AI_State == 0) {
+	if (vehicle->AI_State == 0) {
 		AI_FindTrailer(vehicle);
 		AI_CollectTrailer(vehicle);
 
 	}
-	if (AI_State == 1) {
+	if (vehicle->AI_State == 1) {
 		AI_DropOff(vehicle);
 	}
-	if (AI_State == 2) {
+	if (vehicle->AI_State == 2) {
 		AI_BumpPlayer(vehicle);
 	}
 
 }
 
+// No longer needed
 void PhysicsSystem::AI_InitSystem() {
 	AI_State = 0;
 	currTrailerIndex = 0;
@@ -747,20 +750,33 @@ void PhysicsSystem::AI_FindTrailer(Vehicle* vehicle) {
 		}
 	}
 
-	currTrailerIndex = tempIdx;
+	vehicle->AI_CurrTrailerIndex = tempIdx;
 }
 
 void PhysicsSystem::AI_CollectTrailer(Vehicle* vehicle) {
 
 
-	PxRigidDynamic* currTrailer = rigidBodies.at(currTrailerIndex);
+	PxRigidDynamic* currTrailer = rigidBodies.at(vehicle->AI_CurrTrailerIndex);
 
 	Entity* aiVehicle = gameState->findEntity("vehicle_1");
 
 
 	vehicle->vehicle.mCommandState.steer = 0.f;
 	vehicle->vehicle.mCommandState.throttle = 0.5f;
-	glm::quat rotation = aiVehicle->transform->getRotation();
+	//glm::quat rotation = aiVehicle->transform->getRotation();
+	//glm::quat rotation = vehicle->vehicle.mPhysXState.physxActor.rigidBody->getGlobalPose().q;
+	// 
+	PxQuat pxrot = vehicle->vehicle.mPhysXState.physxActor.rigidBody->getGlobalPose().q;
+	//cout << "GLM: " << rotation.w << " " << "PX: " << pxrot.w << endl;
+	//cout << rotation << " " << vehicle->vehicle.mPhysXState.physxActor.rigidBody->getGlobalPose().q << endl;
+
+	glm::quat rotation;
+	rotation.w = pxrot.w;
+	rotation.x = pxrot.x;
+	rotation.y = pxrot.y;
+	rotation.z = pxrot.z;
+
+
 	glm::mat4 rotationMat = glm::toMat4(rotation);
 
 	glm::vec3 vanHeading = (rotationMat * glm::vec4(0.f, 0.f, -1.f, 1.f));
@@ -841,7 +857,7 @@ void PhysicsSystem::AI_CollectTrailer(Vehicle* vehicle) {
 	
 
 	if (vehicle->attachedTrailers.size() > 4) {
-		AI_State = 1;
+		vehicle->AI_State = 1;
 	}
 
 
@@ -854,7 +870,15 @@ void PhysicsSystem::AI_DropOff(Vehicle* vehicle) {
 
 	Entity* aiVehicle = gameState->findEntity("vehicle_1");
 
-	glm::quat rotation = aiVehicle->transform->getRotation();
+	PxQuat pxrot = vehicle->vehicle.mPhysXState.physxActor.rigidBody->getGlobalPose().q;
+	//cout << "GLM: " << rotation.w << " " << "PX: " << pxrot.w << endl;
+	//cout << rotation << " " << vehicle->vehicle.mPhysXState.physxActor.rigidBody->getGlobalPose().q << endl;
+
+	glm::quat rotation;
+	rotation.w = pxrot.w;
+	rotation.x = pxrot.x;
+	rotation.y = pxrot.y;
+	rotation.z = pxrot.z;
 	glm::mat4 rotationMat = glm::toMat4(rotation);
 
 	glm::vec3 vanHeading = (rotationMat * glm::vec4(0.f, 0.f, -1.f, 1.f));
@@ -899,7 +923,7 @@ void PhysicsSystem::AI_DropOff(Vehicle* vehicle) {
 
 
 	if (vehicle->attachedTrailers.size() == 0) {
-		AI_State = 0;
+		vehicle->AI_State = 0;
 	}
 
 	
@@ -926,7 +950,15 @@ void PhysicsSystem::AI_BumpPlayer(Vehicle* vehicle) {
 
 		vehicle->vehicle.mCommandState.steer = 0.f;
 		vehicle->vehicle.mCommandState.throttle = 0.5f;
-		glm::quat rotation = aiVehicle->transform->getRotation();
+		PxQuat pxrot = vehicle->vehicle.mPhysXState.physxActor.rigidBody->getGlobalPose().q;
+		//cout << "GLM: " << rotation.w << " " << "PX: " << pxrot.w << endl;
+		//cout << rotation << " " << vehicle->vehicle.mPhysXState.physxActor.rigidBody->getGlobalPose().q << endl;
+
+		glm::quat rotation;
+		rotation.w = pxrot.w;
+		rotation.x = pxrot.x;
+		rotation.y = pxrot.y;
+		rotation.z = pxrot.z;
 		glm::mat4 rotationMat = glm::toMat4(rotation);
 
 		glm::vec3 vanHeading = (rotationMat * glm::vec4(0.f, 0.f, -1.f, 1.f));

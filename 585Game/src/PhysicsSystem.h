@@ -36,6 +36,8 @@ struct Vehicle {
 	EngineDriveVehicle vehicle;
 	vector<PxRigidDynamic*> attachedTrailers;
 	vector<PxD6Joint*> attachedJoints;
+	int AI_State;
+	int AI_CurrTrailerIndex;
 };
 
 class PhysicsSystem {
