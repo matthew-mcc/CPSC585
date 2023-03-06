@@ -24,6 +24,7 @@ public:
 	
 	float boost = 0.f;
 	float boost_meter = 100.0f;
+	float boost_max_velocity = 60.f;
 
 	// debug 
 	bool addTrailer = false;
@@ -40,10 +41,9 @@ private:
 	float boost_reset_time = 1.0f;
 	float boost_reset_countdown = 0.0f;
 
-	float boost_speed_limit = 0.2f;
-	float boost_increase_rate = 0.05f;				// How much boost is added when holding down boost button
-	float boost_consumption_rate = 0.25f;			// How much meter is consumed when holding down boost button
-	float boost_recovery_rate = 0.3f;				// How fast meter recovers when not holding down boost button
+	float boost_strength = 20.0f;					// Strength of boost when activated
+	float boost_consumption_rate = 25.0f;			// How much meter is consumed when holding down boost button
+	float boost_recovery_rate = 10.0f;				// How fast meter recovers when not holding down boost button
 };
 
 

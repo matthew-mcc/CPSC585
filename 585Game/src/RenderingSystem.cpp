@@ -103,7 +103,7 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> callback
 
 	vec3 camera_track_vector = camera_target_position - camera_previous_position;
 
-	camera_track_vector = camera_track_vector * camera_lag;
+	camera_track_vector = camera_track_vector * camera_lag * (float)timer->getDeltaTime();
 	camera_previous_position = vec3(translate(mat4(1.0f), camera_track_vector) * vec4(camera_previous_position, 1.0f));
 
 	// If user is controlling camera, set view accordingly
