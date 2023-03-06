@@ -19,7 +19,6 @@ int main() {
 	PhysicsSystem physics = PhysicsSystem();
 	XboxInput xInput;
 	AiController* aiController =  new AiController();
-//	CAudioEngine audio;
 	AudioManager audio;
 	AudioManager* audio_ptr = &audio;
 
@@ -32,21 +31,10 @@ int main() {
 	gameState->initGameState(audio_ptr);
 	physics.initPhysicsSystem(gameState, aiController);
 	aiController->initAiSystem(gameState);
-//	audio.Init();
-
 
 	//aiController.initAiSystem(gameState, gameState->findEntity("vehicle_1"));
 	std::shared_ptr<CallbackInterface> callback_ptr = processInput(renderer.window);
 	renderer.SetupImgui();
-
-//	std::string bankPathMaster = "assets/audio/Master.bank";
-//	std::string bankPathTest = "assets/audio/testbank.bank";
-	//std::string eventName = "event:/testing_1";
-//	std::string eventName = "{800f3d36-fb85-49e9-909d-312439b0f460}";
-
-//	audio.LoadBank(bankPathMaster, FMOD_STUDIO_LOAD_BANK_NORMAL);
-//	audio.LoadBank(bankPathTest, FMOD_STUDIO_LOAD_BANK_NORMAL);
-//	audio.LoadEvent(eventName);
 
 
 	// PRIMARY GAME LOOP

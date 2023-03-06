@@ -146,18 +146,13 @@ void CAudioEngine::LoadEvent(const std::string &strEventName) {
 	if (tFoundIt != sgpImplementation->mEvents.end())
 		return;
 
-	std::cout << "EV1" << std::endl;
-
 	// This can't be right, but wtf should it be?
 	FMOD::Studio::EventDescription* pEventDescription = NULL;
 	CAudioEngine::ErrorCheck(sgpImplementation->mpStudioSystem->getEvent(strEventName.c_str(), &pEventDescription));
-	std::cout << "EV2" << std::endl;
 	if (pEventDescription) {
 		FMOD::Studio::EventInstance* pEventInstance = NULL;
 		CAudioEngine::ErrorCheck(pEventDescription->createInstance(&pEventInstance));
-		std::cout << "EV3" << std::endl;
 		if (pEventInstance) {
-			std::cout << "Event loaded successfully" << std::endl;
 			sgpImplementation->mEvents[strEventName] = pEventInstance;
 		}
 	}
