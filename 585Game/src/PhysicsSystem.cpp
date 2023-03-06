@@ -574,6 +574,8 @@ void PhysicsSystem::stepPhysics(shared_ptr<CallbackInterface> callback_ptr, Time
 		attachTrailer(rigidBodies.at(rigidBodyAddIndex), vehicles.at(0));
 		callback_ptr->addTrailer = false;
 		rigidBodyAddIndex++;
+		// Audio Test
+		gameState->audio_ptr->SFX("hahathisdoesnothing, is just test");
 	}
 
 	// Spinning motion for dropped off trailers

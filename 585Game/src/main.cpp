@@ -5,7 +5,7 @@
 #include <Boilerplate/Timer.h>
 #include "NavMesh.h"
 #include "AiController.h"
-#include "Boilerplate/AudioEngine.h"
+#include "AudioManager.h"
 
 
 // Main
@@ -19,30 +19,36 @@ int main() {
 	PhysicsSystem physics = PhysicsSystem();
 	XboxInput xInput;
 	AiController* aiController =  new AiController();
-	CAudioEngine audio;
+//	CAudioEngine audio;
+	AudioManager audio;
+	AudioManager* audio_ptr = &audio;
 
 	// Flags
 	bool isLoaded = false;	// false if first render update hasn't finished, true otherwise
 
 	// Initialize Systems
 	xInput.run();
-	gameState->initGameState();
+	audio.Init();
+	gameState->initGameState(audio_ptr);
 	physics.initPhysicsSystem(gameState, aiController);
 	aiController->initAiSystem(gameState);
-	audio.Init();
+//	audio.Init();
+
 
 	//aiController.initAiSystem(gameState, gameState->findEntity("vehicle_1"));
 	std::shared_ptr<CallbackInterface> callback_ptr = processInput(renderer.window);
 	renderer.SetupImgui();
 
-	std::string bankPathMaster = "assets/audio/Master.bank";
-	std::string bankPathTest = "assets/audio/testbank.bank";
+//	std::string bankPathMaster = "assets/audio/Master.bank";
+//	std::string bankPathTest = "assets/audio/testbank.bank";
 	//std::string eventName = "event:/testing_1";
-	std::string eventName = "{800f3d36-fb85-49e9-909d-312439b0f460}";
+//	std::string eventName = "{800f3d36-fb85-49e9-909d-312439b0f460}";
 
-	audio.LoadBank(bankPathMaster, FMOD_STUDIO_LOAD_BANK_NORMAL);
-	audio.LoadBank(bankPathTest, FMOD_STUDIO_LOAD_BANK_NORMAL);
-	audio.LoadEvent(eventName);
+//	audio.LoadBank(bankPathMaster, FMOD_STUDIO_LOAD_BANK_NORMAL);
+//	audio.LoadBank(bankPathTest, FMOD_STUDIO_LOAD_BANK_NORMAL);
+//	audio.LoadEvent(eventName);
+
+
 	// PRIMARY GAME LOOP
 	while (!glfwWindowShouldClose(renderer.window)) {
 
@@ -66,12 +72,7 @@ int main() {
 		xInput.update();
 		callback_ptr->XboxUpdate(xInput, timer);
 
-
-		if (callback_ptr->audioTest) {
-			std::cout << "Audio Test 1" << std::endl;
-			audio.PlayEvent(eventName);
-			callback_ptr->audioTest = false;
-		}
+		// Update Audio Manager
 		audio.Update();
 
 		// Update Rendering System
@@ -82,8 +83,6 @@ int main() {
 			timer->init();
 			isLoaded = true;
 		}
-	
-
 
 	}
 	

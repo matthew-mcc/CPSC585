@@ -7,7 +7,7 @@ using namespace std;
 int vehiclesSpawned = 0;
 int trailersSpawned = 0;
 
-void GameState::initGameState() {
+void GameState::initGameState(AudioManager* audio) {
 	Entity* e;
 
 	// Landscape
@@ -26,6 +26,8 @@ void GameState::initGameState() {
 	// Center Platform
 	e = addEntity("platform_center", PhysType::None, new Transform(), vector<string>{
 		"assets/models/platform1/platform1.obj"});
+
+	audio_ptr = audio;
 }
 
 Entity* GameState::addEntity(string name, PhysType type, Transform* transform, vector<string> modelPaths) {

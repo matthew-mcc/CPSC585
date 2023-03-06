@@ -1,6 +1,7 @@
 #pragma once
 #include <vector>
 #include <Entity.h>
+#include "AudioManager.h"
 
 using namespace std;
 
@@ -8,7 +9,7 @@ class GameState {
 public:
 	// Public Functions
 	GameState() {}
-	void initGameState();
+	void initGameState(AudioManager* audio);
 	Entity* addEntity(string name, PhysType type, Transform* transform, vector<string> modelPaths);
 	Entity* findEntity(string name);
 	Entity* spawnTrailer();
@@ -21,4 +22,7 @@ public:
 
 	// Flags
 	bool gameEnded = false;
+
+	// Audio
+	AudioManager* audio_ptr = nullptr;
 };
