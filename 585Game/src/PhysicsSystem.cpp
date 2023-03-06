@@ -636,7 +636,7 @@ void PhysicsSystem::stepPhysics(shared_ptr<CallbackInterface> callback_ptr, Time
 			// In Air
 			else { 
 				// Set Rotation based on air controls
-				vehicles.at(i)->vehicle.mPhysXState.physxActor.rigidBody->addTorque(vehicle_transform.rotate(PxVec3(player->playerProperties->AirPitch * 0.025f, 0.f, player->playerProperties->AirRoll * -0.02f)), PxForceMode().eVELOCITY_CHANGE);
+				vehicles.at(i)->vehicle.mPhysXState.physxActor.rigidBody->addTorque(vehicle_transform.rotate(PxVec3(player->playerProperties->AirPitch * 2.5f, player->playerProperties->AirRoll * 1.0f, player->playerProperties->AirRoll * -3.0f) * timestep), PxForceMode().eVELOCITY_CHANGE);
 			}
 
 			// Boost

@@ -481,13 +481,13 @@
         {
             "WheelId": 0,
             "Damping": 10528.1201171875,
-            "Stiffness": 72833.30078125,
+            "Stiffness": 52833.30078125,
             "SprungMass": 553.7739868164063
         },
         {
             "WheelId": 1,
             "Damping": 10742.1904296875,
-            "Stiffness": 72833.30078125,
+            "Stiffness": 52833.30078125,
             "SprungMass": 567.6749877929688
         },
         {
