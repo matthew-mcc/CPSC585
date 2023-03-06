@@ -89,7 +89,7 @@ Entity* GameState::spawnTrailer() {
 		break;
 	}
 
-	e = addEntity(name, PhysType::RigidBody, new Transform(), vector<string>{
+	e = addEntity(name, PhysType::Trailer, new Transform(), vector<string>{
 		modelPath,
 		"assets/models/tire1/tire1_back2.obj",
 		"assets/models/tire1/tire1_back1.obj",

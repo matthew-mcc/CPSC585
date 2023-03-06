@@ -33,9 +33,16 @@ using namespace std;
 #define shape6 32*/
 
 
+struct Trailer {
+	PxRigidDynamic* rigidBody;
+	int entityIndex;
+	bool isFlying = false;
+	bool isTowed = false;
+};
+
 struct Vehicle {
 	EngineDriveVehicle vehicle;
-	vector<PxRigidDynamic*> attachedTrailers;
+	vector<Trailer*> attachedTrailers;
 	vector<PxD6Joint*> attachedJoints;
 	int AI_State;
 	int AI_CurrTrailerIndex;
@@ -66,14 +73,15 @@ private:
 	void spawnTrailer();
 	void processTrailerCollision();
 	int getVehicleIndex(Vehicle* vehicle);
-	Vehicle* getPullingVehicle(PxRigidDynamic* trailer);
-	void attachTrailer(PxRigidDynamic* trailer, Vehicle* vehicle);
-	void detachTrailer(PxRigidDynamic* trailer, Vehicle* vehicle);
+	Vehicle* getPullingVehicle(Trailer* trailer);
+	void attachTrailer(Trailer* trailer, Vehicle* vehicle);
+	void detachTrailer(Trailer* trailer, Vehicle* vehicle);
 	void dropOffTrailer(Vehicle* vehicle);
 	void resetCollectedTrailers();
 	void RoundFly();
 	GameState* gameState;
 	AiController* aiController;
+	int spawnedTrailers = 0;
 
 
 	// AI

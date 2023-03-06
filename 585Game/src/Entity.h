@@ -10,6 +10,7 @@ enum class PhysType {
 	None,
 	StaticMesh,
 	Vehicle,
+	Trailer,
 	RigidBody
 };
 
