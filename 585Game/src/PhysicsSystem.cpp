@@ -571,7 +571,7 @@ void PhysicsSystem::stepPhysics(shared_ptr<CallbackInterface> callback_ptr, Time
 
 	// Debug - Add trailer on key command
 	if (callback_ptr->addTrailer) {
-		attachTrailer(rigidBodies.at(rigidBodyAddIndex), vehicles.at(0));
+		//attachTrailer(rigidBodies.at(rigidBodyAddIndex), vehicles.at(0));
 		callback_ptr->addTrailer = false;
 		rigidBodyAddIndex++;
 		// Audio Test
