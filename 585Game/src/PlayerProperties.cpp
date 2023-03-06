@@ -1,4 +1,5 @@
 #include <PlayerProperties.h>
+#include <Boilerplate/Timer.h>
 
 
 void PlayerProperties::setPlayerControlled() {
@@ -40,9 +41,12 @@ void PlayerProperties::updateCallbacks(std::shared_ptr<CallbackInterface> callba
 // We have a ton of variables, but maybe not all will be used
 
 void PlayerProperties::updateBoost() {
+	// Get timer pointer
+	Timer* timer = &Timer::Instance();
+
 	// Determine if it's possible to boost
 	if (boost_status_cb && boost_meter > 0.0f){
-		boost_meter = boost_meter - boost_consumption_rate;
+		boost_meter = boost_meter - boost_consumption_rate * timer->getDeltaTime();
 		boost_status = true;
 	}
 	if (boost_meter < 0.0f) {
@@ -55,10 +59,8 @@ void PlayerProperties::updateBoost() {
 
 	// Case 1 = we start boosting
 	if (boost_status) {
-		if (boost < boost_speed_limit) {
-			boost = boost + boost_increase_rate;
-		}
-		boost_meter = boost_meter - boost_consumption_rate;
+		boost = boost_strength;
+		boost_meter = boost_meter - boost_consumption_rate * timer->getDeltaTime();
 	}
 
 	// Case 2 = we are not boosting, in recovery mode
@@ -66,7 +68,7 @@ void PlayerProperties::updateBoost() {
 		boost = 0.0f;
 		// For now no recovery time
 		if (boost_meter < 100.0f) {
-			boost_meter = boost_meter + boost_recovery_rate;
+			boost_meter = boost_meter + boost_recovery_rate * timer->getDeltaTime();
 		}
 		if (boost_meter > 100.0f) {
 			boost_meter = 100.0f;
