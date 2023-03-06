@@ -4,7 +4,7 @@
 #include <Boilerplate/Text.h>
 #include <Boilerplate/Model.h>
 #include <Boilerplate/Timer.h>
-#include <Boilerplate/Shadow.h>
+#include <Boilerplate/FBuffer.h>
 #include <GameState.h>
 //#include <Boilerplate/Input.h>
 
@@ -31,17 +31,19 @@ public:
 	GLFWwindow* window;
 
 private:
-	void setCelShaderUniforms();
+	void setCelShaderUniforms(Shader* shader);
 
-	// Shadow Maps
-	Shadow nearShadowMap;
-	Shadow farShadowMap;
-	Shadow outlineMap;
+	// Frame buffers
+	FBuffer nearShadowMap;
+	FBuffer farShadowMap;
+	FBuffer outlineMap;
+	FBuffer outlineMapNoLandscape;
+	FBuffer celMap;
+	FBuffer blurMap;
 
 	// Shaders
 	Shader textShader;
 	Shader celShader;
-	Shader outlineShader;
 
 	// Coordinate Transformations
 	mat4 model = mat4(1.0f);
@@ -62,8 +64,9 @@ private:
 	vec3 shadowColor = vec3(0.71f, 0.55f, 0.51f);
 	vec3 fogColor = vec3(1.f, 0.73f, 0.66f);
 	float fogDepth = 0.00125f;
-	float outlineSensitivity = 14.264f;
-	float outlineTransparency = 0.85f;
+
+	float outlineSensitivity = 12.f;
+	float outlineTransparency = 0.1f;
 
 	// Text
 	map<char, Character> textChars;

@@ -2,26 +2,30 @@
 #include <Boilerplate/Shader.h>
 #include <Boilerplate/Window.h>
 
-class Shadow {
+class FBuffer {
 public:
-	Shadow();
-	Shadow(int width, int height);
-	Shadow(unsigned int width, unsigned int height, float x, float y, float near, float far);
+	FBuffer();
+	FBuffer(int width, int height, std::string mode);
+	FBuffer(unsigned int width, unsigned int height, float x, float y, float near, float far);
 	void update(glm::vec3 lightPos, glm::vec3 playerPos);
 	void update(glm::mat4 proj, glm::mat4 view);
 	void cleanUp(std::shared_ptr<CallbackInterface> callback_ptr);
 	void render();
+	void renderQuad();
+
+	float getWidth();
+	float getHeight();
 
 	glm::mat4 lightSpaceMatrix;
 	Shader shader = Shader();
-	unsigned int depthMapFBO;
-	unsigned int depthMap;
+	Shader debugShader;
+	unsigned int FBO[2];
+	unsigned int fbTextures[2];
 
 
 private:
-	Shader debugShader;
 	void ConfigureShaderAndMatrices(glm::vec3 lightPos, glm::vec3 playerPos);
-	void renderQuad();
+	void setup(std::string mode);
 
 	float mapX;
 	float mapY;
