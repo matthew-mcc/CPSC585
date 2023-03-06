@@ -64,6 +64,7 @@ private:
 	vec3 shadowColor = vec3(0.71f, 0.55f, 0.51f);
 	vec3 fogColor = vec3(1.f, 0.73f, 0.66f);
 	float fogDepth = 0.00125f;
+
 	float outlineSensitivity = 12.f;
 	float outlineTransparency = 0.1f;
 
@@ -75,15 +76,15 @@ private:
 
 	// Camera Position / Orientation
 	float camera_position_forward = -7.5f;
-	float camera_position_up = 2.5f;
+	float camera_position_up = 3.5f;
 	float camera_position_right = 0.0f;
 	float camera_target_forward = 0.0f;
-	float camera_target_up = 1.2f;
+	float camera_target_up = 1.5f;
 	float camera_target_right = 0.0f;
 	vec3 world_up = vec3(0.0f, 1.0f, 0.0f);
-	vec3 camera_previous_position;
+	vec3 camera_previous_position = vec3(0.0f, 8.0f, -270.0f);
 
 	// Camera Parameters
-	float camera_lag = 0.05f;
+	float camera_lag = 5.0f;
 	float fov = 45.f;
 };

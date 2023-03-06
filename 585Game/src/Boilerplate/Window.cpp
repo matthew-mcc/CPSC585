@@ -46,55 +46,129 @@ GLFWwindow* initWindow() {
 
 class KeyCallbacks : public CallbackInterface {
 public:
+	bool A = false;
+	bool D = false;
+	
+	bool shift = false;
+	bool control = false;
 	// KEYBOARD VEHICLE INPUT
 	virtual void keyCallback(int key, int scancode, int action, int mods) {
 		// THROTTLE (W)
 		if (key == GLFW_KEY_W) {
 			if (action == GLFW_PRESS) {
 				throttle = 1.f;
+				//AirPitch = 0.2f;
 				keys_pressed++;
 			}
 			if (action == GLFW_RELEASE) {
 				throttle = 0.f;
+				//AirPitch = 0.0f;
 				keys_pressed--;
 			}
 		}
 		// BRAKE (S)
 		if (key == GLFW_KEY_S) {
 			if (action == GLFW_PRESS) {
+				reverse = 1.f;
 				brake = 1.f;
+				//AirPitch = -0.2f;
 				keys_pressed++;
 			}
 			if (action == GLFW_RELEASE) {
+				reverse = 0.f;
 				brake = 0.f;
-				keys_pressed--;
-			}
-		}
-		// STEER LEFT (A)
-		if (key == GLFW_KEY_A) {
-			if (action == GLFW_PRESS) {
-				steer = 1.f;
-				keys_pressed++;
-			}
-			if (action == GLFW_RELEASE) {
-				steer = 0.f;
-				keys_pressed--;
-			}
-		}
-		// STEER RIGHT (D)
-		if (key == GLFW_KEY_D) {
-			if (action == GLFW_PRESS) {
-				steer = -1.f;
-				keys_pressed++;
-			}
-			if (action == GLFW_RELEASE) {
-				steer = 0.f;
+				//AirPitch = 0.0f;
 				keys_pressed--;
 			}
 		}
 
 	
+		// STEER LEFT (A)
+		if (key == GLFW_KEY_A) {
+			if (action == GLFW_PRESS ) {
+				A = true;
+				steer_speed = 1.f;
+				AirRoll = 1.f;
+				keys_pressed++;
+			}
+			if (action == GLFW_RELEASE) {
+				A = false;
+				if (D == true) {
+					steer_speed = -1.f;
+					AirRoll = -1.f;
+				}
+				else {
+					steer_speed = 0.f;
+					AirRoll = 0.f;
+				}
+				keys_pressed--;
+			}
+		}
+		// STEER RIGHT (D)
+		if (key == GLFW_KEY_D) {
+			if (action == GLFW_PRESS ) {
+				D = true;
+				steer_speed = -1.f;
+				AirRoll = -1.f;
+				keys_pressed++;
+			}
+			if (action == GLFW_RELEASE) {
+				D = false;
+				if (A == true) {
+					steer_speed = 1.f;
+					AirRoll = 1.f;
+				}
+				else {
+					steer_speed = 0.f;
+					AirRoll = 0.f;
+				}
+				keys_pressed--;
+			}
+		}
 
+		if (key == GLFW_KEY_LEFT_SHIFT) {
+			if (action == GLFW_PRESS) {
+				shift = true;
+				AirPitch = 1.f;
+				keys_pressed++;
+			}
+			if (action == GLFW_RELEASE) {
+				shift = false;
+				if (control == true)
+					AirPitch = -1.f;
+				else
+					AirPitch = 0.f;
+				keys_pressed--;
+			}
+		
+		}
+		if (key == GLFW_KEY_LEFT_CONTROL) {
+			if (action == GLFW_PRESS) {
+				control = true;
+				AirPitch = -1.f;
+				keys_pressed++;
+			}
+			if (action == GLFW_RELEASE) {
+				control = false;
+				if (shift == true)
+					AirPitch = 1.f;
+				else
+					AirPitch = 0.f;
+				keys_pressed--;
+			}
+		}
+		if (key == GLFW_KEY_SPACE) {
+			if (action == GLFW_PRESS)
+				boosterrrrr = true;
+			if (action == GLFW_RELEASE)
+				boosterrrrr = false;
+		}
+
+		// DEBUG - ADD TRAILER
+		if (key == GLFW_KEY_Q && action == GLFW_PRESS) {
+			addTrailer = true;
+			audioTest = true;
+		}
 	}
 
 	// MOUSE BUTTON CALLBACK

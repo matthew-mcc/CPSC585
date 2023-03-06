@@ -54,7 +54,7 @@
         ]
     },
     "SteerCommandResponseParams": {
-        "MaxResponse": 0.25,
+        "MaxResponse": 0.3,
         "WheelResponseMultipliers": [
             1.0,
             1.0,
@@ -480,14 +480,14 @@
     "SuspensionForceParams": [
         {
             "WheelId": 0,
-            "Damping": 8528.1201171875,
-            "Stiffness": 32833.30078125,
+            "Damping": 10528.1201171875,
+            "Stiffness": 52833.30078125,
             "SprungMass": 553.7739868164063
         },
         {
             "WheelId": 1,
-            "Damping": 8742.1904296875,
-            "Stiffness": 33657.3984375,
+            "Damping": 10742.1904296875,
+            "Stiffness": 52833.30078125,
             "SprungMass": 567.6749877929688
         },
         {

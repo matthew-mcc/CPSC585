@@ -1,7 +1,8 @@
 #pragma once
-#include<string>
+#include <string>
 #include "Boilerplate/Model.h"
 #include "Transform.h"
+#include "PlayerProperties.h"
 
 using namespace std;
 
@@ -21,4 +22,6 @@ public:
 	Transform* transform;
 	vector<Transform*> localTransforms;
 	Model* model;
+	PlayerProperties* playerProperties;
+	int nbChildEntities;
 };

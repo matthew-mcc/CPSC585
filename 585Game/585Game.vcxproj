@@ -121,13 +121,13 @@
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
-      <AdditionalIncludeDirectories>$(SolutionDir)libraries\assimp\include;$(SolutionDir)src;$(SolutionDir)libraries\glm;$(SolutionDir)libraries\opengl\glfw-3.3.8.bin.WIN64\include;$(SolutionDir)libraries\physx\include;$(SolutionDir)\libraries\imgui-1.89.2;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)libraries\fmod\studio\inc;$(SolutionDir)libraries\fmod\core\inc;$(SolutionDir)libraries\assimp\include;$(SolutionDir)src;$(SolutionDir)libraries\glm;$(SolutionDir)libraries\opengl\glfw-3.3.8.bin.WIN64\include;$(SolutionDir)libraries\physx\include;$(SolutionDir)\libraries\imgui-1.89.2;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(SolutionDir)libraries\assimp\lib;$(SolutionDir)libraries\opengl\glfw-3.3.8.bin.WIN64\lib-vc2019;$(SolutionDir)libraries\physx\debug;$(SolutionDir)libraries\freetype-2.12.1\objs\x64\Debug;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>Xinput.lib;assimp-vc140-mt.lib;glfw3dll.lib;glfw3.lib;SnippetUtils_static_64.lib;SnippetRender_static_64.lib;SimulationController_static_64.lib;SceneQuery_static_64.lib;PhysXVehicle2_static_64.lib;PhysXVehicle_static_64.lib;PhysXTask_static_64.lib;PhysXPvdSDK_static_64.lib;PhysXFoundation_64.lib;PhysXExtensions_static_64.lib;PhysXCooking_64.lib;PhysXCommon_64.lib;PhysXCharacterKinematic_static_64.lib;PhysX_64.lib;LowLevelDynamics_static_64.lib;LowLevelAABB_static_64.lib;LowLevel_static_64.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;freetype.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir)libraries\assimp\lib;$(SolutionDir)libraries\opengl\glfw-3.3.8.bin.WIN64\lib-vc2019;$(SolutionDir)libraries\physx\debug;$(SolutionDir)libraries\freetype-2.12.1\objs\x64\Debug;$(SolutionDir)libraries\fmod\core\lib;$(SolutionDir)libraries\fmod\studio\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>Xinput.lib;assimp-vc140-mt.lib;glfw3dll.lib;glfw3.lib;SnippetUtils_static_64.lib;SnippetRender_static_64.lib;SimulationController_static_64.lib;SceneQuery_static_64.lib;PhysXVehicle2_static_64.lib;PhysXVehicle_static_64.lib;PhysXTask_static_64.lib;PhysXPvdSDK_static_64.lib;PhysXFoundation_64.lib;PhysXExtensions_static_64.lib;PhysXCooking_64.lib;PhysXCommon_64.lib;PhysXCharacterKinematic_static_64.lib;PhysX_64.lib;LowLevelDynamics_static_64.lib;LowLevelAABB_static_64.lib;LowLevel_static_64.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;freetype.lib;fmodL_vc.lib;fmodstudioL_vc.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -138,7 +138,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)\libraries\imgui-1.89.2;$(SolutionDir)libraries\assimp\include;$(SolutionDir)src;$(SolutionDir)libraries\glm;$(SolutionDir)libraries\opengl\glfw-3.3.8.bin.WIN64\include;$(SolutionDir)libraries\physx\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)\libraries\imgui-1.89.2;$(SolutionDir)libraries\assimp\include;$(SolutionDir)src;$(SolutionDir)libraries\glm;$(SolutionDir)libraries\opengl\glfw-3.3.8.bin.WIN64\include;$(SolutionDir)libraries\physx\include;$(SolutionDir)libraries\fmod\core\inc;$(SolutionDir)libraries\fmod\studio\inc;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>
     <Link>
@@ -146,8 +146,8 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(SolutionDir)libraries\assimp\lib;$(SolutionDir)libraries\opengl\glfw-3.3.8.bin.WIN64\lib-vc2019;$(SolutionDir)libraries\physx\release;$(SolutionDir)libraries\freetype-2.12.1\objs\x64\Debug;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>Xinput.lib;assimp-vc140-mt.lib;glfw3dll.lib;glfw3.lib;PhysXVehicle2_static_64.lib;PhysXVehicle_static_64.lib;PhysXTask_static_64.lib;PhysXPvdSDK_static_64.lib;PhysXFoundation_64.lib;PhysXExtensions_static_64.lib;PhysXCooking_64.lib;PhysXCommon_64.lib;PhysXCharacterKinematic_static_64.lib;PhysX_64.lib;LowLevelDynamics_static_64.lib;LowLevelAABB_static_64.lib;LowLevel_static_64.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;freetype.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir)libraries\assimp\lib;$(SolutionDir)libraries\opengl\glfw-3.3.8.bin.WIN64\lib-vc2019;$(SolutionDir)libraries\physx\release;$(SolutionDir)libraries\freetype-2.12.1\objs\x64\Debug;$(SolutionDir)libraries\fmod\core\lib\x64;$(SolutionDir)libraries\fmod\studio\lib\x64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>Xinput.lib;assimp-vc140-mt.lib;glfw3dll.lib;glfw3.lib;PhysXVehicle2_static_64.lib;PhysXVehicle_static_64.lib;PhysXTask_static_64.lib;PhysXPvdSDK_static_64.lib;PhysXFoundation_64.lib;PhysXExtensions_static_64.lib;PhysXCooking_64.lib;PhysXCommon_64.lib;PhysXCharacterKinematic_static_64.lib;PhysX_64.lib;LowLevelDynamics_static_64.lib;LowLevelAABB_static_64.lib;LowLevel_static_64.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;freetype.lib;fmod_vc.lib;fmodstudio_vc.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -167,6 +167,9 @@
     <ClCompile Include="snippetvehicle2common\serialization\EngineDrivetrainSerialization.cpp" />
     <ClCompile Include="snippetvehicle2common\serialization\SerializationCommon.cpp" />
     <ClCompile Include="snippetvehicle2common\SnippetVehicleHelpers.cpp" />
+    <ClCompile Include="src\AiController.cpp" />
+    <ClCompile Include="src\AudioManager.cpp" />
+    <ClCompile Include="src\Boilerplate\AudioEngine.cpp" />
     <ClCompile Include="src\Boilerplate\Mesh.cpp" />
     <ClCompile Include="src\Boilerplate\Shader.cpp" />
     <ClCompile Include="src\Boilerplate\FBuffer.cpp" />
@@ -176,10 +179,15 @@
     <ClCompile Include="src\Boilerplate\Window.cpp" />
     <ClCompile Include="src\Boilerplate\glad.c" />
     <ClCompile Include="src\GameState.cpp" />
-    <ClCompile Include="src\main.cpp" />
+    <ClCompile Include="src\main.cpp">
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)\libraries\fmod\studio\inc;$(SolutionDir)\libraries\fmod\core\inc;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+    <ClCompile Include="src\NavMesh.cpp" />
+    <ClCompile Include="src\Pathfinder.cpp" />
     <ClCompile Include="src\PhysicsSystem.cpp" />
     <ClCompile Include="src\RenderingSystem.cpp" />
     <ClCompile Include="src\ControllerInput.cpp" />
+    <ClCompile Include="src\PlayerProperties.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include=".gitignore" />
@@ -603,6 +611,9 @@
     <ClInclude Include="snippetvehicle2common\serialization\EngineDrivetrainSerialization.h" />
     <ClInclude Include="snippetvehicle2common\serialization\SerializationCommon.h" />
     <ClInclude Include="snippetvehicle2common\SnippetVehicleHelpers.h" />
+    <ClInclude Include="src\AiController.h" />
+    <ClInclude Include="src\AudioManager.h" />
+    <ClInclude Include="src\Boilerplate\AudioEngine.h" />
     <ClInclude Include="src\Boilerplate\Cube.h" />
     <ClInclude Include="src\Boilerplate\FBuffer.h" />
     <ClInclude Include="src\Boilerplate\Mesh.h" />
@@ -616,9 +627,13 @@
     <ClInclude Include="src\Entity.h" />
     <ClInclude Include="src\GameState.h" />
     <ClInclude Include="src\Boilerplate\OBJ_Loader.h" />
+    <ClInclude Include="src\NavMesh.h" />
+    <ClInclude Include="src\Node.h" />
+    <ClInclude Include="src\Pathfinder.h" />
     <ClInclude Include="src\PhysicsSystem.h" />
     <ClInclude Include="src\RenderingSystem.h" />
     <ClInclude Include="src\Transform.h" />
+    <ClInclude Include="src\PlayerProperties.h" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="assets\textures\container.jpg" />

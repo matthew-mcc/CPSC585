@@ -13,6 +13,11 @@
 #include <Boilerplate/Timer.h>
 #include <Entity.h>
 #include <GameState.h>
+#include <PlayerProperties.h>
+#include "AiController.h"
+
+#include "Boilerplate/AudioEngine.h"
+
 
 using namespace physx;
 using namespace physx::vehicle2;
@@ -20,26 +25,67 @@ using namespace snippetvehicle2;
 using namespace glm;
 using namespace std;
 
+#define shape1 1
+#define shape2 2
+/*#define shape3 4
+#define shape4 8
+#define shape5 16
+#define shape6 32*/
+
+
+struct Vehicle {
+	EngineDriveVehicle vehicle;
+	vector<PxRigidDynamic*> attachedTrailers;
+	vector<PxD6Joint*> attachedJoints;
+	int AI_State;
+	int AI_CurrTrailerIndex;
+};
+
 class PhysicsSystem {
 
 public:
 	// Constructor
 	PhysicsSystem(){};
 	// Initializer
-	void initPhysicsSystem(GameState* gameState);
+	void initPhysicsSystem(GameState* gameState, AiController* aiController);
 	// Physics Update
+	// Changed to PlayerProperties
+	//void stepPhysics(std::shared_ptr<CallbackInterface> callback_ptr, Timer* timer);
 	void stepPhysics(std::shared_ptr<CallbackInterface> callback_ptr, Timer* timer);
+	
+
+	
 
 private:
 	void initPhysX();
 	void cleanupPhysX();
 	void initPhysXMeshes();
 	void initMaterialFrictionTable();
-	bool initVehicles();
+	void initVehicles(int vehicleCount);
+	PxVec3 randomSpawnPosition();
 	void spawnTrailer();
-	void attachTrailer(PxRigidDynamic* trailer, int truckIndex);
-
+	void processTrailerCollision();
+	int getVehicleIndex(Vehicle* vehicle);
+	Vehicle* getPullingVehicle(PxRigidDynamic* trailer);
+	void attachTrailer(PxRigidDynamic* trailer, Vehicle* vehicle);
+	void detachTrailer(PxRigidDynamic* trailer, Vehicle* vehicle);
+	void dropOffTrailer(Vehicle* vehicle);
+	void resetCollectedTrailers();
+	void RoundFly();
 	GameState* gameState;
+	AiController* aiController;
+
+
+	// AI
+	int AI_State;
+	int currTrailerIndex;
+	void AI_InitSystem();
+	void AI_FindTrailer(Vehicle* vehicle);
+	void AI_CollectTrailer(Vehicle* vehicle);
+	void AI_DropOff(Vehicle* vehicle);
+	void AI_BumpPlayer(Vehicle* vehicle);
+	void AI_StateController(Vehicle* vehicle);
+	
 };
 
 
@@ -47,20 +93,44 @@ class ContactReportCallback : public physx::PxSimulationEventCallback {
 public:
 	bool contactDetected = false;
 	PxContactPairHeader contactPair;
-
+	bool AirOrNot = false;
+	int gate = 0;
+	vector<PxShape*>wheelshapes;
+	vector<Vehicle*> cars;
 private:
 	void onContact(const physx::PxContactPairHeader& pairHeader, const physx::PxContactPair* pairs, physx::PxU32 nbPairs) {
-		PX_UNUSED(pairHeader);
-		PX_UNUSED(pairs);
+		//PX_UNUSED(pairHeader);
+		//PX_UNUSED(pairs);
 		PX_UNUSED(nbPairs);
-
+		/*if (pairHeader.pairs->events.isSet(PxPairFlag::eNOTIFY_TOUCH_FOUND)) {
+			std::cout << "Collision Detected!" << std::endl;
+			//AirOrNot = false;
+		}
+		if (pairHeader.pairs->events.isSet(PxPairFlag::eNOTIFY_TOUCH_LOST) 
+			&& (cars.at(0)->vehicle.mPhysXState.physxActor.rigidBody == pairHeader.actors[0] ||
+				cars.at(0)->vehicle.mPhysXState.physxActor.rigidBody == pairHeader.actors[1])) {
+			AirOrNot = true;
+			gate = 0;
+		}*/
 		contactPair = pairHeader;
-		contactDetected = true;
+		if(pairHeader.pairs->events.isSet(PxPairFlag::eNOTIFY_TOUCH_FOUND))
+			contactDetected = true;
 	}
 	void onConstraintBreak(physx::PxConstraintInfo* constraints, physx::PxU32 count) {}
 	void onWake(physx::PxActor** actors, physx::PxU32 count) {}
 	void onSleep(physx::PxActor** actors, physx::PxU32 count) {}
-	void onTrigger(physx::PxTriggerPair* pairs, physx::PxU32 count) {}
+	void onTrigger(physx::PxTriggerPair* pairs, physx::PxU32 count) {
+		/*if (pairs->status == PxPairFlag::eNOTIFY_TOUCH_FOUND && gate == 3) {
+			AirOrNot = false;
+			//cout << count << endl;
+		}
+		else {
+			if (pairs->triggerShape == wheelshapes[0])
+				gate |= shape1;
+			else if (pairs->triggerShape == wheelshapes[1])
+				gate |= shape2;
+		}*/
+	}
 	void onAdvance(const physx::PxRigidBody* const* bodyBuffer,
 		const physx::PxTransform* poseBuffer,
 		const physx::PxU32 count) {}
