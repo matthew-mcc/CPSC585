@@ -11,18 +11,20 @@ public:
 	void update(glm::mat4 proj, glm::mat4 view);
 	void cleanUp(std::shared_ptr<CallbackInterface> callback_ptr);
 	void render();
+	void renderQuad();
+
+	float getWidth();
+	float getHeight();
 
 	glm::mat4 lightSpaceMatrix;
 	Shader shader = Shader();
-	unsigned int depthMapFBO;
-	unsigned int depthMap;
-	unsigned int depthMapCarOnly;
+	Shader debugShader;
+	unsigned int FBO[2];
+	unsigned int fbTextures[2];
 
 
 private:
-	Shader debugShader;
 	void ConfigureShaderAndMatrices(glm::vec3 lightPos, glm::vec3 playerPos);
-	void renderQuad();
 	void setup(std::string mode);
 
 	float mapX;

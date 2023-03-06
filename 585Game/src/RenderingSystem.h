@@ -39,11 +39,11 @@ private:
 	FBuffer outlineMap;
 	FBuffer outlineMapNoLandscape;
 	FBuffer celMap;
+	FBuffer blurMap;
 
 	// Shaders
 	Shader textShader;
 	Shader celShader;
-	Shader outlineShader;
 
 	// Coordinate Transformations
 	mat4 model = mat4(1.0f);

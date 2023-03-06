@@ -44,6 +44,7 @@ void RenderingSystem::initRenderer() {
 	outlineMap = FBuffer(1920, 1080, "o");
 	outlineMapNoLandscape = FBuffer(1920, 1080, "o");
 	celMap = FBuffer(1920, 1080, "c");
+	blurMap = FBuffer(1920, 1080, "b");
 
 	// WORLD SHADER INITIALIZATION
 	stbi_set_flip_vertically_on_load(true);
@@ -79,7 +80,6 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> callback
 	vec3 player_forward = playerEntity.transform->getForwardVector();
 	vec3 player_right = playerEntity.transform->getRightVector();
 	vec3 player_up = playerEntity.transform->getUpVector();
-
 	// Chase Camera: Compute eye and target offsets
 		// Eye Offset: Camera position (world space)
 		// Target Offset: Camera focus point (world space)
@@ -236,16 +236,17 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> callback
 	glClear(GL_DEPTH_BUFFER_BIT);
 
 	// FIFTH PASS: SCENE TO TEXTURE
+	celMap.debugShader.use();
 	celMap.update(projection, view);
 	glCullFace(GL_FRONT);
 	glActiveTexture(GL_TEXTURE1);
-	glBindTexture(GL_TEXTURE_2D, nearShadowMap.depthMap);
+	glBindTexture(GL_TEXTURE_2D, nearShadowMap.fbTextures[0]);
 	glActiveTexture(GL_TEXTURE2);
-	glBindTexture(GL_TEXTURE_2D, farShadowMap.depthMap);
+	glBindTexture(GL_TEXTURE_2D, farShadowMap.fbTextures[0]);
 	glActiveTexture(GL_TEXTURE3);
-	glBindTexture(GL_TEXTURE_2D, outlineMap.depthMap);
+	glBindTexture(GL_TEXTURE_2D, outlineMap.fbTextures[0]);
 	glActiveTexture(GL_TEXTURE4);
-	glBindTexture(GL_TEXTURE_2D, outlineMapNoLandscape.depthMap);
+	glBindTexture(GL_TEXTURE_2D, outlineMapNoLandscape.fbTextures[0]);
 	glActiveTexture(GL_TEXTURE0);
 	for (int i = 0; i < gameState->entityList.size(); i++) {
 		// Retrieve global position and rotation
@@ -285,61 +286,43 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> callback
 	//nearShadowMap.render();		//Uncomment to see the near shadow map (light's perspective, the entire map)
 	//outlineMap.render();			//Uncomment to see the outline map (camera's position, just a depth map)
 	//outlineMapNoLandscape.render();
-	celMap.render();
 
-	// SIXTH PASS PASS: CEL SHADE RENDER
-		// Use world shader
-	/*celShader.use();
+	// BLUR IMAGE FOR BLOOM
+	if (blurMap.getWidth() != callback_ptr->xres || blurMap.getHeight() != callback_ptr->yres) {
+		blurMap = FBuffer(callback_ptr->xres, callback_ptr->yres, "b");
+	}
+
+	bool horizontal = true, first_iteration = true;
+	int amount = 10;
+	blurMap.shader.use();
+	blurMap.shader.setInt("image", 1);
+	for (unsigned int i = 0; i < amount; i++)
+	{
+		blurMap.shader.use();
+		glBindFramebuffer(GL_FRAMEBUFFER, blurMap.FBO[horizontal]);
+		blurMap.shader.setInt("horizontal", horizontal);
+		glActiveTexture(GL_TEXTURE1);
+		glBindTexture(
+			GL_TEXTURE_2D, first_iteration ? celMap.fbTextures[1] : blurMap.fbTextures[!horizontal]
+		);
+		glActiveTexture(GL_TEXTURE0);
+		blurMap.renderQuad();
+		horizontal = !horizontal;
+		if (first_iteration)
+			first_iteration = false;
+	}
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	
 	glActiveTexture(GL_TEXTURE1);
-	glBindTexture(GL_TEXTURE_2D, nearShadowMap.depthMap);
+	glBindTexture(GL_TEXTURE_2D, celMap.fbTextures[0]);
 	glActiveTexture(GL_TEXTURE2);
-	glBindTexture(GL_TEXTURE_2D, farShadowMap.depthMap);
-	glActiveTexture(GL_TEXTURE3);
-	glBindTexture(GL_TEXTURE_2D, outlineMap.depthMap);
-	glActiveTexture(GL_TEXTURE4);
-	glBindTexture(GL_TEXTURE_2D, outlineMapNoLandscape.depthMap);
-	setCelShaderUniforms(&celShader);
-	celShader.setBool("renderingLand", false);
+	glBindTexture(GL_TEXTURE_2D, blurMap.fbTextures[0]);
+	glActiveTexture(GL_TEXTURE0);
 
-	// Iteratively Draw Models
-	for (int i = 0; i < gameState->entityList.size(); i++) {
-		// Retrieve global position and rotation
-		vec3 position = gameState->entityList.at(i).transform->getPosition();
-		quat rotation = gameState->entityList.at(i).transform->getRotation();
+	celMap.render();
+	//blurMap.render();
 
-		// Retrieve local positions and rotations of submeshes
-		for (int j = 0; j < gameState->entityList.at(i).localTransforms.size(); j++) {
-			//if (gameState->entityList.at(i).name.compare("landscape") == 0) {
-			//	celShader.setBool("renderingLand", true);
-			//}
-			//else celShader.setBool("renderingLand", false);
-
-			vec3 localPosition = gameState->entityList.at(i).localTransforms.at(j)->getPosition();
-			quat localRotation = gameState->entityList.at(i).localTransforms.at(j)->getRotation();
-
-			// Set model matrix
-			model = mat4(1.0f);
-			model = translate(model, position);
-			model = model * toMat4(rotation);
-			model = translate(model, localPosition);
-			model = model * toMat4(localRotation);
-			model = scale(model, vec3(1.0f));
-			setCelShaderUniforms(&celShader);
-
-			// Update relative light position
-			quat lightRotation = rotation;
-			quat localLightRotation = localRotation;
-			lightRotation.w *= -1.f;
-			localLightRotation *= -1.f;
-			vec3 newLight = (vec3)(toMat4(lightRotation) * vec4(lightPos, 0.f) * toMat4(localLightRotation));
-			celShader.setVec3("sun", newLight);
-
-			// Draw model's mesh
-			//gameState->entityList.at(i).model->meshes.at(j).Draw(celShader);
-		}
-	}*/
-
-	// FIFTH PASS: GUI RENDER
+	// SIXTH PASS: GUI RENDER
 		// Use text shader
 	textShader.use();
 	mat4 textProjection = ortho(0.0f, static_cast<float>(callback_ptr->xres), 0.0f, static_cast<float>(callback_ptr->yres));
@@ -381,7 +364,6 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> callback
 	ImGui::SliderFloat("Fog depth", &fogDepth, 0.f, 0.2f);
 	ImGui::SliderFloat("Outline Transparency", &outlineTransparency, 0.f, 1.f);
 	ImGui::SliderFloat("Outline Sensitivity", &outlineSensitivity, 0.f, 50.f);
-	//ImGui::SliderFloat("Min bias", &minBias, 0.0f, 0.1f);
 	ImGui::SliderFloat("Min bias", &minBias, 0.0f, 100.f);
 	ImGui::SliderFloat("Max bias", &maxBias, 0.0f, 0.1f);
 

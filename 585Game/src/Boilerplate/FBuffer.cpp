@@ -22,6 +22,14 @@ FBuffer::FBuffer(int width, int height, std::string mode) {
 	else if (mode.compare("c") == 0) {
 		shader = Shader("src/Shaders/celVertex.txt", "src/Shaders/celFragment.txt");
 		debugShader = Shader("src/Shaders/shadowDebugVertex.txt", "src/Shaders/shadowDebugFragment.txt");
+		debugShader.use();
+		debugShader.setBool("isDepth", false);
+		debugShader.setInt("depthMap", 1);
+		debugShader.setInt("bloomMap", 2);
+	}
+	else if (mode.compare("b") == 0) {
+		shader = Shader("src/Shaders/blurVertex.txt", "src/Shaders/blurFragment.txt");
+		debugShader = Shader("src/Shaders/shadowDebugVertex.txt", "src/Shaders/shadowDebugFragment.txt");
 		debugShader.setBool("isDepth", false);
 	}
 
@@ -47,12 +55,14 @@ FBuffer::FBuffer(unsigned int width, unsigned int height, float x, float y, floa
 }
 
 void FBuffer::setup(std::string mode) {
-	glGenFramebuffers(1, &depthMapFBO);
-	glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
+	glGenFramebuffers(2, FBO);
+	glBindFramebuffer(GL_FRAMEBUFFER, FBO[0]);
 
 	// Generate texture
-	glGenTextures(1, &depthMap);
-	glBindTexture(GL_TEXTURE_2D, depthMap);
+	glGenTextures(2, fbTextures);
+	glBindTexture(GL_TEXTURE_2D, fbTextures[0]);
+
+	// Outline framebuffer
 	if (mode.compare("o") == 0) {
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT,
 		WIDTH, HEIGHT, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
@@ -62,23 +72,28 @@ void FBuffer::setup(std::string mode) {
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
 		float borderColor[] = { 1.0, 1.0, 1.0, 1.0 };
 		glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);
-	}
-	else if (mode.compare("c") == 0) {
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB,
-		WIDTH, HEIGHT, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	}
-
-	// Attach texture to FBO
-	glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
-	if (mode.compare("o") == 0) {
-		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depthMap, 0);
+		// Attach texture to FBO
+		glBindFramebuffer(GL_FRAMEBUFFER, FBO[0]);
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, fbTextures[0], 0);
 		glDrawBuffer(GL_NONE);
 		glReadBuffer(GL_NONE);
 	}
+
+	// Cel framebuffer
 	else if (mode.compare("c") == 0) {
-		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, depthMap, 0);
+		for (int i = 0; i < 2; i++) {
+			glBindTexture(GL_TEXTURE_2D, fbTextures[i]);
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB,
+				WIDTH, HEIGHT, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+			// Attach texture to FBO
+			glBindFramebuffer(GL_FRAMEBUFFER, FBO[0]);
+			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, GL_TEXTURE_2D, fbTextures[i], 0);
+		}
+		unsigned int attachments[2] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1 };
+		glDrawBuffers(2, attachments);
+
 		unsigned int rbo;
 		glGenRenderbuffers(1, &rbo);
 		glBindRenderbuffer(GL_RENDERBUFFER, rbo);
@@ -87,6 +102,25 @@ void FBuffer::setup(std::string mode) {
 		// now that we actually created the framebuffer and added all attachments we want to check if it is actually complete now
 		if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
 			std::cout << "ERROR::FRAMEBUFFER:: Framebuffer is not complete!" << std::endl;
+	}
+
+	// Blur framebuffer
+	else if (mode.compare("b") == 0) {
+		for (unsigned int i = 0; i < 2; i++)
+		{
+			glBindFramebuffer(GL_FRAMEBUFFER, FBO[i]);
+			glBindTexture(GL_TEXTURE_2D, fbTextures[i]);
+			glTexImage2D(
+				GL_TEXTURE_2D, 0, GL_RGBA16F, WIDTH, HEIGHT, 0, GL_RGBA, GL_FLOAT, NULL
+			);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+			glFramebufferTexture2D(
+				GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, fbTextures[i], 0
+			);
+		}
 	}
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
@@ -98,7 +132,7 @@ void FBuffer::update(glm::vec3 lightPos, glm::vec3 playerPos) {
 	shader.setMat4("lightSpaceMatrix", lightSpaceMatrix);
 	shader.setMat4("model", glm::mat4(1.0f));
 	glViewport(0, 0, WIDTH, HEIGHT);
-	glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
+	glBindFramebuffer(GL_FRAMEBUFFER, FBO[0]);
 	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 	glActiveTexture(GL_TEXTURE0);
 }
@@ -110,7 +144,7 @@ void FBuffer::update(glm::mat4 proj, glm::mat4 view) {
 	shader.setMat4("lightSpaceMatrix", lightSpaceMatrix);
 	shader.setMat4("model", glm::mat4(1.0f));
 	glViewport(0, 0, WIDTH, HEIGHT);
-	glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
+	glBindFramebuffer(GL_FRAMEBUFFER, FBO[0]);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glActiveTexture(GL_TEXTURE0);
 }
@@ -125,7 +159,6 @@ void FBuffer::cleanUp(std::shared_ptr<CallbackInterface> callback_ptr) {
 void FBuffer::render() {
 	debugShader.use();
 	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, depthMap);
 	renderQuad();
 }
 
@@ -159,9 +192,15 @@ void FBuffer::renderQuad() {
 		glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
 	}
 	glBindVertexArray(quadVAO);
-	glBindTexture(GL_TEXTURE_2D, depthMap);
+	glBindTexture(GL_TEXTURE_2D, fbTextures[0]);
 	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 	glBindVertexArray(0);
 }
+float FBuffer::getWidth() {
+	return WIDTH;
+}
 
+float FBuffer::getHeight() {
+	return HEIGHT;
+}
 
