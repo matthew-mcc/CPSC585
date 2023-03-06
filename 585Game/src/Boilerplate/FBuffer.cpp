@@ -175,10 +175,10 @@ void FBuffer::renderQuad() {
 	{
 		float quadVertices[] = {
 			// positions        // texture Coords
-			-1.0f,  1.0f, 0.0f, 0.0f, 1.0f,
-			-1.0f, -1.0f, 0.0f, 0.0f, 0.0f,
-			 1.0f,  1.0f, 0.0f, 1.0f, 1.0f,
-			 1.0f, -1.0f, 0.0f, 1.0f, 0.0f,
+			-1.0f,  1.0f, 0.1f, 0.0f, 1.0f,
+			-1.0f, -1.0f, 0.1f, 0.0f, 0.0f,
+			 1.0f,  1.0f, 0.1f, 1.0f, 1.0f,
+			 1.0f, -1.0f, 0.1f, 1.0f, 0.0f,
 		};
 		// setup plane VAO
 		glGenVertexArrays(1, &quadVAO);
