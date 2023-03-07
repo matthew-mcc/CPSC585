@@ -28,6 +28,10 @@ ContactReportCallback* gContactReportCallback;
 Pathfinder* pathfinder;
 AiController* aiController;
 
+// Raycasts
+PxRaycastBuffer AircontrolBuffer;
+PxRaycastBuffer TrailerBuffer;
+
 // Vehicles
 vector<Vehicle*> vehicles;
 vector<PxVec3> vehicleStartPositions = vector<PxVec3>{
@@ -40,6 +44,20 @@ vector<PxQuat> vehicleStartRotations = vector<PxQuat>{
 	PxQuat(0.0f, 0.0f, 0.0f, 1.0f),
 	PxQuat(0.0f, 0.0f, 0.0f, 1.0f),
 	PxQuat(0.0f, 0.0f, 0.0f, 1.0f)};
+
+// Trailers
+vector<Trailer*> trailers;
+float circle = 0.f;
+int rigidBodyAddIndex;	// DEBUG ONLY
+PxBoxGeometry attachedTrailerShape = PxBoxGeometry(.5f, .5f, .5f);
+PxBoxGeometry detachedTrailerShape = PxBoxGeometry(1.2f, 1.2f, 1.2f);
+
+// Joint Angle Limits
+PxJointAngularLimitPair normalTwistJoint = PxJointAngularLimitPair(-0.01f, 0.01f);
+PxJointLimitPyramid normalPyramidJoint = PxJointLimitPyramid(-0.4f, 0.4f, -0.01f, 0.01f);
+PxJointAngularLimitPair tailTwistJoint = PxJointAngularLimitPair(-0.01f, 0.01f);
+PxJointLimitPyramid tailPyramidJoint = PxJointLimitPyramid(-0.05f, 0.05f, -0.01f, 0.01f);
+
 
 // Cooking
 PxCooking* gCooking = NULL;
@@ -64,11 +82,6 @@ PxReal gPhysXDefaultMaterialFriction = 1.0f;
 
 //Give the vehicle a name so it can be identified in PVD.
 const char gVehicleName[] = "engineDrive";
-
-// Trailers
-vector<Trailer*> trailers;
-float circle = 0.f;
-int rigidBodyAddIndex;	// DEBUG ONLY
 
 
 vec3 toGLMVec3(PxVec3 pxTransform) {
@@ -115,13 +128,37 @@ Vehicle* PhysicsSystem::getPullingVehicle(Trailer* trailer) {
 	return NULL;
 }
 
-Trailer* getTrailerObject(PxRigidDynamic* trailerBody) {
+Trailer* PhysicsSystem::getTrailerObject(PxRigidDynamic* trailerBody) {
 	for (int i = 0; i < trailers.size(); i++) {
 		if (trailers.at(i)->rigidBody == trailerBody) {
 			return trailers.at(i);
 		}
 	}
 	return NULL;
+}
+
+void PhysicsSystem::updateJointLimits(Vehicle* vehicle) {
+	for (int i = 0; i < vehicle->attachedJoints.size(); i++) {
+		if (i == vehicle->attachedJoints.size() - 1) {
+			vehicle->attachedJoints.at(i)->setTwistLimit(tailTwistJoint);
+			vehicle->attachedJoints.at(i)->setPyramidSwingLimit(tailPyramidJoint);
+		}
+		else {
+			vehicle->attachedJoints.at(i)->setTwistLimit(normalTwistJoint);
+			vehicle->attachedJoints.at(i)->setPyramidSwingLimit(normalPyramidJoint);
+		}
+	}
+}
+
+void PhysicsSystem::changeRigidDynamicShape(PxRigidDynamic* rigidBody, PxBoxGeometry newGeom) {
+	PxShape* oldShape = NULL;
+	rigidBody->getShapes(&oldShape, 1, 0);
+	rigidBody->detachShape(*oldShape);
+
+	PxShape* newShape = gPhysics->createShape(newGeom, *trailerMat);
+	PxFilterData shapeFilter(COLLISION_FLAG_OBSTACLE, COLLISION_FLAG_OBSTACLE_AGAINST, 0, 0);
+	newShape->setSimulationFilterData(shapeFilter);
+	rigidBody->attachShape(*newShape);
 }
 
 void PhysicsSystem::processTrailerCollision() {
@@ -161,7 +198,7 @@ void PhysicsSystem::spawnTrailer() {
 	PxVec3 spawnPos = randomSpawnPosition();
 
 	// Create trailer shape
-	PxShape* shape = gPhysics->createShape(PxBoxGeometry(.75f, .75f, .75f), *trailerMat);
+	PxShape* shape = gPhysics->createShape(detachedTrailerShape, *trailerMat);
 	PxFilterData boxFilter(COLLISION_FLAG_OBSTACLE, COLLISION_FLAG_OBSTACLE_AGAINST, 0, 0);
 	shape->setSimulationFilterData(boxFilter);
 
@@ -183,45 +220,44 @@ void PhysicsSystem::spawnTrailer() {
 }
 
 void PhysicsSystem::attachTrailer(Trailer* trailer, Vehicle* vehicle) {
-	PxRigidBody* truckBody = vehicle->vehicle.mPhysXState.physxActor.rigidBody;
-	PxTransform truckTrans = truckBody->getGlobalPose();
+	// Define local vars
 	PxD6Joint* joint;
 	PxTransform jointTransform;
 	PxTransform trailerOffset;
+	PxRigidBody* parentBody;
+
+	// Modify trailer rigidbody parameters to appropriate towing values
 	trailer->rigidBody->setLinearDamping(10);
 	trailer->rigidBody->setAngularDamping(5);
-
-	// First Joint, attach to truck rigidbody
+	changeRigidDynamicShape(trailer->rigidBody, attachedTrailerShape);
+	 
+	// First Joint, set parent body to vehicle
 	if (vehicle->attachedTrailers.size() == 0) {
-		trailerOffset = PxTransform(PxVec3(0.0f, 0.75f, -3.f));
-		trailer->rigidBody->setGlobalPose(truckTrans.transform(trailerOffset));
-		jointTransform = PxTransform(trailer->rigidBody->getGlobalPose().p);
-		joint = PxD6JointCreate(*gPhysics, truckBody, truckBody->getGlobalPose().getInverse().transform(jointTransform), trailer->rigidBody, trailer->rigidBody->getGlobalPose().getInverse().transform(jointTransform));
-		joint->setMotion(PxD6Axis::eTWIST, PxD6Motion::eLIMITED);
-		joint->setMotion(PxD6Axis::eSWING1, PxD6Motion::eLIMITED);
-		joint->setMotion(PxD6Axis::eSWING2, PxD6Motion::eLIMITED);
-		joint->setTwistLimit(PxJointAngularLimitPair(-0.01f, 0.01f));
-		joint->setPyramidSwingLimit(PxJointLimitPyramid(-0.8f, 0.8f, -0.01f, 0.01f));
+		trailerOffset = PxTransform(PxVec3(0.0f, 0.5f, -3.f));
+		parentBody = vehicle->vehicle.mPhysXState.physxActor.rigidBody;
 	}
 
-	// Not first joint, attach to last trailer in chain
+	// Not first joint, set parent body to last trailer in chain
 	else {
-		PxRigidDynamic* lastTrailer = vehicle->attachedTrailers.back()->rigidBody;
 		trailerOffset = PxTransform(PxVec3(0.0f, 0.0f, -3.f));
-		trailer->rigidBody->setGlobalPose(lastTrailer->getGlobalPose().transform(trailerOffset));
-		jointTransform = PxTransform(trailer->rigidBody->getGlobalPose().p);
-		joint = PxD6JointCreate(*gPhysics, lastTrailer, lastTrailer->getGlobalPose().getInverse().transform(jointTransform), trailer->rigidBody, trailer->rigidBody->getGlobalPose().getInverse().transform(jointTransform));
-		joint->setMotion(PxD6Axis::eTWIST, PxD6Motion::eLIMITED);
-		joint->setMotion(PxD6Axis::eSWING1, PxD6Motion::eLIMITED);
-		joint->setMotion(PxD6Axis::eSWING2, PxD6Motion::eLIMITED);
-		joint->setTwistLimit(PxJointAngularLimitPair(-0.01f, 0.01f));
-		joint->setPyramidSwingLimit(PxJointLimitPyramid(-0.8f, 0.8f, -0.01f, 0.01f));
+		parentBody = vehicle->attachedTrailers.back()->rigidBody;
 	}
+
+	// Update trailer's global position to be in-line of the trail
+	trailer->rigidBody->setGlobalPose(parentBody->getGlobalPose().transform(trailerOffset));
+
+	// Create joint
+	jointTransform = PxTransform(trailer->rigidBody->getGlobalPose().p);
+	joint = PxD6JointCreate(*gPhysics, parentBody, parentBody->getGlobalPose().getInverse().transform(jointTransform), trailer->rigidBody, trailer->rigidBody->getGlobalPose().getInverse().transform(jointTransform));
+	joint->setMotion(PxD6Axis::eTWIST, PxD6Motion::eLIMITED);
+	joint->setMotion(PxD6Axis::eSWING1, PxD6Motion::eLIMITED);
+	joint->setMotion(PxD6Axis::eSWING2, PxD6Motion::eLIMITED);
 
 	// Add new trailer to attachedTrailers tracking list, update flags
 	trailer->isTowed = true;
 	vehicle->attachedTrailers.push_back(trailer);
 	vehicle->attachedJoints.push_back(joint);
+	updateJointLimits(vehicle);
 }
 
 void PhysicsSystem::detachTrailer(Trailer* trailer, Vehicle* vehicle) {
@@ -247,11 +283,13 @@ void PhysicsSystem::detachTrailer(Trailer* trailer, Vehicle* vehicle) {
 		vehicle->attachedTrailers.at(i)->isTowed = false;
 		vehicle->attachedTrailers.at(i)->rigidBody->setAngularDamping(1);
 		vehicle->attachedTrailers.at(i)->rigidBody->setLinearDamping(1);
+		changeRigidDynamicShape(vehicle->attachedTrailers.at(i)->rigidBody, detachedTrailerShape);
 	}
 
 	// Set new joint and trailer arrays for vehicle
 	vehicle->attachedJoints = newJoints;
 	vehicle->attachedTrailers = newTrailers;
+	updateJointLimits(vehicle);
 }
 
 void PhysicsSystem::RoundFly() {
@@ -294,12 +332,14 @@ void PhysicsSystem::dropOffTrailer(Vehicle* vehicle) {
 	for (int i = 0; i < nbTrailers; i++) {
 		vehicle->attachedTrailers.at(i)->isFlying = true;
 		vehicle->attachedTrailers.at(i)->isTowed = false;
+		changeRigidDynamicShape(vehicle->attachedTrailers.at(i)->rigidBody, detachedTrailerShape);
 		vehicle->attachedJoints.at(i)->release();
 	}
 
 	// Reset vehicle's joint and trailer lists
 	vehicle->attachedJoints = newJoints;
 	vehicle->attachedTrailers = newTrailers;
+	updateJointLimits(vehicle);
 
 	// Find entity of vehicle that triggered the dropoff
 	// Add score to this entity
@@ -574,12 +614,11 @@ void PhysicsSystem::initPhysicsSystem(GameState* gameState, AiController* aiCont
 	initMaterialFrictionTable();
 	initVehicles(4);
 
+	// Baseline of 30 Trailers
 	for (int i = 0; i < 30; i++) {
 		spawnTrailer();
 	}
 }
-
-PxRaycastBuffer AircontrolBuffer;
 
 void PhysicsSystem::stepPhysics(shared_ptr<CallbackInterface> callback_ptr, Timer* timer) {
 	PxReal timestep;
@@ -598,7 +637,7 @@ void PhysicsSystem::stepPhysics(shared_ptr<CallbackInterface> callback_ptr, Time
 
 	// Debug - Add trailer on key command
 	if (callback_ptr->addTrailer) {
-		//attachTrailer(rigidBodies.at(rigidBodyAddIndex), vehicles.at(0));
+		attachTrailer(trailers.at(rigidBodyAddIndex), vehicles.at(0));
 		callback_ptr->addTrailer = false;
 		rigidBodyAddIndex++;
 		// Audio Test
@@ -696,6 +735,20 @@ void PhysicsSystem::stepPhysics(shared_ptr<CallbackInterface> callback_ptr, Time
 			q = toGLMQuat(trailers.at(trailerIndex)->rigidBody->getGlobalPose().q);
 			entityList.at(i).transform->setPosition(p);
 			entityList.at(i).transform->setRotation(q);
+
+			// If trailer is being towed, modify local transforms to make it look as if its on the ground
+			if (trailers.at(trailerIndex)->isTowed) {
+				vec3 up = entityList.at(i).transform->getUpVector();
+				PxVec3 down = PxVec3(-up.x, -up.y, -up.z);
+				PxVec3 rayStart = trailers.at(trailerIndex)->rigidBody->getGlobalPose().p;
+				PxQueryFilterData filterData(PxQueryFlag::eSTATIC);
+				gScene->raycast(rayStart, down, 1.5f, TrailerBuffer, PxHitFlag::eDEFAULT, filterData);
+				if (TrailerBuffer.hasAnyHits()) {
+					trailers.at(trailerIndex)->groundDistance = (TrailerBuffer.block.position - rayStart).magnitude();
+				}
+				entityList.at(i).transform->setPosition(p + (up * clamp(1.25f - trailers.at(trailerIndex)->groundDistance, 0.0f, 10.f)) * 0.85f);
+			}
+
 			trailerIndex++;
 		}
 

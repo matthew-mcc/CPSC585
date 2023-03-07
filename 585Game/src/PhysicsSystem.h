@@ -38,6 +38,7 @@ struct Trailer {
 	int entityIndex;
 	bool isFlying = false;
 	bool isTowed = false;
+	float groundDistance = 0.0f;
 };
 
 struct Vehicle {
@@ -72,6 +73,9 @@ private:
 	PxVec3 randomSpawnPosition();
 	void spawnTrailer();
 	void processTrailerCollision();
+	void updateJointLimits(Vehicle* vehicle);
+	void changeRigidDynamicShape(PxRigidDynamic* rigidBody, PxBoxGeometry newGeom);
+	Trailer* getTrailerObject(PxRigidDynamic* trailerBody);
 	int getVehicleIndex(Vehicle* vehicle);
 	Vehicle* getPullingVehicle(Trailer* trailer);
 	void attachTrailer(Trailer* trailer, Vehicle* vehicle);
