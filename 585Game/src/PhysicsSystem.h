@@ -53,7 +53,7 @@ public:
 	//void stepPhysics(std::shared_ptr<CallbackInterface> callback_ptr, Timer* timer);
 	void stepPhysics(std::shared_ptr<CallbackInterface> callback_ptr, Timer* timer);
 	
-	static bool CameraRaycasting(glm::vec3 dir, glm::vec3 campos);
+	static float CameraRaycasting( glm::vec3 campos);
 	
 
 private:

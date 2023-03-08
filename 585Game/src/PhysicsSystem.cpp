@@ -235,13 +235,21 @@ void PhysicsSystem::detachTrailer(PxRigidDynamic* trailer, Vehicle* vehicle) {
 	vehicle->attachedTrailers = newTrailers;
 }
 PxRaycastBuffer cameraRayBuffer(0,0);
-bool PhysicsSystem::CameraRaycasting(glm::vec3 dir, glm::vec3 campos) {
-	PxVec3 cam = PxVec3(campos.x, campos.y, campos.z); //where the ray shoots, the origin      
-	if( gScene->raycast(cam,PxVec3(dir.x,dir.y,dir.z).getNormalized()/*the direction*/,
-	                   (vehicles.at(0)->vehicle.mPhysXState.physxActor.rigidBody->getGlobalPose().p - cam).magnitude(),/*distance between camera and the vehicle*/
-		                cameraRayBuffer))
-		return cameraRayBuffer.block.shape->getSimulationFilterData().word0 == COLLISION_FLAG_GROUND;
-	return false;
+float PhysicsSystem::CameraRaycasting(glm::vec3 campos) {
+	PxVec3 cam = PxVec3(campos.x, campos.y, campos.z); //where the ray shoots, the origin 
+	PxVec3 start;
+	PxTransform vehicle_trans = vehicles.at(0)->vehicle.mPhysXState.physxActor.rigidBody->getGlobalPose();
+
+	start = vehicle_trans.p;
+	PxVec3 t(0.f,1.f,3.7f); // this might need to be changed, after we figure out where the camera is looking at XD
+	t = vehicle_trans.rotate(t);
+	start += t;
+	PxVec3 dir =  start-cam; // we need the ray shoot from vehicle to camera, which then can detect the ground mesh.
+	if (gScene->raycast(cam, dir.getNormalized()/*the direction*/,
+		dir.magnitude(),/*distance between camera and the vehicle*/
+		cameraRayBuffer, PxHitFlag::eMESH_BOTH_SIDES) && cameraRayBuffer.block.shape->getSimulationFilterData().word0 == COLLISION_FLAG_GROUND)
+		return cameraRayBuffer.block.distance;
+	return 0.f;
 }
 
 void PhysicsSystem::RoundFly() {
