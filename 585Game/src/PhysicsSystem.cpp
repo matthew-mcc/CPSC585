@@ -234,6 +234,15 @@ void PhysicsSystem::detachTrailer(PxRigidDynamic* trailer, Vehicle* vehicle) {
 	vehicle->attachedJoints = newJoints;
 	vehicle->attachedTrailers = newTrailers;
 }
+PxRaycastBuffer cameraRayBuffer(0,0);
+bool PhysicsSystem::CameraRaycasting(glm::vec3 dir, glm::vec3 campos) {
+	PxVec3 cam = PxVec3(campos.x, campos.y, campos.z); //where the ray shoots, the origin      
+	if( gScene->raycast(cam,PxVec3(dir.x,dir.y,dir.z).getNormalized()/*the direction*/,
+	                   (vehicles.at(0)->vehicle.mPhysXState.physxActor.rigidBody->getGlobalPose().p - cam).magnitude(),/*distance between camera and the vehicle*/
+		                cameraRayBuffer))
+		return cameraRayBuffer.block.shape->getSimulationFilterData().word0 == COLLISION_FLAG_GROUND;
+	return false;
+}
 
 void PhysicsSystem::RoundFly() {
 	for (int i = 0; i < flyTrailer.size(); i++) {
@@ -540,7 +549,7 @@ void PhysicsSystem::initVehicles(int vehicleCount) {
 void PhysicsSystem::initPhysicsSystem(GameState* gameState, AiController* aiController) {
 	this->gameState = gameState;
 	this->aiController = aiController;
-	
+	cameraRayBuffer.block.shape = NULL;
 	srand(time(NULL));
 	initPhysX();
 	initPhysXMeshes();

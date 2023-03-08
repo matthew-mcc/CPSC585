@@ -1,4 +1,5 @@
 #include "RenderingSystem.h"
+#include "PhysicsSystem.h"
 
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
@@ -89,7 +90,8 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> callback
 		// Target Offset: Camera focus point (world space)
 	vec3 eye_offset = (camera_position_forward * player_forward * camera_zoom_forward) + (camera_position_right * player_right) + (camera_position_up * vec3(0.0f, 1.0f, 0.0f) * camera_zoom_up);
 	vec3 target_offset = (camera_target_forward * player_forward) + (camera_target_right * player_right) + (camera_target_up * player_up);
-
+	
+	
 	// Camera lag: Generate target_position - prev_position creating a vector. Scale by constant factor, then add to prev and update
 	vec3 camera_target_position = playerEntity->transform->getPosition() + eye_offset;
 	float y = playerEntity->transform->getPosition().y + camera_position_up + (float)playerEntity->nbChildEntities * 0.4f;
@@ -99,6 +101,7 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> callback
 
 	camera_track_vector = camera_track_vector * camera_lag * (float)timer->getDeltaTime();
 	camera_previous_position = vec3(translate(mat4(1.0f), camera_track_vector) * vec4(camera_previous_position, 1.0f));
+	
 
 	// If user is controlling camera, set view accordingly
 	vec3 camOffset = vec3(0.f);
@@ -111,7 +114,11 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> callback
 	else {
 		view = lookAt(camera_previous_position + camOffset, playerEntity->transform->getPosition() + target_offset, world_up);
 	}
-
+	if (PhysicsSystem::CameraRaycasting(playerEntity->transform->getPosition() + target_offset, camera_previous_position))//not sure which one to use XD
+		camera_position_forward += 1.f * (float)timer->getDeltaTime();//camera_previous_position.z += 1.f; //* (float)timer->getDeltaTime();//cout << "???" << endl;
+	else
+		if(camera_position_forward>-7.5f)
+			camera_position_forward -= 1.f * (float)timer->getDeltaTime();
 	// Set projection and view matrices
 	projection = perspective(radians(fov), (float)callback_ptr->xres / (float)callback_ptr->yres, 0.1f, 1000.0f);
 
