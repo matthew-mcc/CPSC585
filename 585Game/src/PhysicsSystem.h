@@ -61,7 +61,7 @@ public:
 	//void stepPhysics(std::shared_ptr<CallbackInterface> callback_ptr, Timer* timer);
 	void stepPhysics(std::shared_ptr<CallbackInterface> callback_ptr, Timer* timer);
 	
-
+	static float CameraRaycasting( glm::vec3 campos);
 	
 
 private:

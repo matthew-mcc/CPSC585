@@ -224,6 +224,7 @@ void PhysicsSystem::attachTrailer(Trailer* trailer, Vehicle* vehicle) {
 	PxD6Joint* joint;
 	PxTransform jointTransform;
 	PxTransform trailerOffset;
+
 	PxRigidBody* parentBody;
 
 	// Modify trailer rigidbody parameters to appropriate towing values
@@ -290,6 +291,23 @@ void PhysicsSystem::detachTrailer(Trailer* trailer, Vehicle* vehicle) {
 	vehicle->attachedJoints = newJoints;
 	vehicle->attachedTrailers = newTrailers;
 	updateJointLimits(vehicle);
+}
+PxRaycastBuffer cameraRayBuffer(0,0);
+float PhysicsSystem::CameraRaycasting(glm::vec3 campos) {
+	PxVec3 cam = PxVec3(campos.x, campos.y, campos.z); //where the ray shoots, the origin 
+	PxVec3 start;
+	PxTransform vehicle_trans = vehicles.at(0)->vehicle.mPhysXState.physxActor.rigidBody->getGlobalPose();
+
+	start = vehicle_trans.p;
+	PxVec3 t(0.f,1.f,3.7f); // this might need to be changed, after we figure out where the camera is looking at XD
+	t = vehicle_trans.rotate(t);
+	start += t;
+	PxVec3 dir =  start-cam; // we need the ray shoot from vehicle to camera, which then can detect the ground mesh.
+	if (gScene->raycast(cam, dir.getNormalized()/*the direction*/,
+		dir.magnitude(),/*distance between camera and the vehicle*/
+		cameraRayBuffer, PxHitFlag::eMESH_BOTH_SIDES) && cameraRayBuffer.block.shape->getSimulationFilterData().word0 == COLLISION_FLAG_GROUND)
+		return cameraRayBuffer.block.distance;
+	return 0.f;
 }
 
 void PhysicsSystem::RoundFly() {
@@ -607,7 +625,7 @@ void PhysicsSystem::initVehicles(int vehicleCount) {
 void PhysicsSystem::initPhysicsSystem(GameState* gameState, AiController* aiController) {
 	this->gameState = gameState;
 	this->aiController = aiController;
-	
+	cameraRayBuffer.block.shape = NULL;
 	srand(time(NULL));
 	initPhysX();
 	initPhysXMeshes();
@@ -642,6 +660,10 @@ void PhysicsSystem::stepPhysics(shared_ptr<CallbackInterface> callback_ptr, Time
 		rigidBodyAddIndex++;
 		// Audio Test
 		gameState->audio_ptr->SFX("hahathisdoesnothing, is just test");
+		//gameState->audio_ptr->Latch(gameState->findEntity("name")->transform->getPosition());
+		std::cout << "position: " << gameState->findEntity("vehicle_0")->transform->getPosition().x;
+		std::cout << ", " << gameState->findEntity("vehicle_0")->transform->getPosition().y;
+		std::cout << ", " << gameState->findEntity("vehicle_0")->transform->getPosition().z << std::endl;
 	}
 
 	// Spinning motion for dropped off trailers
@@ -674,6 +696,14 @@ void PhysicsSystem::stepPhysics(shared_ptr<CallbackInterface> callback_ptr, Time
 		if (vehicle_transform.p.x < 24 && vehicle_transform.p.x > -24 && vehicle_transform.p.z < 56 && vehicle_transform.p.z > 8) {
 			if (vehicles.at(i)->attachedTrailers.size() > 0) {
 				dropOffTrailer(vehicles.at(i));
+
+				std::string otherstr = "vehicle_";
+				otherstr += to_string(i);
+				glm::vec3 playerpos = gameState->findEntity("vehicle_0")->transform->getPosition();
+				//glm::vec3 otherpos = gameState->findEntity(otherstr)->transform->getPosition();
+				//gameState->audio_ptr->Dropoff(otherpos);
+				gameState->audio_ptr->Dropoff(playerpos);
+				
 			}
 		}
 		

@@ -209,13 +209,20 @@ void CAudioEngine::GetEventParameter(const std::string &strEventName, const std:
 }
 
 // Same thing with the parameter instance issue
-void CAudioEngine::SetEventParameter(const std::string &strEventName, const std::string &strParameterName, float fValue) {
+void CAudioEngine::SetEventParameter(const std::string &strEventName, const std::string &paramName, float fValue) {
 	auto tFoundIt = sgpImplementation->mEvents.find(strEventName);
 	if (tFoundIt == sgpImplementation->mEvents.end())
 		return;
+	FMOD_STUDIO_PARAMETER_ID id;
+	
 
+
+	tFoundIt->second->setParameterByName(paramName.c_str(), fValue, false);
+	
+	//FMOD::Studio::EventDescription::getParameterLabelByIndex();
+	//FMOD::Studio::FMOD_STUDIO_PARAMETER_ID* pParameter = NULL;
 	//FMOD::Studio::ParameterInstance* pParameter = NULL;
-	//CAudioEngine::ErrorCheck(tFoundIt->second->getParameterByID(strParameterName.c_str(), &pParameter));
+	//CAudioEngine::ErrorCheck(tFoundIt->second->setProperty(index, fValue));
 	//CAudioEngine::ErrorCheck(pParameter->setValue(parameter));
 }
 

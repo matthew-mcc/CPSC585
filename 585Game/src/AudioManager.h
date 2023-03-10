@@ -29,7 +29,8 @@ public:
 	void setTestFlag();
 
 	void SFX(std::string eventName);
-
+	void Latch(glm::vec3 playerPos, glm::vec3 pos);
+	void Dropoff(glm::vec3 playerPos);
 
 	CAudioEngine audioEngine;
 	CAudioEngine* audioEnginePtr;
@@ -39,9 +40,16 @@ private:
 	// Bank paths
 	std::string bankPathMaster = "assets/audio/Master.bank";
 	std::string bankPathTest = "assets/audio/testbank.bank";
+	std::string bank_path_actions = "assets/audio/Actions.bank";
 
 	// Event GUID's
 	std::string testEvent_1 = "{800f3d36-fb85-49e9-909d-312439b0f460}";
+	std::string e_pod_pickup = "{18b007c8-1f2c-4417-90bb-989e3419b7f9}";
+	std::string e_dropoff = "{8152d370-812b-42ff-8376-d6cf870fa7b0}";
+
+	std::string p_distance = "{a535cf27-0d8c-4dc4-8a7d-386ac746bd99}";
+	
+
 
 	bool testFlag = false;
 
