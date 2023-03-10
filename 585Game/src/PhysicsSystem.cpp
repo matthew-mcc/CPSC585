@@ -53,10 +53,10 @@ PxBoxGeometry attachedTrailerShape = PxBoxGeometry(.5f, .5f, .5f);
 PxBoxGeometry detachedTrailerShape = PxBoxGeometry(1.2f, 1.2f, 1.2f);
 
 // Joint Angle Limits
-PxJointAngularLimitPair normalTwistJoint = PxJointAngularLimitPair(-0.01f, 0.01f);
-PxJointLimitPyramid normalPyramidJoint = PxJointLimitPyramid(-0.4f, 0.4f, -0.01f, 0.01f);
-PxJointAngularLimitPair tailTwistJoint = PxJointAngularLimitPair(-0.01f, 0.01f);
-PxJointLimitPyramid tailPyramidJoint = PxJointLimitPyramid(-0.05f, 0.05f, -0.01f, 0.01f);
+PxJointAngularLimitPair normalTwistJoint = PxJointAngularLimitPair(-0.4f, 0.4f);			// Pitch
+PxJointLimitPyramid normalPyramidJoint = PxJointLimitPyramid(-0.4f, 0.4f, -0.01f, 0.01f);	// Yaw, Roll
+PxJointAngularLimitPair tailTwistJoint = PxJointAngularLimitPair(-0.01f, 0.01f);			// Pitch
+PxJointLimitPyramid tailPyramidJoint = PxJointLimitPyramid(-0.05f, 0.05f, -0.01f, 0.01f);	// Yaw, Roll
 
 
 // Cooking
@@ -729,15 +729,17 @@ void PhysicsSystem::stepPhysics(shared_ptr<CallbackInterface> callback_ptr, Time
 		vec3 v;		// Velocity Temp
 		quat q;		// Quaternion Temp
 
-		// RIGID BODIES
+		// TRAILERS
 		if (entityList.at(i).type == PhysType::Trailer) {
 			p = toGLMVec3(trailers.at(trailerIndex)->rigidBody->getGlobalPose().p);
 			q = toGLMQuat(trailers.at(trailerIndex)->rigidBody->getGlobalPose().q);
 			entityList.at(i).transform->setPosition(p);
 			entityList.at(i).transform->setRotation(q);
 
-			// If trailer is being towed, modify local transforms to make it look as if its on the ground
+			// Visual Magic for Towed Trailers
 			if (trailers.at(trailerIndex)->isTowed) {
+
+				// If trailer is being towed, modify local transforms to make it look as if its on the ground
 				vec3 up = entityList.at(i).transform->getUpVector();
 				PxVec3 down = PxVec3(-up.x, -up.y, -up.z);
 				PxVec3 rayStart = trailers.at(trailerIndex)->rigidBody->getGlobalPose().p;
@@ -747,8 +749,14 @@ void PhysicsSystem::stepPhysics(shared_ptr<CallbackInterface> callback_ptr, Time
 					trailers.at(trailerIndex)->groundDistance = (TrailerBuffer.block.position - rayStart).magnitude();
 				}
 				entityList.at(i).transform->setPosition(p + (up * clamp(1.25f - trailers.at(trailerIndex)->groundDistance, 0.0f, 10.f)) * 0.85f);
-			}
 
+				// Rotate wheels based on trailer's forward velocity
+				for (int j = 1; j < entityList.at(i).localTransforms.size(); j++) {
+					float forward_velocity = dot(toGLMVec3(trailers.at(trailerIndex)->rigidBody->getLinearVelocity()), entityList.at(i).transform->getForwardVector());
+					vec3 rot(forward_velocity * timer->getDeltaTime(), 0.0f, 0.0f);
+					entityList.at(i).localTransforms.at(j)->setRotation(normalize(entityList.at(i).localTransforms.at(j)->getRotation() * quat(rot)));
+				}
+			}
 			trailerIndex++;
 		}
 
