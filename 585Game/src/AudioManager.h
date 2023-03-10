@@ -29,8 +29,8 @@ public:
 	void setTestFlag();
 
 	void SFX(std::string eventName);
-	void Latch(glm::vec3 playerPos, glm::vec3 pos);
-	void Dropoff(glm::vec3 playerPos);
+	void Latch(glm::vec3 pos);
+	void Dropoff(glm::vec3 pos);
 
 	CAudioEngine audioEngine;
 	CAudioEngine* audioEnginePtr;

@@ -25,4 +25,5 @@ public:
 
 	// Audio
 	AudioManager* audio_ptr = nullptr;
+	glm::vec3 camPos;
 };

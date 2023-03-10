@@ -259,6 +259,18 @@ void PhysicsSystem::attachTrailer(Trailer* trailer, Vehicle* vehicle) {
 	vehicle->attachedTrailers.push_back(trailer);
 	vehicle->attachedJoints.push_back(joint);
 	updateJointLimits(vehicle);
+
+	// Play some audio
+	glm::vec3 vehiclePos = toGLMVec3(trailer->rigidBody->getGlobalPose().p);
+	//glm::vec3 playerPos = gameState->findEntity("vehicle_0")->transform->getPosition();
+
+	vehiclePos = vehiclePos - gameState->camPos;
+
+	//std::cout << "position: " << vehiclePos.x;
+	//std::cout << ", " << vehiclePos.y;
+	//std::cout << ", " << vehiclePos.z << std::endl;
+
+	gameState->audio_ptr->Latch(vehiclePos);
 }
 
 void PhysicsSystem::detachTrailer(Trailer* trailer, Vehicle* vehicle) {
@@ -659,7 +671,7 @@ void PhysicsSystem::stepPhysics(shared_ptr<CallbackInterface> callback_ptr, Time
 		callback_ptr->addTrailer = false;
 		rigidBodyAddIndex++;
 		// Audio Test
-		gameState->audio_ptr->SFX("hahathisdoesnothing, is just test");
+		//gameState->audio_ptr->SFX("hahathisdoesnothing, is just test");
 		//gameState->audio_ptr->Latch(gameState->findEntity("name")->transform->getPosition());
 		std::cout << "position: " << gameState->findEntity("vehicle_0")->transform->getPosition().x;
 		std::cout << ", " << gameState->findEntity("vehicle_0")->transform->getPosition().y;
@@ -699,10 +711,12 @@ void PhysicsSystem::stepPhysics(shared_ptr<CallbackInterface> callback_ptr, Time
 
 				std::string otherstr = "vehicle_";
 				otherstr += to_string(i);
-				glm::vec3 playerpos = gameState->findEntity("vehicle_0")->transform->getPosition();
+
+				// Play some audio
+				glm::vec3 playerPos = gameState->findEntity("vehicle_0")->transform->getPosition();
 				//glm::vec3 otherpos = gameState->findEntity(otherstr)->transform->getPosition();
 				//gameState->audio_ptr->Dropoff(otherpos);
-				gameState->audio_ptr->Dropoff(playerpos);
+				gameState->audio_ptr->Dropoff(playerPos);
 				
 			}
 		}
