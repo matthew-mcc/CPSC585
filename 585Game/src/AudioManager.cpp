@@ -9,7 +9,7 @@ void AudioManager::Init() {
 	audioEngine.LoadEvent(e_pod_pickup); 
 	audioEngine.LoadEvent(e_dropoff);
 
-
+	audioEngine.LoadSound("assets/audio/ping_placeholder.flac");
 
 }
 
@@ -51,8 +51,10 @@ void AudioManager::Dropoff(glm::vec3 playerPos) {
 
 	float result;
 	//audioEngine.SetEventParameter(e_dropoff, "Distance", distance);
-	audioEngine.SetChannel3dPosition(0, glm::vec3(1.0f, 0.5f, 33.0f));
-	audioEngine.PlayEvent(e_dropoff);
+	//audioEngine.SetChannel3dPosition(0, glm::vec3(1.0f, 0.5f, 33.0f));
+	//audioEngine.PlayEvent(e_dropoff);
+
+	audioEngine.PlaySound("assets/audio/ping_placeholder.flac", playerPos, 10.0f);
 	
 	std::cout << distance << std::endl;
 	//audioEngine.GetEventParameter(e_dropoff, "parameter: / Distance", &distance);
