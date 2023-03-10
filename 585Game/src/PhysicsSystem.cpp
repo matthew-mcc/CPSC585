@@ -174,6 +174,7 @@ void PhysicsSystem::attachTrailer(PxRigidDynamic* trailer, Vehicle* vehicle) {
 	trailer->setLinearDamping(10);
 	trailer->setAngularDamping(5);
 
+
 	// First Joint, attach to truck rigidbody
 	if (vehicle->attachedTrailers.size() == 0) {
 		trailerOffset = PxTransform(PxVec3(0.0f, 0.75f, -3.f));
@@ -593,6 +594,10 @@ void PhysicsSystem::stepPhysics(shared_ptr<CallbackInterface> callback_ptr, Time
 		rigidBodyAddIndex++;
 		// Audio Test
 		gameState->audio_ptr->SFX("hahathisdoesnothing, is just test");
+		//gameState->audio_ptr->Latch(gameState->findEntity("name")->transform->getPosition());
+		std::cout << "position: " << gameState->findEntity("vehicle_0")->transform->getPosition().x;
+		std::cout << ", " << gameState->findEntity("vehicle_0")->transform->getPosition().y;
+		std::cout << ", " << gameState->findEntity("vehicle_0")->transform->getPosition().z << std::endl;
 	}
 
 	// Spinning motion for dropped off trailers
@@ -625,6 +630,14 @@ void PhysicsSystem::stepPhysics(shared_ptr<CallbackInterface> callback_ptr, Time
 		if (vehicle_transform.p.x < 24 && vehicle_transform.p.x > -24 && vehicle_transform.p.z < 56 && vehicle_transform.p.z > 8) {
 			if (vehicles.at(i)->attachedTrailers.size() > 0) {
 				dropOffTrailer(vehicles.at(i));
+
+				std::string otherstr = "vehicle_";
+				otherstr += to_string(i);
+				glm::vec3 playerpos = gameState->findEntity("vehicle_0")->transform->getPosition();
+				//glm::vec3 otherpos = gameState->findEntity(otherstr)->transform->getPosition();
+				//gameState->audio_ptr->Dropoff(otherpos);
+				gameState->audio_ptr->Dropoff(playerpos);
+				
 			}
 		}
 		

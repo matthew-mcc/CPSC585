@@ -66,7 +66,7 @@ public:
 	void StopChannel(int nChannelID);
 	void StopEvent(const string &strEventName, bool bImmediate = false);
 	void GetEventParameter(const string &strEventName, const string &strEventParameter, float* parameter);
-	void SetEventParameter(const string &strEventName, const string &strParameterName, float fValue);
+	void SetEventParameter(const string &strEventName, const std::string& paramName, float fValue);
 	void StopAllChannels();
 	void SetChannel3dPosition(int nChannelID, const glm::vec3 &vPos);
 	void SetChannelVolume(int nChannelID, float fVolumedB);
