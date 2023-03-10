@@ -33,9 +33,17 @@ using namespace std;
 #define shape6 32*/
 
 
+struct Trailer {
+	PxRigidDynamic* rigidBody;
+	int entityIndex;
+	bool isFlying = false;
+	bool isTowed = false;
+	float groundDistance = 0.0f;
+};
+
 struct Vehicle {
 	EngineDriveVehicle vehicle;
-	vector<PxRigidDynamic*> attachedTrailers;
+	vector<Trailer*> attachedTrailers;
 	vector<PxD6Joint*> attachedJoints;
 	int AI_State;
 	int AI_CurrTrailerIndex;
@@ -53,7 +61,7 @@ public:
 	//void stepPhysics(std::shared_ptr<CallbackInterface> callback_ptr, Timer* timer);
 	void stepPhysics(std::shared_ptr<CallbackInterface> callback_ptr, Timer* timer);
 	
-
+	static float CameraRaycasting( glm::vec3 campos);
 	
 
 private:
@@ -65,15 +73,19 @@ private:
 	PxVec3 randomSpawnPosition();
 	void spawnTrailer();
 	void processTrailerCollision();
+	void updateJointLimits(Vehicle* vehicle);
+	void changeRigidDynamicShape(PxRigidDynamic* rigidBody, PxBoxGeometry newGeom);
+	Trailer* getTrailerObject(PxRigidDynamic* trailerBody);
 	int getVehicleIndex(Vehicle* vehicle);
-	Vehicle* getPullingVehicle(PxRigidDynamic* trailer);
-	void attachTrailer(PxRigidDynamic* trailer, Vehicle* vehicle);
-	void detachTrailer(PxRigidDynamic* trailer, Vehicle* vehicle);
+	Vehicle* getPullingVehicle(Trailer* trailer);
+	void attachTrailer(Trailer* trailer, Vehicle* vehicle);
+	void detachTrailer(Trailer* trailer, Vehicle* vehicle);
 	void dropOffTrailer(Vehicle* vehicle);
 	void resetCollectedTrailers();
 	void RoundFly();
 	GameState* gameState;
 	AiController* aiController;
+	int spawnedTrailers = 0;
 
 
 	// AI

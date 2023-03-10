@@ -31,6 +31,7 @@ void Instance::Update() {
 		mChannels.erase(it);
 	}
 	CAudioEngine::ErrorCheck(mpStudioSystem->update());
+	//CAudioEngine::ErrorCheck(mpStudioSystem->setListenerAttributes())
 }
 
 // Instance of implementation to be used
@@ -43,6 +44,7 @@ void CAudioEngine::Init() {
 
 void CAudioEngine::Update() {
 	sgpImplementation->Update();
+
 }
 
 // Load sounds: takes in parameters on streaming, looping, 3d and stores into sound map
@@ -114,7 +116,6 @@ void CAudioEngine::SetChannel3dPosition(int nChannelID, const glm::vec3 &vPositi
 
 	FMOD_VECTOR position = VectorToFmod(vPosition);
 	CAudioEngine::ErrorCheck(tFoundIt->second->set3DAttributes(&position, NULL));
-
 }
 
 void CAudioEngine::SetChannelVolume(int nChannelID, float fVolumedB) {
@@ -199,7 +200,14 @@ void CAudioEngine::GetEventParameter(const std::string &strEventName, const std:
 	auto tFoundIt = sgpImplementation->mEvents.find(strEventName);
 	if (tFoundIt == sgpImplementation->mEvents.end())
 		return;
+	std::cout << "HEllo??" << std::endl;
 
+
+
+	float whocares = 0.0f;
+
+	CAudioEngine::ErrorCheck(tFoundIt->second->getParameterByName(strParameterName.c_str(), &whocares));
+	std::cout << whocares << std::endl;
 	// I have no clue why this doesn't exist. Need to look through documentation to get an idea of why
 	// Deprecated in fmod 2.0 something -> what's new 200
 	// todo: check out what this shit is supposed to do and update with new documentation
@@ -214,8 +222,14 @@ void CAudioEngine::SetEventParameter(const std::string &strEventName, const std:
 	if (tFoundIt == sgpImplementation->mEvents.end())
 		return;
 
+
+
+	CAudioEngine::ErrorCheck(tFoundIt->second->setParameterByName(strParameterName.c_str(), fValue));
+	
+	//FMOD::Studio::EventDescription::getParameterLabelByIndex();
+	//FMOD::Studio::FMOD_STUDIO_PARAMETER_ID* pParameter = NULL;
 	//FMOD::Studio::ParameterInstance* pParameter = NULL;
-	//CAudioEngine::ErrorCheck(tFoundIt->second->getParameterByID(strParameterName.c_str(), &pParameter));
+	//CAudioEngine::ErrorCheck(tFoundIt->second->setProperty(index, fValue));
 	//CAudioEngine::ErrorCheck(pParameter->setValue(parameter));
 }
 
