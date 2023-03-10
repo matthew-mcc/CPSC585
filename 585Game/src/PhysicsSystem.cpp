@@ -53,7 +53,7 @@ PxBoxGeometry attachedTrailerShape = PxBoxGeometry(.5f, .5f, .5f);
 PxBoxGeometry detachedTrailerShape = PxBoxGeometry(1.2f, 1.2f, 1.2f);
 
 // Joint Angle Limits
-PxJointAngularLimitPair normalTwistJoint = PxJointAngularLimitPair(-0.4f, 0.4f);			// Pitch
+PxJointAngularLimitPair normalTwistJoint = PxJointAngularLimitPair(-0.2f, 0.2f);			// Pitch
 PxJointLimitPyramid normalPyramidJoint = PxJointLimitPyramid(-0.4f, 0.4f, -0.01f, 0.01f);	// Yaw, Roll
 PxJointAngularLimitPair tailTwistJoint = PxJointAngularLimitPair(-0.01f, 0.01f);			// Pitch
 PxJointLimitPyramid tailPyramidJoint = PxJointLimitPyramid(-0.05f, 0.05f, -0.01f, 0.01f);	// Yaw, Roll
