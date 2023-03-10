@@ -140,127 +140,27 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> callback
 	// FIRST PASS: FAR SHADOWMAP RENDER
 	lightPos = vec3(sin(lightRotation) * cos(lightAngle), sin(lightAngle), cos(lightRotation) * cos(lightAngle)) * 200.f;
 	farShadowMap.update(lightPos, vec3(0.f));
-	glCullFace(GL_FRONT);
-	for (int i = 0; i < gameState->entityList.size(); i++) {
-		// Retrieve global position and rotation
-		vec3 position = gameState->entityList.at(i).transform->getPosition();
-		quat rotation = gameState->entityList.at(i).transform->getRotation();
-
-		// Retrieve local positions and rotations of submeshes
-		for (int j = 0; j < gameState->entityList.at(i).localTransforms.size(); j++) {
-			vec3 localPosition = gameState->entityList.at(i).localTransforms.at(j)->getPosition();
-			quat localRotation = gameState->entityList.at(i).localTransforms.at(j)->getRotation();
-
-			// Set model matrix
-			model = mat4(1.0f);
-			model = translate(model, position);
-			model = model * toMat4(rotation);
-			model = translate(model, localPosition);
-			model = model * toMat4(localRotation);
-			model = scale(model, vec3(1.0f));
-			farShadowMap.shader.setMat4("model", model);
-
-			// Draw model's meshes
-			gameState->entityList.at(i).model->meshes.at(j).Draw(farShadowMap.shader);
-		}
-	}
-	glCullFace(GL_BACK);
+	farShadowMap.render(gameState, "");
 	farShadowMap.cleanUp(callback_ptr);
-
-	glClear(GL_DEPTH_BUFFER_BIT);
-
 
 	// SECOND PASS: NEAR SHADOWMAP RENDER
 	lightPos = vec3(sin(lightRotation) * cos(lightAngle), sin(lightAngle), cos(lightRotation) * cos(lightAngle)) * 40.f;
 	nearShadowMap.update(lightPos, playerEntity->transform->getPosition());
-	glCullFace(GL_FRONT);
-	for (int i = 0; i < gameState->entityList.size(); i++) {
-		// Retrieve global position and rotation
-		vec3 position = gameState->entityList.at(i).transform->getPosition();
-		quat rotation = gameState->entityList.at(i).transform->getRotation();
-
-		// Retrieve local positions and rotations of submeshes
-		for (int j = 0; j < gameState->entityList.at(i).localTransforms.size(); j++) {
-			vec3 localPosition = gameState->entityList.at(i).localTransforms.at(j)->getPosition();
-			quat localRotation = gameState->entityList.at(i).localTransforms.at(j)->getRotation();
-
-			// Set model matrix
-			model = mat4(1.0f);
-			model = translate(model, position);
-			model = model * toMat4(rotation);
-			model = translate(model, localPosition);
-			model = model * toMat4(localRotation);
-			model = scale(model, vec3(1.0f));
-			nearShadowMap.shader.setMat4("model", model);
-
-			// Draw model's meshes
-			gameState->entityList.at(i).model->meshes.at(j).Draw(nearShadowMap.shader);
-		}
-	}
-	glCullFace(GL_BACK);
+	nearShadowMap.render(gameState, "");
 	nearShadowMap.cleanUp(callback_ptr);
 
 	glClear(GL_DEPTH_BUFFER_BIT);
 
 	// THIRD PASS: TOON OUTLINE (Landscape)
 	outlineMap.update(projection, view);
-	glCullFace(GL_FRONT);
-	for (int i = 0; i < gameState->entityList.size(); i++) {
-		// Retrieve global position and rotation
-		vec3 position = gameState->entityList.at(i).transform->getPosition();
-		quat rotation = gameState->entityList.at(i).transform->getRotation();
-
-		// Retrieve local positions and rotations of submeshes
-		for (int j = 0; j < gameState->entityList.at(i).localTransforms.size(); j++) {
-			vec3 localPosition = gameState->entityList.at(i).localTransforms.at(j)->getPosition();
-			quat localRotation = gameState->entityList.at(i).localTransforms.at(j)->getRotation();
-
-			// Set model matrix
-			model = mat4(1.0f);
-			model = translate(model, position);
-			model = model * toMat4(rotation);
-			model = translate(model, localPosition);
-			model = model * toMat4(localRotation);
-			model = scale(model, vec3(1.0f));
-			outlineMap.shader.setMat4("model", model);
-
-			// Draw model's meshes
-			gameState->entityList.at(i).model->meshes.at(j).Draw(outlineMap.shader);
-		}
-	}
-	glCullFace(GL_BACK);
+	outlineMap.render(gameState, "");
 	outlineMap.cleanUp(callback_ptr);
 
 	glClear(GL_DEPTH_BUFFER_BIT);
 
 	// FOURTH PASS: TOON OUTLINE (Objects)
 	outlineMapNoLandscape.update(projection, view);
-	glCullFace(GL_FRONT);
-	for (int i = 0; i < gameState->entityList.size(); i++) {
-		if (gameState->entityList.at(i).name.compare("landscape") == 0) continue;
-		// Retrieve global position and rotation
-		vec3 position = gameState->entityList.at(i).transform->getPosition();
-		quat rotation = gameState->entityList.at(i).transform->getRotation();
-
-		// Retrieve local positions and rotations of submeshes
-		for (int j = 0; j < gameState->entityList.at(i).localTransforms.size(); j++) {
-			vec3 localPosition = gameState->entityList.at(i).localTransforms.at(j)->getPosition();
-			quat localRotation = gameState->entityList.at(i).localTransforms.at(j)->getRotation();
-
-			// Set model matrix
-			model = mat4(1.0f);
-			model = translate(model, position);
-			model = model * toMat4(rotation);
-			model = translate(model, localPosition);
-			model = model * toMat4(localRotation);
-			model = scale(model, vec3(1.0f));
-			outlineMapNoLandscape.shader.setMat4("model", model);
-
-			// Draw model's meshes
-			gameState->entityList.at(i).model->meshes.at(j).Draw(outlineMapNoLandscape.shader);
-		}
-	}
-	glCullFace(GL_BACK);
+	outlineMapNoLandscape.render(gameState, "l");
 	outlineMapNoLandscape.cleanUp(callback_ptr);
 
 	glClear(GL_DEPTH_BUFFER_BIT);
@@ -269,16 +169,12 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> callback
 	celMap.debugShader.use();
 	celMap.update(projection, view);
 	glCullFace(GL_FRONT);
-	glActiveTexture(GL_TEXTURE1);
-	glBindTexture(GL_TEXTURE_2D, nearShadowMap.fbTextures[0]);
-	glActiveTexture(GL_TEXTURE2);
-	glBindTexture(GL_TEXTURE_2D, farShadowMap.fbTextures[0]);
-	glActiveTexture(GL_TEXTURE3);
-	glBindTexture(GL_TEXTURE_2D, outlineMap.fbTextures[0]);
-	glActiveTexture(GL_TEXTURE4);
-	glBindTexture(GL_TEXTURE_2D, outlineMapNoLandscape.fbTextures[0]);
-	glActiveTexture(GL_TEXTURE0);
+	bindTexture(1, nearShadowMap.fbTextures[0]);
+	bindTexture(2, farShadowMap.fbTextures[0]);
+	bindTexture(3, outlineMap.fbTextures[0]);
+	bindTexture(4, outlineMapNoLandscape.fbTextures[0]);
   
+	setCelShaderUniforms(&celMap.shader);
 	for (int i = 0; i < gameState->entityList.size(); i++) {
 		// Retrieve global position and rotation
 		vec3 position = gameState->entityList.at(i).transform->getPosition();
@@ -296,7 +192,7 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> callback
 			model = translate(model, localPosition);
 			model = model * toMat4(localRotation);
 			model = scale(model, vec3(1.0f));
-			setCelShaderUniforms(&celMap.shader);
+			celShader.setMat4("model", model);
 
 			// Update relative light position
 			quat lightRotation = rotation;
@@ -314,10 +210,10 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> callback
 	glCullFace(GL_BACK);
 	celMap.cleanUp(callback_ptr);
 
-	//farShadowMap.render();		//Uncomment to see the far shadow map (light's perspective, near the car)
-	//nearShadowMap.render();		//Uncomment to see the near shadow map (light's perspective, the entire map)
-	//outlineMap.render();			//Uncomment to see the outline map (camera's position, just a depth map)
-	//outlineMapNoLandscape.render();
+	//farShadowMap.renderToScreen();		//Uncomment to see the far shadow map (light's perspective, near the car)
+	//nearShadowMap.renderToScreen();		//Uncomment to see the near shadow map (light's perspective, the entire map)
+	//outlineMap.renderToScreen();			//Uncomment to see the outline map (camera's position, just a depth map)
+	//outlineMapNoLandscape.renderToScreen();
 
 	// BLUR IMAGE FOR BLOOM
 	if (blurMap.getWidth() != callback_ptr->xres || blurMap.getHeight() != callback_ptr->yres) {
@@ -333,11 +229,7 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> callback
 		blurMap.shader.use();
 		glBindFramebuffer(GL_FRAMEBUFFER, blurMap.FBO[horizontal]);
 		blurMap.shader.setInt("horizontal", horizontal);
-		glActiveTexture(GL_TEXTURE1);
-		glBindTexture(
-			GL_TEXTURE_2D, first_iteration ? celMap.fbTextures[1] : blurMap.fbTextures[!horizontal]
-		);
-		glActiveTexture(GL_TEXTURE0);
+		bindTexture(1, first_iteration ? celMap.fbTextures[1] : blurMap.fbTextures[!horizontal]);
 		blurMap.renderQuad();
 		horizontal = !horizontal;
 		if (first_iteration)
@@ -345,14 +237,11 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> callback
 	}
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	
-	glActiveTexture(GL_TEXTURE1);
-	glBindTexture(GL_TEXTURE_2D, celMap.fbTextures[0]);
-	glActiveTexture(GL_TEXTURE2);
-	glBindTexture(GL_TEXTURE_2D, blurMap.fbTextures[0]);
-	glActiveTexture(GL_TEXTURE0);
+	bindTexture(1, celMap.fbTextures[0]);
+	bindTexture(2, blurMap.fbTextures[0]);
 
-	celMap.render();
-	//blurMap.render();
+	celMap.renderToScreen();
+	//blurMap.renderToScreen();
 
 	// SIXTH PASS: GUI RENDER
 		// Use text shader
@@ -526,4 +415,10 @@ void RenderingSystem::setCelShaderUniforms(Shader* shader) {
 	(*shader).setFloat("maxBias", maxBias);
 	(*shader).setFloat("outlineTransparency", outlineTransparency);
 	(*shader).setFloat("outlineSensitivity", outlineSensitivity);
+}
+
+void RenderingSystem::bindTexture(int location, unsigned int texture) {
+	glActiveTexture(GL_TEXTURE0 + location);
+	glBindTexture(GL_TEXTURE_2D, texture);
+	glActiveTexture(GL_TEXTURE0);
 }
