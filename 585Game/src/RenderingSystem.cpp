@@ -150,7 +150,7 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> callback
 	}
 
 	// Set projection and view matrices
-	projection = perspective(radians(fov), (float)callback_ptr->xres / (float)callback_ptr->yres, 0.1f, 1000.0f);
+	projection = perspective(radians(fov), (float)callback_ptr->xres / (float)callback_ptr->yres, 0.1f, 10000.0f);
 	
 
 	// MESH ANIMATIONS
