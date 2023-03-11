@@ -127,7 +127,7 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> callback
 	}
 	
 	// For audio - probably need to change later
-	gameState->camPos = camera_previous_position;
+	gameState->listener_position = camera_previous_position;
 
 	// Set projection and view matrices
 	projection = perspective(radians(fov), (float)callback_ptr->xres / (float)callback_ptr->yres, 0.1f, 1000.0f);

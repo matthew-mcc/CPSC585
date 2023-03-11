@@ -23,7 +23,7 @@ public:
 	// Flags
 	bool gameEnded = false;
 
-	// Audio
+	// Audio 
 	AudioManager* audio_ptr = nullptr;
-	glm::vec3 camPos;
+	glm::vec3 listener_position;
 };

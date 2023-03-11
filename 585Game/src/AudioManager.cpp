@@ -18,12 +18,11 @@ void AudioManager::Init() {
 
 
 void AudioManager::Update() {
-	//if (testFlag) {
-	//	testFlag = false;
-	//	audioEngine.PlayEvent(testEvent_1);
-	//}
 	audioEngine.Update();
-	
+}
+
+void AudioManager::Update3DListener(const glm::vec3& pos, const glm::vec3& velocity, const glm::vec3& forward, const glm::vec3& up) {
+	audioEngine.UpdateListenerAttributes(pos, velocity, forward, up);
 }
 
 void AudioManager::Shutdown() {
@@ -41,15 +40,12 @@ void AudioManager::SFX(std::string eventName) {
 }
 
 void AudioManager::Latch(glm::vec3 pos) {
-	//float distance = glm::distance(playerPos, targetPos);
-	//audioEngine.PlayEvent(e_pod_pickup);
-	//audioEngine.SetEventParameter(e_pod_pickup, p_distance, distance);
-
 	audioEngine.PlaySound("assets/audio/Latch1.wav", pos, 10.0f);
-
-
 }
 
+void AudioManager::LatchEvent(glm::vec3 pos) {
+
+}
 
 void AudioManager::Dropoff(glm::vec3 pos) {
 	//float distance = glm::distance(playerPos, glm::vec3(1.0f, 0.5f, 33.0f));

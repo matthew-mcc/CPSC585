@@ -264,7 +264,7 @@ void PhysicsSystem::attachTrailer(Trailer* trailer, Vehicle* vehicle) {
 	glm::vec3 vehiclePos = toGLMVec3(trailer->rigidBody->getGlobalPose().p);
 	//glm::vec3 playerPos = gameState->findEntity("vehicle_0")->transform->getPosition();
 
-	vehiclePos = vehiclePos - gameState->camPos;
+	vehiclePos = vehiclePos - gameState->listener_position;
 
 	//std::cout << "position: " << vehiclePos.x;
 	//std::cout << ", " << vehiclePos.y;
@@ -671,9 +671,8 @@ void PhysicsSystem::stepPhysics(shared_ptr<CallbackInterface> callback_ptr, Time
 		attachTrailer(trailers.at(rigidBodyAddIndex), vehicles.at(0));
 		callback_ptr->addTrailer = false;
 		rigidBodyAddIndex++;
-		// Audio Test
-		//gameState->audio_ptr->SFX("hahathisdoesnothing, is just test");
-		//gameState->audio_ptr->Latch(gameState->findEntity("name")->transform->getPosition());
+
+		// Position Debug
 		std::cout << "position: " << gameState->findEntity("vehicle_0")->transform->getPosition().x;
 		std::cout << ", " << gameState->findEntity("vehicle_0")->transform->getPosition().y;
 		std::cout << ", " << gameState->findEntity("vehicle_0")->transform->getPosition().z << std::endl;
@@ -826,6 +825,15 @@ void PhysicsSystem::stepPhysics(shared_ptr<CallbackInterface> callback_ptr, Time
 			vehicleIndex++;
 		}
 	}
+
+	// Audio Update
+	//glm::vec3 listener_position = gameState->findEntity("vehicle_0")->transform->getPosition();
+	glm::vec3 listener_velocity = gameState->findEntity("vehicle_0")->transform->getLinearVelocity();
+	glm::vec3 listener_forward = gameState->findEntity("vehicle_0")->transform->getForwardVector();
+	glm::vec3 listener_up = gameState->findEntity("vehicle_0")->transform->getUpVector();
+
+	gameState->audio_ptr->Update3DListener(gameState->listener_position, listener_velocity, listener_forward, listener_up);
+
 }
 
 void PhysicsSystem::AI_StateController(Vehicle* vehicle) {
