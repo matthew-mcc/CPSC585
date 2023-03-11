@@ -32,6 +32,7 @@ public:
 
 private:
 	void setCelShaderUniforms(Shader* shader);
+	void bindTexture(int location, unsigned int texture);
 
 	// Frame buffers
 	FBuffer nearShadowMap;
