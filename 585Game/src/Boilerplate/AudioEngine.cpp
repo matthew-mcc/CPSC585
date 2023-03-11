@@ -102,6 +102,11 @@ int CAudioEngine::PlaySound(const std::string &strSoundName, const glm::vec3 &vP
 		}
 		CAudioEngine::ErrorCheck(pChannel->setVolume(dbToVolume(fVolumedB)));
 		CAudioEngine::ErrorCheck(pChannel->setPaused(false));
+
+		if (true) {
+			
+			//udioEngine::ErrorCheck(pChannel->setPosition());
+		}
 		sgpImplementation->mChannels[nChannelID] = pChannel;
 	}
 	// ID returned in case we need it later
