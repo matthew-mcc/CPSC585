@@ -81,21 +81,13 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> callback
 	vec3 player_right = playerEntity->transform->getRightVector();
 	vec3 player_up = playerEntity->transform->getUpVector();
 
-	// Dynamically adjust camera zoom based on number of trailers attached
 	float camera_zoom_forward = clamp(1.0f + (float)playerEntity->nbChildEntities * 0.5f, 1.0f, 11.0f);
 	float camera_zoom_up = clamp(1.0f + (float)playerEntity->nbChildEntities * 0.4f, 1.0f, 11.0f);
 
-	float Camera_collision = PhysicsSystem::CameraRaycasting(camera_previous_position);
-	if (Camera_collision > 0.f) {//not sure which one to use XD
-		camera_position_forward += Camera_collision;//* (float)timer->getDeltaTime();//camera_previous_position.z += 1.f; //* (float)timer->getDeltaTime();//cout << "???" << endl;
-		timeTorset = 0.f;
-	}
-	else {
-		if (camera_position_forward > -7.5f && timeTorset > 2.f)
-			camera_position_forward -= 1.f * (float)timer->getDeltaTime();
-		else
-			timeTorset += (float)timer->getDeltaTime();
-	}
+
+	
+
+
 	// Chase Camera: Compute eye and target offsets
 		// Eye Offset: Camera position (world space)
 		// Target Offset: Camera focus point (world space)
@@ -103,14 +95,17 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> callback
 	vec3 target_offset = (camera_target_forward * player_forward) + (camera_target_right * player_right) + (camera_target_up * player_up);
 	
 	
+
 	// Camera lag: Generate target_position - prev_position creating a vector. Scale by constant factor, then add to prev and update
 	vec3 camera_target_position = playerEntity->transform->getPosition() + eye_offset;
 	float y = playerEntity->transform->getPosition().y + camera_position_up + (float)playerEntity->nbChildEntities * 0.4f;
 	camera_target_position.y = y;
 
+
 	vec3 camera_track_vector = camera_target_position - camera_previous_position;
 
 	camera_track_vector = camera_track_vector * camera_lag * (float)timer->getDeltaTime();
+	
 	camera_previous_position = vec3(translate(mat4(1.0f), camera_track_vector) * vec4(camera_previous_position, 1.0f));
 	
 
@@ -126,9 +121,37 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> callback
 		view = lookAt(camera_previous_position + camOffset, playerEntity->transform->getPosition() + target_offset, world_up);
 	}
 	
+	glm::vec3 Camera_collision = PhysicsSystem::CameraRaycasting(camera_previous_position);
+	if (Camera_collision.x != 0.f && Camera_collision.y != 0 && Camera_collision.z != 0) {//not sure which one to use XD
+		camera_position_forward += Camera_collision.z;//* (float)timer->getDeltaTime();//camera_previous_position.z += 1.f; //* (float)timer->getDeltaTime();//cout << "???" << endl;
+		camera_position_up += Camera_collision.y;
+		camera_position_right -= Camera_collision.x;
+		timeTorset = 0.f;
+	}
+	else {
+		if (timeTorset > 1.f) { //lag to reset the camera
+			float reset_speed = 5.f; // the speed to rset the camera
+			if (camera_position_forward > -7.55f)
+				camera_position_forward -= reset_speed * (float)timer->getDeltaTime();
+			else if (camera_position_forward < -7.45f)
+				camera_position_forward += reset_speed * (float)timer->getDeltaTime();
+
+			if (camera_position_up > 3.55f)
+				camera_position_up -= reset_speed * (float)timer->getDeltaTime();
+			else if (camera_position_up < 3.45f)
+				camera_position_up += reset_speed * (float)timer->getDeltaTime();
+
+			if (camera_position_right > 0.05f)
+				camera_position_right -= reset_speed * (float)timer->getDeltaTime();
+			else if (camera_position_right < -0.05f)
+				camera_position_right += reset_speed * (float)timer->getDeltaTime();
+		}
+		timeTorset += (float)timer->getDeltaTime();
+	}
+
 	// Set projection and view matrices
 	projection = perspective(radians(fov), (float)callback_ptr->xres / (float)callback_ptr->yres, 0.1f, 1000.0f);
-
+	
 
 	// MESH ANIMATIONS
 	// Center Portal

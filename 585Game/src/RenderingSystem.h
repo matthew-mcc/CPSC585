@@ -84,6 +84,7 @@ private:
 	vec3 world_up = vec3(0.0f, 1.0f, 0.0f);
 	vec3 camera_previous_position = vec3(0.0f, 8.0f, -270.0f);
 
+
 	// Camera Parameters
 	float camera_lag = 5.0f;
 	float fov = 45.f;

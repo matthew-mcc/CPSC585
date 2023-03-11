@@ -292,22 +292,61 @@ void PhysicsSystem::detachTrailer(Trailer* trailer, Vehicle* vehicle) {
 	vehicle->attachedTrailers = newTrailers;
 	updateJointLimits(vehicle);
 }
+//PxRaycastHit hitBuffer[10];
 PxRaycastBuffer cameraRayBuffer(0,0);
-float PhysicsSystem::CameraRaycasting(glm::vec3 campos) {
+glm::vec3 PhysicsSystem::CameraRaycasting(glm::vec3 campos) {
 	PxVec3 cam = PxVec3(campos.x, campos.y, campos.z); //where the ray shoots, the origin 
-	PxVec3 start;
+	PxVec3 start = vehicles.at(0)->vehicle.mPhysXState.physxActor.rigidBody->getGlobalPose().p;
 	PxTransform vehicle_trans = vehicles.at(0)->vehicle.mPhysXState.physxActor.rigidBody->getGlobalPose();
+	PxVec3 dir =  start-cam; // we need the ray shoot from vehicle to camera, which then can detect the ground mesh. direction should base on global map
+	PxVec3 Normal_ray_dir = cam - start;
+	PxVec3 Normal_shoot_origin;
+	PxVec3 moving_vector(0.f);
+	//prevent touch the ground  // just check different basis direction of the camera, give it no chance to touch the ground 
+	//prevent backward touch  
+	if (gScene->raycast(cam, vehicle_trans.rotate(PxVec3(0.f,0.f,-1.f)), 1.f, cameraRayBuffer, PxHitFlag::eNORMAL) &&
+		cameraRayBuffer.block.shape->getSimulationFilterData().word0 == COLLISION_FLAG_GROUND) {
+		moving_vector += cameraRayBuffer.block.normal.getNormalized();
+		
+	}
+	//prevent downward touch  
+	if (gScene->raycast(cam, vehicle_trans.rotate(PxVec3(0.f, -1.f, 0.f)), 1.f, cameraRayBuffer, PxHitFlag::eNORMAL) &&
+		cameraRayBuffer.block.shape->getSimulationFilterData().word0 == COLLISION_FLAG_GROUND) {
+		moving_vector += cameraRayBuffer.block.normal.getNormalized();
+		
+	}
+	//prevent side touches  
+	if (gScene->raycast(cam, vehicle_trans.rotate(PxVec3(-1.f, 0.f, 0.f)), 1.f, cameraRayBuffer, PxHitFlag::eNORMAL) &&
+		cameraRayBuffer.block.shape->getSimulationFilterData().word0 == COLLISION_FLAG_GROUND) {
+		moving_vector += cameraRayBuffer.block.normal.getNormalized();
+		
+	}
+	if (gScene->raycast(cam, vehicle_trans.rotate(PxVec3(1.f, 0.f, 0.f)), 1.f, cameraRayBuffer, PxHitFlag::eNORMAL) &&
+		cameraRayBuffer.block.shape->getSimulationFilterData().word0 == COLLISION_FLAG_GROUND) {
+		moving_vector += cameraRayBuffer.block.normal.getNormalized();
+		
+	}
+	moving_vector = vehicle_trans.rotateInv(moving_vector);
+	return glm::vec3(moving_vector.x, moving_vector.y, moving_vector.z);
+	//----------------------------------------------------------------------------//
+	//if get into the ground, get out ... 
+	//Do we still want this enable? Like, the camera now will be hard to get blocked by ground, it's still possible,but you need to intend to do that
+	//It generally happens while you trying to do a U turn on the map border with high speed, and the camera will be throw out of the ground
+	//And even if you did, camera will reset to where it should be after all...
+	//----------------------------------------------------------------------------//
+	/*if (gScene->raycast(cam, dir.getNormalized(), dir.magnitude(), cameraRayBuffer, PxHitFlag::eMESH_BOTH_SIDES) &&
+		cameraRayBuffer.block.shape->getSimulationFilterData().word0 == COLLISION_FLAG_GROUND) {
+		moving_vector = dir * (cameraRayBuffer.block.distance / dir.magnitude());
+		Normal_shoot_origin = cam + dir* ((cameraRayBuffer.block.distance + 0.1f) / dir.magnitude());
+		moving_vector = vehicle_trans.rotateInv(moving_vector).getNormalized();
+		if (gScene->raycast(Normal_shoot_origin, Normal_ray_dir.getNormalized(), dir.magnitude(),cameraRayBuffer, PxHitFlag::eNORMAL) &&
+			cameraRayBuffer.block.shape->getSimulationFilterData().word0 == COLLISION_FLAG_GROUND)
+			moving_vector += vehicle_trans.rotateInv(cameraRayBuffer.block.normal.getNormalized());
 
-	start = vehicle_trans.p;
-	PxVec3 t(0.f,1.f,3.7f); // this might need to be changed, after we figure out where the camera is looking at XD
-	t = vehicle_trans.rotate(t);
-	start += t;
-	PxVec3 dir =  start-cam; // we need the ray shoot from vehicle to camera, which then can detect the ground mesh.
-	if (gScene->raycast(cam, dir.getNormalized()/*the direction*/,
-		dir.magnitude(),/*distance between camera and the vehicle*/
-		cameraRayBuffer, PxHitFlag::eMESH_BOTH_SIDES) && cameraRayBuffer.block.shape->getSimulationFilterData().word0 == COLLISION_FLAG_GROUND)
-		return cameraRayBuffer.block.distance;
-	return 0.f;
+		//moving_vector = vehicle_trans.rotateInv(moving_vector);
+		return glm::vec3(moving_vector.x*0.1f, moving_vector.y * 0.1f, moving_vector.z * 0.1f);
+
+	}*/
 }
 
 void PhysicsSystem::RoundFly() {
@@ -625,7 +664,6 @@ void PhysicsSystem::initVehicles(int vehicleCount) {
 void PhysicsSystem::initPhysicsSystem(GameState* gameState, AiController* aiController) {
 	this->gameState = gameState;
 	this->aiController = aiController;
-	cameraRayBuffer.block.shape = NULL;
 	srand(time(NULL));
 	initPhysX();
 	initPhysXMeshes();
@@ -711,7 +749,7 @@ void PhysicsSystem::stepPhysics(shared_ptr<CallbackInterface> callback_ptr, Time
 		if (i == 0) {
 			// On Ground
 			//if (!gContactReportCallback->AirOrNot) {
-			if (gScene->raycast(vehicle_transform.p, PxVec3(0.f, -1.f, 0.f), 0.7f, AircontrolBuffer) // raycasting! just like that??? 
+			if (gScene->raycast(vehicle_transform.p, vehicle_transform.rotateInv(PxVec3(0.f, -1.f, 0.f)), 0.7f, AircontrolBuffer) // raycasting! just like that??? 
 				&& AircontrolBuffer.block.shape->getSimulationFilterData().word0 == COLLISION_FLAG_GROUND){
 				//Apply the brake, forward throttle and steer inputs to the vehicle's command state
 				if (forwardSpeed > 0.1f) {
