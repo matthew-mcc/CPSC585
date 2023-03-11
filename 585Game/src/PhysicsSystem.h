@@ -82,7 +82,7 @@ private:
 	void detachTrailer(Trailer* trailer, Vehicle* vehicle);
 	void dropOffTrailer(Vehicle* vehicle);
 	void resetCollectedTrailers();
-	void RoundFly();
+	void RoundFly(float deltaTime);
 	GameState* gameState;
 	AiController* aiController;
 	int spawnedTrailers = 0;

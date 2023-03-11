@@ -304,6 +304,7 @@ void PhysicsSystem::detachTrailer(Trailer* trailer, Vehicle* vehicle) {
 	vehicle->attachedTrailers = newTrailers;
 	updateJointLimits(vehicle);
 }
+
 PxRaycastBuffer cameraRayBuffer(0,0);
 float PhysicsSystem::CameraRaycasting(glm::vec3 campos) {
 	PxVec3 cam = PxVec3(campos.x, campos.y, campos.z); //where the ray shoots, the origin 
@@ -322,7 +323,7 @@ float PhysicsSystem::CameraRaycasting(glm::vec3 campos) {
 	return 0.f;
 }
 
-void PhysicsSystem::RoundFly() {
+void PhysicsSystem::RoundFly(float deltaTime) {
 	for (int i = 0; i < trailers.size(); i++) {
 		// Only apply forces to trailers with the isFlying flag set to true
 		if (trailers.at(i)->isFlying) {
@@ -346,8 +347,8 @@ void PhysicsSystem::RoundFly() {
 
 			// therefore, eventually we want the pulling force defeat spin force, which let them assemble to a point
 			// but we need to make the process reasonable slow that play can feel trailers are gradually pulling together rather than immediately.
-			trailers.at(i)->rigidBody->addForce(dir * coffi2, PxForceMode().eVELOCITY_CHANGE);
-			trailers.at(i)->rigidBody->addForce(PxVec3(-sinf(glm::radians(circle + i * 55)) * coffi, 0.5f, cosf(glm::radians(circle + i * 55)) * coffi), PxForceMode().eVELOCITY_CHANGE);
+			trailers.at(i)->rigidBody->addForce(dir * coffi2 * deltaTime * 100.f, PxForceMode().eVELOCITY_CHANGE);
+			trailers.at(i)->rigidBody->addForce(PxVec3(-sinf(glm::radians(circle + i * 55)) * coffi, 0.5f, cosf(glm::radians(circle + i * 55)) * coffi) * deltaTime * 100.f, PxForceMode().eVELOCITY_CHANGE);
 		}
 	}
 }
@@ -679,7 +680,7 @@ void PhysicsSystem::stepPhysics(shared_ptr<CallbackInterface> callback_ptr, Time
 	}
 
 	// Spinning motion for dropped off trailers
-	RoundFly();
+	RoundFly(timestep);
 	if (circle > 360) circle = 0;
 	else circle++;
 
