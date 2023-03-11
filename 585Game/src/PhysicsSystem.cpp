@@ -836,6 +836,79 @@ void PhysicsSystem::AI_InitSystem() {
 	currTrailerIndex = 0;
 }
 
+void PhysicsSystem::AI_MoveTo(Vehicle* vehicle, PxVec3 destination) {
+	
+	vehicle->vehicle.mCommandState.steer = 0.f;
+	vehicle->vehicle.mCommandState.throttle = 0.5f;
+	
+	PxQuat pxrot = vehicle->vehicle.mPhysXState.physxActor.rigidBody->getGlobalPose().q;
+	
+
+	glm::quat rotation;
+	rotation.w = pxrot.w;
+	rotation.x = pxrot.x;
+	rotation.y = pxrot.y;
+	rotation.z = pxrot.z;
+
+
+	glm::mat4 rotationMat = glm::toMat4(rotation);
+
+	glm::vec3 vanHeading = (rotationMat * glm::vec4(0.f, 0.f, -1.f, 1.f));
+
+	PxVec3 pos = vehicle->vehicle.mPhysXState.physxActor.rigidBody->getGlobalPose().p;
+	PxVec3 target;
+
+
+	
+
+
+	float offset = 0.f;
+
+	PxVec3 vanHeadingPx;
+	vanHeadingPx.x = vanHeading.x;
+	vanHeadingPx.y = vanHeading.y;
+	vanHeadingPx.z = vanHeading.z;
+
+	target.x = destination.x - pos.x;
+	target.y = destination.y - pos.y;
+	target.z = destination.z - pos.z;
+
+	//PxVec3 objectDirection = (currTrailer->rigidBody->getGlobalPose().p - vehicle->vehicle.mPhysXState.physxActor.rigidBody->getGlobalPose().p).getNormalized();
+	PxVec3 objectDirection = (destination - vehicle->vehicle.mPhysXState.physxActor.rigidBody->getGlobalPose().p).getNormalized();
+	PxReal dotProduct = objectDirection.dot(vehicle->vehicle.mPhysXState.physxActor.rigidBody->getGlobalPose().q.rotate(PxVec3(1, 0, 0)));
+
+
+
+	// Trailer to the right of vehicle
+	if (dotProduct > 0) {
+		offset = -2.25f;
+	}
+	// Trailer to the left of vehicle
+	if (dotProduct < 0) {
+		offset = 2.25f;
+	}
+
+	target.x += offset;
+	target.z += offset;
+
+	target.normalize();
+
+	float dot = target.dot(vanHeadingPx);
+	if (sqrt(dot * dot) > 0.95f) {
+		vehicle->vehicle.mCommandState.steer = 0.f;
+	}
+	else {
+		PxVec3 cross = vanHeadingPx.cross(target);
+		cross.normalize();
+		if (cross.y < 0) {
+			vehicle->vehicle.mCommandState.steer = 1.f;
+		}
+		else {
+			vehicle->vehicle.mCommandState.steer = -1.f;
+		}
+	}
+}
+
 void PhysicsSystem::AI_FindTrailer(Vehicle* vehicle) {
 	int tempIdx = 0;
 	PxReal closestDistanceSq = PX_MAX_REAL;
@@ -877,87 +950,12 @@ void PhysicsSystem::AI_CollectTrailer(Vehicle* vehicle) {
 
 
 	Trailer* currTrailer = trailers.at(vehicle->AI_CurrTrailerIndex);
-	Entity* aiVehicle = gameState->findEntity("vehicle_1");
-
-
-	vehicle->vehicle.mCommandState.steer = 0.f;
-	vehicle->vehicle.mCommandState.throttle = 0.5f;
-	//glm::quat rotation = aiVehicle->transform->getRotation();
-	//glm::quat rotation = vehicle->vehicle.mPhysXState.physxActor.rigidBody->getGlobalPose().q;
-	// 
-	PxQuat pxrot = vehicle->vehicle.mPhysXState.physxActor.rigidBody->getGlobalPose().q;
-	//cout << "GLM: " << rotation.w << " " << "PX: " << pxrot.w << endl;
-	//cout << rotation << " " << vehicle->vehicle.mPhysXState.physxActor.rigidBody->getGlobalPose().q << endl;
-
-	glm::quat rotation;
-	rotation.w = pxrot.w;
-	rotation.x = pxrot.x;
-	rotation.y = pxrot.y;
-	rotation.z = pxrot.z;
-
-
-	glm::mat4 rotationMat = glm::toMat4(rotation);
-
-	glm::vec3 vanHeading = (rotationMat * glm::vec4(0.f, 0.f, -1.f, 1.f));
-
-	PxVec3 pos = vehicle->vehicle.mPhysXState.physxActor.rigidBody->getGlobalPose().p;
-	PxVec3 target;
-	
-
-	glm::vec3 dest;
-
-	dest.x = currTrailer->rigidBody->getGlobalPose().p.x;
-	dest.y = currTrailer->rigidBody->getGlobalPose().p.y;
-	dest.z = currTrailer->rigidBody->getGlobalPose().p.z;
-
-
-	
-	float offset = 0.f;
-
-	PxVec3 vanHeadingPx;
-	vanHeadingPx.x = vanHeading.x;
-	vanHeadingPx.y = vanHeading.y;
-	vanHeadingPx.z = vanHeading.z;
-
-	target.x = dest.x - pos.x;
-	target.y = dest.y - pos.y;
-	target.z = dest.z - pos.z;
-
-	PxVec3 objectDirection = (currTrailer->rigidBody->getGlobalPose().p - vehicle->vehicle.mPhysXState.physxActor.rigidBody->getGlobalPose().p).getNormalized();
-	PxReal dotProduct = objectDirection.dot(vehicle->vehicle.mPhysXState.physxActor.rigidBody->getGlobalPose().q.rotate(PxVec3(1, 0, 0)));
+	AI_MoveTo(vehicle, currTrailer->rigidBody->getGlobalPose().p);
 
 	
 
-	// Trailer to the right of vehicle
-	if (dotProduct > 0) {
-		offset = -2.25f;
-	}
-	// Trailer to the left of vehicle
-	if (dotProduct < 0) {
-		offset = 2.25f;
-	}
-
-	target.x += offset;
-	target.z += offset;
-
-	target.normalize();
-
-	float dot = target.dot(vanHeadingPx);
-	if (sqrt(dot * dot) > 0.95f) {
-		vehicle->vehicle.mCommandState.steer = 0.f;
-	}
-	else {
-		PxVec3 cross = vanHeadingPx.cross(target);
-		cross.normalize();
-		if (cross.y < 0) {
-			vehicle->vehicle.mCommandState.steer = 1.f;
-		}
-		else {
-			vehicle->vehicle.mCommandState.steer = -1.f;
-		}
-	}
-
 	
+	// Calculating Attack Patterns
 	PxVec3 delta = vehicles.at(0)->vehicle.mPhysXState.physxActor.rigidBody->getGlobalPose().p - vehicle->vehicle.mPhysXState.physxActor.rigidBody->getGlobalPose().p;
 	PxReal distanceSq = delta.x * delta.x + delta.z * delta.z;
 
@@ -984,69 +982,7 @@ void PhysicsSystem::AI_CollectTrailer(Vehicle* vehicle) {
 
 void PhysicsSystem::AI_DropOff(Vehicle* vehicle) {
 
-	vehicle->vehicle.mCommandState.throttle = 0.5f;
-	vehicle->vehicle.mCommandState.steer = 1.f;
-
-	Entity* aiVehicle = gameState->findEntity("vehicle_1");
-
-	PxQuat pxrot = vehicle->vehicle.mPhysXState.physxActor.rigidBody->getGlobalPose().q;
-	//cout << "GLM: " << rotation.w << " " << "PX: " << pxrot.w << endl;
-	//cout << rotation << " " << vehicle->vehicle.mPhysXState.physxActor.rigidBody->getGlobalPose().q << endl;
-
-	glm::quat rotation;
-	rotation.w = pxrot.w;
-	rotation.x = pxrot.x;
-	rotation.y = pxrot.y;
-	rotation.z = pxrot.z;
-	glm::mat4 rotationMat = glm::toMat4(rotation);
-
-	glm::vec3 vanHeading = (rotationMat * glm::vec4(0.f, 0.f, -1.f, 1.f));
-
-	PxVec3 pos = vehicle->vehicle.mPhysXState.physxActor.rigidBody->getGlobalPose().p;
-	PxVec3 target;
-
-
-	glm::vec3 dest = glm::vec3(-0.45f, 0.45f, -0.45f);
-
-	
-
-
-
-	PxVec3 vanHeadingPx;
-	vanHeadingPx.x = vanHeading.x;
-	vanHeadingPx.y = vanHeading.y;
-	vanHeadingPx.z = vanHeading.z;
-
-	target.x = dest.x - pos.x;
-	target.y = dest.y - pos.y;
-	target.z = dest.z - pos.z;
-
-	
-
-	target.normalize();
-
-	float dot = target.dot(vanHeadingPx);
-	if (sqrt(dot * dot) > 0.95f) {
-		vehicle->vehicle.mCommandState.steer = 0.f;
-	}
-	else {
-		PxVec3 cross = vanHeadingPx.cross(target);
-		cross.normalize();
-		if (cross.y < 0) {
-			vehicle->vehicle.mCommandState.steer = 1.f;
-		}
-		else {
-			vehicle->vehicle.mCommandState.steer = -1.f;
-		}
-	}
-
-
-	if (vehicle->attachedTrailers.size() == 0) {
-		vehicle->AI_State = 0;
-	}
-
-	
-
+	AI_MoveTo(vehicle, PxVec3(-0.45f, 0.45f, -0.45f));
 
 
 }

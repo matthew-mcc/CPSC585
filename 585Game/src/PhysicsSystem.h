@@ -92,6 +92,7 @@ private:
 	int AI_State;
 	int currTrailerIndex;
 	void AI_InitSystem();
+	void AI_MoveTo(Vehicle* vehicle, PxVec3 destination);
 	void AI_FindTrailer(Vehicle* vehicle);
 	void AI_CollectTrailer(Vehicle* vehicle);
 	void AI_DropOff(Vehicle* vehicle);
