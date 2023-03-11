@@ -32,7 +32,7 @@ public:
 	void SFX(std::string eventName);
 	void Latch(glm::vec3 pos);
 	void LatchEvent(glm::vec3 pos);
-	void Dropoff(glm::vec3 pos);
+	void Dropoff();
 
 	CAudioEngine audioEngine;
 	CAudioEngine* audioEnginePtr;

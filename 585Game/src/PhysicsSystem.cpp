@@ -264,7 +264,7 @@ void PhysicsSystem::attachTrailer(Trailer* trailer, Vehicle* vehicle) {
 	glm::vec3 vehiclePos = toGLMVec3(trailer->rigidBody->getGlobalPose().p);
 	//glm::vec3 playerPos = gameState->findEntity("vehicle_0")->transform->getPosition();
 
-	vehiclePos = vehiclePos - gameState->listener_position;
+	//vehiclePos = vehiclePos - gameState->listener_position;
 
 	//std::cout << "position: " << vehiclePos.x;
 	//std::cout << ", " << vehiclePos.y;
@@ -712,11 +712,8 @@ void PhysicsSystem::stepPhysics(shared_ptr<CallbackInterface> callback_ptr, Time
 				std::string otherstr = "vehicle_";
 				otherstr += to_string(i);
 
-				// Play some audio
-				glm::vec3 playerPos = gameState->findEntity("vehicle_0")->transform->getPosition();
-				//glm::vec3 otherpos = gameState->findEntity(otherstr)->transform->getPosition();
-				//gameState->audio_ptr->Dropoff(otherpos);
-				gameState->audio_ptr->Dropoff(playerPos);
+				// AUDIO : Dropoff Sound
+				gameState->audio_ptr->Dropoff();
 				
 			}
 		}
