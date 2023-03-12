@@ -58,6 +58,16 @@ void RenderingSystem::initRenderer() {
 	textShader.use();
 }
 
+void resetValue(float &target, float range, float desireValue,float speed,float step) {
+	if (target > desireValue)
+		target -= speed * step;
+	else if(target < desireValue)
+		target += speed * step;
+	
+	if (target > (desireValue - range) && target < (desireValue + range))
+		target = desireValue;
+}
+
 float timeTorset = 0.f;
 // Update Renderer
 void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> callback_ptr, GameState* gameState, Timer* timer) {
@@ -134,20 +144,11 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> callback
 	else {
 		if (timeTorset > 1.f) { //lag to reset the camera
 			float reset_speed = 50.f; // the speed to rset the camera
-			if (camera_position_forward > -7.55f)
-				camera_position_forward -= reset_speed * (float)timer->getDeltaTime();
-			else if (camera_position_forward < -7.45f)
-				camera_position_forward += reset_speed * (float)timer->getDeltaTime();
-
-			if (camera_position_up > 3.55f)
-				camera_position_up -= reset_speed * (float)timer->getDeltaTime();
-			else if (camera_position_up < 3.45f)
-				camera_position_up += reset_speed * (float)timer->getDeltaTime();
-
-			if (camera_position_right > 0.05f)
-				camera_position_right -= reset_speed * (float)timer->getDeltaTime();
-			else if (camera_position_right < -0.05f)
-				camera_position_right += reset_speed * (float)timer->getDeltaTime();
+			float step_time = (float)timer->getDeltaTime();
+			float step_range = step_time * reset_speed;
+			resetValue(camera_position_forward,step_range,-7.5f,reset_speed, step_time);
+			resetValue(camera_position_up, step_range, 3.5f, reset_speed, step_time);
+			resetValue(camera_position_right, step_range, 0.f, reset_speed, step_time);
 		}
 		timeTorset += (float)timer->getDeltaTime();
 	}
