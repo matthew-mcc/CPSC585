@@ -52,8 +52,12 @@ float OutlineCalculation(vec4 outlineFragPosSpace) {
     vec3 projCoords = outlineFragPosSpace.xyz / outlineFragPosSpace.w;  // perform perspective divide
     projCoords = projCoords * 0.5 + 0.5;                                // transform to [0,1] range
     vec2 texelSize = 1.0 / textureSize(outlineMap, 0);
-    for(int x = -1; x <= 1; ++x) {                                      // determine whether point should be part of an outline
-        for(int y = -1; y <= 1; ++y) {
+    int thickness = 2;
+    float nearest = 0.0;
+    vec2 nearestOffset = vec2(0.0);
+    for(int x = -thickness; x <= thickness; ++x) {                                      // determine whether point should be part of an outline
+        for(int y = -thickness; y <= thickness; ++y) {
+            if (sqrt(pow(x, 2) + pow(y, 2)) > thickness) continue;
             float currentDepth = texture(outlineMap, projCoords.xy).r;
             float currentDepthNoLand = texture(outlineMapNoLandscape, projCoords.xy).r;
 
@@ -62,17 +66,21 @@ float OutlineCalculation(vec4 outlineFragPosSpace) {
             float offsetDepthNoLand = texture(outlineMapNoLandscape, offset).r;
 
             if (offsetDepth > currentDepth) continue;
-            if (length(WorldPos(currentDepth, projCoords.xy) - WorldPos(offsetDepth, offset)) > outlineSensitivity) {
-                return length(WorldPos(offsetDepth, offset) - WorldPos(0.0, offset)) * fogDepth;
+            if (length(WorldPos(currentDepth, projCoords.xy) - WorldPos(offsetDepth, offset)) > outlineSensitivity &&
+                (offsetDepth < nearest || nearest == 0.0)) {
+                nearest = offsetDepth;
+                nearestOffset = offset;
             }
-            if (length(WorldPos(currentDepthNoLand, projCoords.xy) - WorldPos(offsetDepthNoLand, offset)) > outlineSensitivity) {
+            if (length(WorldPos(currentDepthNoLand, projCoords.xy) - WorldPos(offsetDepthNoLand, offset)) > outlineSensitivity &&
+                (offsetDepthNoLand < nearest || nearest == 0.0)) {
                 if (offsetDepth == offsetDepthNoLand) {
-                    return length(WorldPos(offsetDepth, offset) - WorldPos(0.0, offset)) * fogDepth;
+                    nearest = offsetDepth;
+                    nearestOffset = offset;
                 }
             }
         }    
     }
-    return 0.0;
+    return length(WorldPos(nearest, nearestOffset) - WorldPos(0.0, nearestOffset)) * fogDepth;
 }
 
 float ShadowCalculation(vec4 nearFragPosLightSpace, vec4 farFragPosLightSpace) {

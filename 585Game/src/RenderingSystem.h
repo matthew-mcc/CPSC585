@@ -66,8 +66,8 @@ private:
 	vec3 fogColor = vec3(1.f, 0.728f, 0.681f);
 	float fogDepth = 0.00125f;
 
-	float outlineSensitivity = 12.f;
-	float outlineTransparency = 0.7f;
+	float outlineSensitivity = 16.f;
+	float outlineTransparency = 0.55f;
 
 	// Text
 	map<char, Character> textChars;
