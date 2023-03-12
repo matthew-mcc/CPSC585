@@ -8,15 +8,28 @@ void AudioManager::Init() {
 	audioEngine.LoadBank(bank_path_actions, FMOD_STUDIO_LOAD_BANK_NORMAL);
 	audioEngine.LoadEvent(e_pod_pickup); 
 	audioEngine.LoadEvent(e_dropoff);
-	audioEngine.LoadEvent(e_tire_roll);
+
+	//audioEngine.LoadEvent(e_tire_roll);
+	audioEngine.LoadEventInstanced(e_tire_roll, "vehicle_0");
+	audioEngine.LoadEventInstanced(e_tire_roll, "vehicle_1");
+	audioEngine.LoadEventInstanced(e_tire_roll, "vehicle_2");
+	audioEngine.LoadEventInstanced(e_tire_roll, "vehicle_3");
+
+
+
+
 
 	audioEngine.LoadSound("assets/audio/ping_placeholder.flac");
 	audioEngine.LoadSound("assets/audio/Latch1.wav");
 	audioEngine.LoadSound("assets/audio/SpaceMusic1.wav", false, true, false);
 	audioEngine.PlaySound("assets/audio/SpaceMusic1.wav", glm::vec3(0.0f), 1.0f);
-	audioEngine.PlayEvent(e_tire_roll);
 
-	
+
+	audioEngine.PlayEvent("vehicle_0");
+	audioEngine.PlayEvent("vehicle_1");
+	audioEngine.PlayEvent("vehicle_2");
+	audioEngine.PlayEvent("vehicle_3");
+
 }
 
 
@@ -57,7 +70,7 @@ void AudioManager::Dropoff() {
 }
 
 
-void AudioManager::UpdateTire(const glm::vec3& pos, const glm::vec3& velocity, const glm::vec3& forward, const glm::vec3& up, bool contact) {
+void AudioManager::UpdateTire(const std::string &strEventName, const glm::vec3 &pos, const glm::vec3 &velocity, const glm::vec3 &forward, const glm::vec3 &up, float distance, bool contact) {
 	float speed;
 	if (contact) {
 		speed = glm::length(velocity);
@@ -66,8 +79,9 @@ void AudioManager::UpdateTire(const glm::vec3& pos, const glm::vec3& velocity, c
 		speed = 0.0f;
 	}
 
-	audioEngine.SetEvent3dAttributes(e_tire_roll, pos, velocity, forward, up);
-	audioEngine.SetEventParameter(e_tire_roll, "Speed", speed);
+	audioEngine.SetEvent3dAttributes(strEventName, pos, velocity, forward, up);
+	audioEngine.SetEventParameter(strEventName, "Speed", speed);
+	audioEngine.SetEventParameter(strEventName, "Distance", distance);
 }
 
 

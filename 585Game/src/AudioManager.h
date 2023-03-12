@@ -34,7 +34,7 @@ public:
 	void LatchEvent(glm::vec3 pos);
 	void Dropoff();
 
-	void UpdateTire(const glm::vec3& pos, const glm::vec3& velocity, const glm::vec3& forward, const glm::vec3& up, bool contact);
+	void UpdateTire(const std::string& strEventName, const glm::vec3 &pos, const glm::vec3 &velocity, const glm::vec3 &forward, const glm::vec3 &up, float distance, bool contact);
 
 	CAudioEngine audioEngine;
 	CAudioEngine* audioEnginePtr;
@@ -53,8 +53,6 @@ private:
 	std::string e_tire_roll = "{7320c7ca-8c24-42ad-9aee-e1ffbe708167}";
 
 	std::string p_distance = "{a535cf27-0d8c-4dc4-8a7d-386ac746bd99}";
-
-
 
 	bool testFlag = false;
 

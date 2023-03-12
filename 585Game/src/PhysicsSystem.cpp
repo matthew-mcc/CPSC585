@@ -714,6 +714,11 @@ void PhysicsSystem::stepPhysics(shared_ptr<CallbackInterface> callback_ptr, Time
 		std::cout << "position: " << gameState->findEntity("vehicle_0")->transform->getPosition().x;
 		std::cout << ", " << gameState->findEntity("vehicle_0")->transform->getPosition().y;
 		std::cout << ", " << gameState->findEntity("vehicle_0")->transform->getPosition().z << std::endl;
+
+		std::cout << "listener: " << gameState->listener_position.x;
+		std::cout << ", " << gameState->listener_position.y;
+		std::cout << ", " << gameState->listener_position.z << std::endl;
+		std::cout << "====================================" << std::endl;
 	}
 
 	// Spinning motion for dropped off trailers
@@ -867,14 +872,44 @@ void PhysicsSystem::stepPhysics(shared_ptr<CallbackInterface> callback_ptr, Time
 		}
 	}
 
-	// Audio Update
-	glm::vec3 listener_position = gameState->findEntity("vehicle_0")->transform->getPosition();
-	glm::vec3 listener_velocity = gameState->findEntity("vehicle_0")->transform->getLinearVelocity();
-	glm::vec3 listener_forward = gameState->findEntity("vehicle_0")->transform->getForwardVector();
-	glm::vec3 listener_up = gameState->findEntity("vehicle_0")->transform->getUpVector();
+	// Update Audio
+	
+	for (int i = 0; i < 4; i++) {
+		std::string vehicleName = "vehicle_";
+		vehicleName += std::to_string(i);
+		float distance;
 
-	gameState->audio_ptr->Update3DListener(gameState->listener_position, listener_velocity, listener_forward, listener_up);
-	gameState->audio_ptr->UpdateTire(listener_position, listener_velocity, listener_forward, listener_up, gameState->audio_ptr->contact);
+		glm::vec3 audio_position = gameState->findEntity(vehicleName)->transform->getPosition();
+		glm::vec3 audio_velocity = gameState->findEntity(vehicleName)->transform->getLinearVelocity();
+		glm::vec3 audio_forward = gameState->findEntity(vehicleName)->transform->getForwardVector();
+		glm::vec3 audio_up = gameState->findEntity(vehicleName)->transform->getUpVector();
+		if (i == 0) {
+			gameState->audio_ptr->Update3DListener(gameState->listener_position, audio_velocity, audio_forward, audio_up);
+		}
+		distance = glm::length(glm::distance(gameState->listener_position, audio_position));
+		gameState->audio_ptr->UpdateTire(vehicleName, audio_position, audio_velocity, audio_forward, audio_up, distance, gameState->audio_ptr->contact);
+		
+
+		/*
+		std::cout << vehicleName << ": " << audio_position.x;
+		std::cout << ", " << audio_position.y;
+		std::cout << ", " << audio_position.z << std::endl;
+		*/
+
+	}
+	
+	/*
+	// Update only player
+	glm::vec3 audio_position = gameState->findEntity("vehicle_0")->transform->getPosition();
+	glm::vec3 audio_velocity = gameState->findEntity("vehicle_0")->transform->getLinearVelocity();
+	glm::vec3 audio_forward = gameState->findEntity("vehicle_0")->transform->getForwardVector();
+	glm::vec3 audio_up = gameState->findEntity("vehicle_0")->transform->getUpVector();
+
+	float distance = glm::length(glm::distance(gameState->listener_position, audio_position));
+	gameState->audio_ptr->UpdateTire("vehicle_0", audio_position, audio_velocity, audio_forward, audio_up, distance, gameState->audio_ptr->contact);
+	*/
+
+	//gameState->audio_ptr->UpdateTire(listener_position, listener_velocity, listener_forward, listener_up, gameState->audio_ptr->contact);
 
 
 }

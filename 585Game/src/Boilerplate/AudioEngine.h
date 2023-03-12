@@ -62,15 +62,17 @@ public:
 	//
 	void LoadBank(const string &strBankName, FMOD_STUDIO_LOAD_BANK_FLAGS flags);
 	void LoadEvent(const string &strEventName);
+	void LoadEventInstanced(const string &strEventName, const string &strEventInstanceName);
 	void LoadSound(const string &strSoundName, bool b3d = true, bool blooping = false, bool bStream = false);
 	void UnLoadSound(const string &strSoundName);
 	int PlaySound(const string &strSoundName, const glm::vec3 &vPos = glm::vec3(0.0f), float fVolumedB = 0.0f);
 	void PlayEvent(const string &strEventName);
-	void SetEvent3dAttributes(const string& strEventName, const glm::vec3& pos, const glm::vec3& velocity, const glm::vec3& forward, const glm::vec3& up);
+	//void PlayInstancedEvent(const string& strEventName);
+	void SetEvent3dAttributes(const string &strEventName, const glm::vec3 &pos, const glm::vec3 &velocity, const glm::vec3 &forward, const glm::vec3 &up);
 	void StopChannel(int nChannelID);
 	void StopEvent(const string &strEventName, bool bImmediate = false);
 	void GetEventParameter(const string &strEventName, const string &strEventParameter, float* parameter);
-	void SetEventParameter(const string &strEventName, const std::string& paramName, float fValue);
+	void SetEventParameter(const string &strEventName, const std::string &paramName, float fValue);
 	void StopAllChannels();
 	void SetChannel3dPosition(int nChannelID, const glm::vec3 &vPos);
 	void SetChannelVolume(int nChannelID, float fVolumedB);
