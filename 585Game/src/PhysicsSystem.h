@@ -61,7 +61,7 @@ public:
 	//void stepPhysics(std::shared_ptr<CallbackInterface> callback_ptr, Timer* timer);
 	void stepPhysics(std::shared_ptr<CallbackInterface> callback_ptr, Timer* timer);
 	
-	static float CameraRaycasting( glm::vec3 campos);
+	static glm::vec3 CameraRaycasting( glm::vec3 camposd);
 	
 
 private:
@@ -92,6 +92,7 @@ private:
 	int AI_State;
 	int currTrailerIndex;
 	void AI_InitSystem();
+	void AI_MoveTo(Vehicle* vehicle, PxVec3 destination);
 	void AI_FindTrailer(Vehicle* vehicle);
 	void AI_CollectTrailer(Vehicle* vehicle);
 	void AI_DropOff(Vehicle* vehicle);

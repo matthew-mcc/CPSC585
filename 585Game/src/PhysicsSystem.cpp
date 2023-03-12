@@ -305,22 +305,61 @@ void PhysicsSystem::detachTrailer(Trailer* trailer, Vehicle* vehicle) {
 	updateJointLimits(vehicle);
 }
 
+//PxRaycastHit hitBuffer[10];
 PxRaycastBuffer cameraRayBuffer(0,0);
-float PhysicsSystem::CameraRaycasting(glm::vec3 campos) {
+glm::vec3 PhysicsSystem::CameraRaycasting(glm::vec3 campos) {
 	PxVec3 cam = PxVec3(campos.x, campos.y, campos.z); //where the ray shoots, the origin 
-	PxVec3 start;
+	PxVec3 start = vehicles.at(0)->vehicle.mPhysXState.physxActor.rigidBody->getGlobalPose().p;
 	PxTransform vehicle_trans = vehicles.at(0)->vehicle.mPhysXState.physxActor.rigidBody->getGlobalPose();
+	PxVec3 dir =  start-cam; // we need the ray shoot from vehicle to camera, which then can detect the ground mesh. direction should base on global map
+	PxVec3 Normal_ray_dir = cam - start;
+	PxVec3 Normal_shoot_origin;
+	PxVec3 moving_vector(0.f);
+	//prevent touch the ground  // just check different basis direction of the camera, give it no chance to touch the ground 
+	//prevent backward touch  
+	if (gScene->raycast(cam, vehicle_trans.rotate(PxVec3(0.f,0.f,-1.f)), 1.f, cameraRayBuffer, PxHitFlag::eNORMAL) &&
+		cameraRayBuffer.block.shape->getSimulationFilterData().word0 == COLLISION_FLAG_GROUND) {
+		moving_vector += cameraRayBuffer.block.normal.getNormalized();
+		
+	}
+	//prevent downward touch  
+	if (gScene->raycast(cam, vehicle_trans.rotate(PxVec3(0.f, -1.f, 0.f)), 1.f, cameraRayBuffer, PxHitFlag::eNORMAL) &&
+		cameraRayBuffer.block.shape->getSimulationFilterData().word0 == COLLISION_FLAG_GROUND) {
+		moving_vector += cameraRayBuffer.block.normal.getNormalized();
+		
+	}
+	//prevent side touches  
+	if (gScene->raycast(cam, vehicle_trans.rotate(PxVec3(-1.f, 0.f, 0.f)), 1.f, cameraRayBuffer, PxHitFlag::eNORMAL) &&
+		cameraRayBuffer.block.shape->getSimulationFilterData().word0 == COLLISION_FLAG_GROUND) {
+		moving_vector += cameraRayBuffer.block.normal.getNormalized();
+		
+	}
+	if (gScene->raycast(cam, vehicle_trans.rotate(PxVec3(1.f, 0.f, 0.f)), 1.f, cameraRayBuffer, PxHitFlag::eNORMAL) &&
+		cameraRayBuffer.block.shape->getSimulationFilterData().word0 == COLLISION_FLAG_GROUND) {
+		moving_vector += cameraRayBuffer.block.normal.getNormalized();
+		
+	}
+	moving_vector = vehicle_trans.rotateInv(moving_vector);
+	return glm::vec3(moving_vector.x, moving_vector.y, moving_vector.z);
+	//----------------------------------------------------------------------------//
+	//if get into the ground, get out ... 
+	//Do we still want this enable? Like, the camera now will be hard to get blocked by ground, it's still possible,but you need to intend to do that
+	//It generally happens while you trying to do a U turn on the map border with high speed, and the camera will be throw out of the ground
+	//And even if you did, camera will reset to where it should be after all...
+	//----------------------------------------------------------------------------//
+	/*if (gScene->raycast(cam, dir.getNormalized(), dir.magnitude(), cameraRayBuffer, PxHitFlag::eMESH_BOTH_SIDES) &&
+		cameraRayBuffer.block.shape->getSimulationFilterData().word0 == COLLISION_FLAG_GROUND) {
+		moving_vector = dir * (cameraRayBuffer.block.distance / dir.magnitude());
+		Normal_shoot_origin = cam + dir* ((cameraRayBuffer.block.distance + 0.1f) / dir.magnitude());
+		moving_vector = vehicle_trans.rotateInv(moving_vector).getNormalized();
+		if (gScene->raycast(Normal_shoot_origin, Normal_ray_dir.getNormalized(), dir.magnitude(),cameraRayBuffer, PxHitFlag::eNORMAL) &&
+			cameraRayBuffer.block.shape->getSimulationFilterData().word0 == COLLISION_FLAG_GROUND)
+			moving_vector += vehicle_trans.rotateInv(cameraRayBuffer.block.normal.getNormalized());
 
-	start = vehicle_trans.p;
-	PxVec3 t(0.f,1.f,3.7f); // this might need to be changed, after we figure out where the camera is looking at XD
-	t = vehicle_trans.rotate(t);
-	start += t;
-	PxVec3 dir =  start-cam; // we need the ray shoot from vehicle to camera, which then can detect the ground mesh.
-	if (gScene->raycast(cam, dir.getNormalized()/*the direction*/,
-		dir.magnitude(),/*distance between camera and the vehicle*/
-		cameraRayBuffer, PxHitFlag::eMESH_BOTH_SIDES) && cameraRayBuffer.block.shape->getSimulationFilterData().word0 == COLLISION_FLAG_GROUND)
-		return cameraRayBuffer.block.distance;
-	return 0.f;
+		//moving_vector = vehicle_trans.rotateInv(moving_vector);
+		return glm::vec3(moving_vector.x*0.1f, moving_vector.y * 0.1f, moving_vector.z * 0.1f);
+
+	}*/
 }
 
 void PhysicsSystem::RoundFly(float deltaTime) {
@@ -638,7 +677,6 @@ void PhysicsSystem::initVehicles(int vehicleCount) {
 void PhysicsSystem::initPhysicsSystem(GameState* gameState, AiController* aiController) {
 	this->gameState = gameState;
 	this->aiController = aiController;
-	cameraRayBuffer.block.shape = NULL;
 	srand(time(NULL));
 	initPhysX();
 	initPhysXMeshes();
@@ -722,7 +760,7 @@ void PhysicsSystem::stepPhysics(shared_ptr<CallbackInterface> callback_ptr, Time
 		if (i == 0) {
 			// On Ground
 			//if (!gContactReportCallback->AirOrNot) {
-			if (gScene->raycast(vehicle_transform.p, PxVec3(0.f, -1.f, 0.f), 0.7f, AircontrolBuffer) // raycasting! just like that??? 
+			if (gScene->raycast(vehicle_transform.p, vehicle_transform.rotateInv(PxVec3(0.f, -1.f, 0.f)), 0.7f, AircontrolBuffer) // raycasting! just like that??? 
 				&& AircontrolBuffer.block.shape->getSimulationFilterData().word0 == COLLISION_FLAG_GROUND){
 				//Apply the brake, forward throttle and steer inputs to the vehicle's command state
 				if (forwardSpeed > 0.1f) {
@@ -856,6 +894,79 @@ void PhysicsSystem::AI_InitSystem() {
 	currTrailerIndex = 0;
 }
 
+void PhysicsSystem::AI_MoveTo(Vehicle* vehicle, PxVec3 destination) {
+	
+	vehicle->vehicle.mCommandState.steer = 0.f;
+	vehicle->vehicle.mCommandState.throttle = 0.5f;
+	
+	PxQuat pxrot = vehicle->vehicle.mPhysXState.physxActor.rigidBody->getGlobalPose().q;
+	
+
+	glm::quat rotation;
+	rotation.w = pxrot.w;
+	rotation.x = pxrot.x;
+	rotation.y = pxrot.y;
+	rotation.z = pxrot.z;
+
+
+	glm::mat4 rotationMat = glm::toMat4(rotation);
+
+	glm::vec3 vanHeading = (rotationMat * glm::vec4(0.f, 0.f, -1.f, 1.f));
+
+	PxVec3 pos = vehicle->vehicle.mPhysXState.physxActor.rigidBody->getGlobalPose().p;
+	PxVec3 target;
+
+
+	
+
+
+	float offset = 0.f;
+
+	PxVec3 vanHeadingPx;
+	vanHeadingPx.x = vanHeading.x;
+	vanHeadingPx.y = vanHeading.y;
+	vanHeadingPx.z = vanHeading.z;
+
+	target.x = destination.x - pos.x;
+	target.y = destination.y - pos.y;
+	target.z = destination.z - pos.z;
+
+	//PxVec3 objectDirection = (currTrailer->rigidBody->getGlobalPose().p - vehicle->vehicle.mPhysXState.physxActor.rigidBody->getGlobalPose().p).getNormalized();
+	PxVec3 objectDirection = (destination - vehicle->vehicle.mPhysXState.physxActor.rigidBody->getGlobalPose().p).getNormalized();
+	PxReal dotProduct = objectDirection.dot(vehicle->vehicle.mPhysXState.physxActor.rigidBody->getGlobalPose().q.rotate(PxVec3(1, 0, 0)));
+
+
+
+	// Trailer to the right of vehicle
+	if (dotProduct > 0) {
+		offset = -2.25f;
+	}
+	// Trailer to the left of vehicle
+	if (dotProduct < 0) {
+		offset = 2.25f;
+	}
+
+	target.x += offset;
+	target.z += offset;
+
+	target.normalize();
+
+	float dot = target.dot(vanHeadingPx);
+	if (sqrt(dot * dot) > 0.95f) {
+		vehicle->vehicle.mCommandState.steer = 0.f;
+	}
+	else {
+		PxVec3 cross = vanHeadingPx.cross(target);
+		cross.normalize();
+		if (cross.y < 0) {
+			vehicle->vehicle.mCommandState.steer = 1.f;
+		}
+		else {
+			vehicle->vehicle.mCommandState.steer = -1.f;
+		}
+	}
+}
+
 void PhysicsSystem::AI_FindTrailer(Vehicle* vehicle) {
 	int tempIdx = 0;
 	PxReal closestDistanceSq = PX_MAX_REAL;
@@ -897,87 +1008,12 @@ void PhysicsSystem::AI_CollectTrailer(Vehicle* vehicle) {
 
 
 	Trailer* currTrailer = trailers.at(vehicle->AI_CurrTrailerIndex);
-	Entity* aiVehicle = gameState->findEntity("vehicle_1");
-
-
-	vehicle->vehicle.mCommandState.steer = 0.f;
-	vehicle->vehicle.mCommandState.throttle = 0.5f;
-	//glm::quat rotation = aiVehicle->transform->getRotation();
-	//glm::quat rotation = vehicle->vehicle.mPhysXState.physxActor.rigidBody->getGlobalPose().q;
-	// 
-	PxQuat pxrot = vehicle->vehicle.mPhysXState.physxActor.rigidBody->getGlobalPose().q;
-	//cout << "GLM: " << rotation.w << " " << "PX: " << pxrot.w << endl;
-	//cout << rotation << " " << vehicle->vehicle.mPhysXState.physxActor.rigidBody->getGlobalPose().q << endl;
-
-	glm::quat rotation;
-	rotation.w = pxrot.w;
-	rotation.x = pxrot.x;
-	rotation.y = pxrot.y;
-	rotation.z = pxrot.z;
-
-
-	glm::mat4 rotationMat = glm::toMat4(rotation);
-
-	glm::vec3 vanHeading = (rotationMat * glm::vec4(0.f, 0.f, -1.f, 1.f));
-
-	PxVec3 pos = vehicle->vehicle.mPhysXState.physxActor.rigidBody->getGlobalPose().p;
-	PxVec3 target;
-	
-
-	glm::vec3 dest;
-
-	dest.x = currTrailer->rigidBody->getGlobalPose().p.x;
-	dest.y = currTrailer->rigidBody->getGlobalPose().p.y;
-	dest.z = currTrailer->rigidBody->getGlobalPose().p.z;
-
-
-	
-	float offset = 0.f;
-
-	PxVec3 vanHeadingPx;
-	vanHeadingPx.x = vanHeading.x;
-	vanHeadingPx.y = vanHeading.y;
-	vanHeadingPx.z = vanHeading.z;
-
-	target.x = dest.x - pos.x;
-	target.y = dest.y - pos.y;
-	target.z = dest.z - pos.z;
-
-	PxVec3 objectDirection = (currTrailer->rigidBody->getGlobalPose().p - vehicle->vehicle.mPhysXState.physxActor.rigidBody->getGlobalPose().p).getNormalized();
-	PxReal dotProduct = objectDirection.dot(vehicle->vehicle.mPhysXState.physxActor.rigidBody->getGlobalPose().q.rotate(PxVec3(1, 0, 0)));
+	AI_MoveTo(vehicle, currTrailer->rigidBody->getGlobalPose().p);
 
 	
 
-	// Trailer to the right of vehicle
-	if (dotProduct > 0) {
-		offset = -2.25f;
-	}
-	// Trailer to the left of vehicle
-	if (dotProduct < 0) {
-		offset = 2.25f;
-	}
-
-	target.x += offset;
-	target.z += offset;
-
-	target.normalize();
-
-	float dot = target.dot(vanHeadingPx);
-	if (sqrt(dot * dot) > 0.95f) {
-		vehicle->vehicle.mCommandState.steer = 0.f;
-	}
-	else {
-		PxVec3 cross = vanHeadingPx.cross(target);
-		cross.normalize();
-		if (cross.y < 0) {
-			vehicle->vehicle.mCommandState.steer = 1.f;
-		}
-		else {
-			vehicle->vehicle.mCommandState.steer = -1.f;
-		}
-	}
-
 	
+	// Calculating Attack Patterns
 	PxVec3 delta = vehicles.at(0)->vehicle.mPhysXState.physxActor.rigidBody->getGlobalPose().p - vehicle->vehicle.mPhysXState.physxActor.rigidBody->getGlobalPose().p;
 	PxReal distanceSq = delta.x * delta.x + delta.z * delta.z;
 
@@ -1004,69 +1040,7 @@ void PhysicsSystem::AI_CollectTrailer(Vehicle* vehicle) {
 
 void PhysicsSystem::AI_DropOff(Vehicle* vehicle) {
 
-	vehicle->vehicle.mCommandState.throttle = 0.5f;
-	vehicle->vehicle.mCommandState.steer = 1.f;
-
-	Entity* aiVehicle = gameState->findEntity("vehicle_1");
-
-	PxQuat pxrot = vehicle->vehicle.mPhysXState.physxActor.rigidBody->getGlobalPose().q;
-	//cout << "GLM: " << rotation.w << " " << "PX: " << pxrot.w << endl;
-	//cout << rotation << " " << vehicle->vehicle.mPhysXState.physxActor.rigidBody->getGlobalPose().q << endl;
-
-	glm::quat rotation;
-	rotation.w = pxrot.w;
-	rotation.x = pxrot.x;
-	rotation.y = pxrot.y;
-	rotation.z = pxrot.z;
-	glm::mat4 rotationMat = glm::toMat4(rotation);
-
-	glm::vec3 vanHeading = (rotationMat * glm::vec4(0.f, 0.f, -1.f, 1.f));
-
-	PxVec3 pos = vehicle->vehicle.mPhysXState.physxActor.rigidBody->getGlobalPose().p;
-	PxVec3 target;
-
-
-	glm::vec3 dest = glm::vec3(-0.45f, 0.45f, -0.45f);
-
-	
-
-
-
-	PxVec3 vanHeadingPx;
-	vanHeadingPx.x = vanHeading.x;
-	vanHeadingPx.y = vanHeading.y;
-	vanHeadingPx.z = vanHeading.z;
-
-	target.x = dest.x - pos.x;
-	target.y = dest.y - pos.y;
-	target.z = dest.z - pos.z;
-
-	
-
-	target.normalize();
-
-	float dot = target.dot(vanHeadingPx);
-	if (sqrt(dot * dot) > 0.95f) {
-		vehicle->vehicle.mCommandState.steer = 0.f;
-	}
-	else {
-		PxVec3 cross = vanHeadingPx.cross(target);
-		cross.normalize();
-		if (cross.y < 0) {
-			vehicle->vehicle.mCommandState.steer = 1.f;
-		}
-		else {
-			vehicle->vehicle.mCommandState.steer = -1.f;
-		}
-	}
-
-
-	if (vehicle->attachedTrailers.size() == 0) {
-		vehicle->AI_State = 0;
-	}
-
-	
-
+	AI_MoveTo(vehicle, PxVec3(-0.45f, 0.45f, -0.45f));
 
 
 }

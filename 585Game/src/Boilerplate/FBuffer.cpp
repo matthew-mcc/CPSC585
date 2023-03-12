@@ -1,9 +1,11 @@
+#define NOMINMAX
 #include "FBuffer.h"
 #include <stdio.h>
 #include <glm.hpp>
 #include <glad/glad.h>
 #include <gtc/matrix_transform.hpp>
 #include <Boilerplate/Shader.h>
+#include <GameState.h>
 
 FBuffer::FBuffer() {}
 
@@ -156,7 +158,7 @@ void FBuffer::cleanUp(std::shared_ptr<CallbackInterface> callback_ptr) {
 }
 
 // Draw framebuffer to screen for debug purposes
-void FBuffer::render() {
+void FBuffer::renderToScreen() {
 	debugShader.use();
 	glActiveTexture(GL_TEXTURE0);
 	renderQuad();
@@ -196,6 +198,38 @@ void FBuffer::renderQuad() {
 	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 	glBindVertexArray(0);
 }
+
+void FBuffer::render(GameState* gameState, std::string mode) {
+	glCullFace(GL_FRONT);
+	for (int i = 0; i < gameState->entityList.size(); i++) {
+		// Retrieve global position and rotation
+		//if (gameState->entityList.at(i).name.compare("sky_sphere") == 0) continue;
+		if (mode.compare("l") == 0 && gameState->entityList.at(i).name.compare("landscape") == 0 ||
+			mode.compare("l") == 0 && gameState->entityList.at(i).name.compare("platform_center") == 0) continue;
+		vec3 position = gameState->entityList.at(i).transform->getPosition();
+		quat rotation = gameState->entityList.at(i).transform->getRotation();
+
+		// Retrieve local positions and rotations of submeshes
+		for (int j = 0; j < gameState->entityList.at(i).localTransforms.size(); j++) {
+			vec3 localPosition = gameState->entityList.at(i).localTransforms.at(j)->getPosition();
+			quat localRotation = gameState->entityList.at(i).localTransforms.at(j)->getRotation();
+
+			// Set model matrix
+			glm::mat4 model = mat4(1.0f);
+			model = translate(model, position);
+			model = model * toMat4(rotation);
+			model = translate(model, localPosition);
+			model = model * toMat4(localRotation);
+			model = scale(model, vec3(1.0f));
+			shader.setMat4("model", model);
+
+			// Draw model's meshes
+			gameState->entityList.at(i).model->meshes.at(j).Draw(shader);
+		}
+	}
+	glCullFace(GL_BACK);
+}
+
 float FBuffer::getWidth() {
 	return WIDTH;
 }

@@ -8,6 +8,7 @@ int vehiclesSpawned = 0;
 int trailersSpawned = 0;
 
 void GameState::initGameState(AudioManager* audio) {
+	audio_ptr = audio;
 	Entity* e;
 
 	// Landscape
@@ -33,7 +34,9 @@ void GameState::initGameState(AudioManager* audio) {
 	e = addEntity("platform_center", PhysType::None, new Transform(), vector<string>{
 		"assets/models/platform1/platform1.obj"});
 
-	audio_ptr = audio;
+	// 
+	e = addEntity("sky_sphere", PhysType::None, new Transform(), vector<string>{
+		"assets/models/sky_sphere1/sky_sphere1.obj"});
 }
 
 Entity* GameState::addEntity(string name, PhysType type, Transform* transform, vector<string> modelPaths) {

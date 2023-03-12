@@ -1,6 +1,8 @@
+#define NOMINMAX
 #include <glad/glad.h>
 #include <Boilerplate/Shader.h>
 #include <Boilerplate/Window.h>
+#include <GameState.h>
 
 class FBuffer {
 public:
@@ -10,8 +12,10 @@ public:
 	void update(glm::vec3 lightPos, glm::vec3 playerPos);
 	void update(glm::mat4 proj, glm::mat4 view);
 	void cleanUp(std::shared_ptr<CallbackInterface> callback_ptr);
-	void render();
+	void renderToScreen();
 	void renderQuad();
+
+	void render(GameState* gameState, std::string mode);
 
 	float getWidth();
 	float getHeight();
