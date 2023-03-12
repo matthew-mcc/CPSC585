@@ -38,7 +38,7 @@ void GameState::initGameState(AudioManager* audio) {
 	e = addEntity("platform_center", PhysType::None, DrawType::Mesh, new Transform(), vector<string>{
 		"assets/models/platform1/platform1.obj"});
 
-	e = addEntity("decal_test", PhysType::None, DrawType::Invisible, new Transform(), vector<string>{
+	e = addEntity("decal_test", PhysType::None, DrawType::Decal, new Transform(), vector<string>{
 		"assets/models/decals/decal1.obj"});
 }
 
