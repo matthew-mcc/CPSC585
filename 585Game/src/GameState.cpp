@@ -25,6 +25,10 @@ void GameState::initGameState(AudioManager* audio) {
 	e = addEntity("sky_sphere", PhysType::None, DrawType::Mesh, new Transform(), vector<string>{
 		"assets/models/sky_sphere1/sky_sphere1.obj"});
 
+	// Map Border (Invisible Wall)
+	e = addEntity("map_border", PhysType::StaticMesh, DrawType::Invisible, new Transform(), vector<string>{
+		"assets/models/map_border1/map_border1.obj"});
+
 	// Oil Rigs
 	e = addEntity("oil_rigs", PhysType::None, DrawType::Mesh, new Transform(), vector<string>{
 		"assets/models/oil_rig1/oil_rig2.obj"});

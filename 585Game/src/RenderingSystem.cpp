@@ -133,7 +133,7 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> callback
 	}
 	else {
 		if (timeTorset > 1.f) { //lag to reset the camera
-			float reset_speed = 5.f; // the speed to rset the camera
+			float reset_speed = 50.f; // the speed to rset the camera
 			if (camera_position_forward > -7.55f)
 				camera_position_forward -= reset_speed * (float)timer->getDeltaTime();
 			else if (camera_position_forward < -7.45f)
