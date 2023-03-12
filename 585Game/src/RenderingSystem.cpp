@@ -202,7 +202,6 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> callback
 		// Retrieve global position and rotation
 		vec3 position = gameState->entityList.at(i).transform->getPosition();
 		quat rotation = gameState->entityList.at(i).transform->getRotation();
-
 		// Retrieve local positions and rotations of submeshes
 		for (int j = 0; j < gameState->entityList.at(i).localTransforms.size(); j++) {
 			vec3 localPosition = gameState->entityList.at(i).localTransforms.at(j)->getPosition();
