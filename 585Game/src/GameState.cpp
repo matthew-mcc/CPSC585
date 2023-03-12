@@ -21,6 +21,10 @@ void GameState::initGameState(AudioManager* audio) {
 	e = addEntity("landscape_junk", PhysType::None, new Transform(), vector<string>{
 		"assets/models/junk1/junk1.obj"});
 
+	// Sky Sphere
+	e = addEntity("sky_sphere", PhysType::None, new Transform(), vector<string>{
+		"assets/models/sky_sphere1/sky_sphere1.obj"});
+
 	// Oil Rigs
 	e = addEntity("oil_rigs", PhysType::None, new Transform(), vector<string>{
 		"assets/models/oil_rig1/oil_rig2.obj"});
@@ -34,9 +38,8 @@ void GameState::initGameState(AudioManager* audio) {
 	e = addEntity("platform_center", PhysType::None, new Transform(), vector<string>{
 		"assets/models/platform1/platform1.obj"});
 
-	// 
-	e = addEntity("sky_sphere", PhysType::None, new Transform(), vector<string>{
-		"assets/models/sky_sphere1/sky_sphere1.obj"});
+	e = addEntity("decal_test", PhysType::None, new Transform(), vector<string>{
+		"assets/models/decals/decal1.obj"});
 }
 
 Entity* GameState::addEntity(string name, PhysType type, Transform* transform, vector<string> modelPaths) {
