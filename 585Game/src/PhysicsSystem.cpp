@@ -777,11 +777,17 @@ void PhysicsSystem::stepPhysics(shared_ptr<CallbackInterface> callback_ptr, Time
 				
 				vehicles.at(i)->vehicle.mCommandState.throttle = player->playerProperties->throttle;
 				vehicles.at(i)->vehicle.mCommandState.steer = player->playerProperties->steer;
+
+				// Audio Flag for ground contact
+				gameState->audio_ptr->contact = true;
 			}
 			// In Air
 			else { 
 				// Set Rotation based on air controls
 				vehicles.at(i)->vehicle.mPhysXState.physxActor.rigidBody->addTorque(vehicle_transform.rotate(PxVec3(player->playerProperties->AirPitch * 2.5f, player->playerProperties->AirRoll * 1.0f, player->playerProperties->AirRoll * -3.0f) * timestep), PxForceMode().eVELOCITY_CHANGE);
+				
+				// Audio Flag for ground contact
+				gameState->audio_ptr->contact = false;
 			}
 
 			// Boost
@@ -862,12 +868,14 @@ void PhysicsSystem::stepPhysics(shared_ptr<CallbackInterface> callback_ptr, Time
 	}
 
 	// Audio Update
-	//glm::vec3 listener_position = gameState->findEntity("vehicle_0")->transform->getPosition();
+	glm::vec3 listener_position = gameState->findEntity("vehicle_0")->transform->getPosition();
 	glm::vec3 listener_velocity = gameState->findEntity("vehicle_0")->transform->getLinearVelocity();
 	glm::vec3 listener_forward = gameState->findEntity("vehicle_0")->transform->getForwardVector();
 	glm::vec3 listener_up = gameState->findEntity("vehicle_0")->transform->getUpVector();
 
 	gameState->audio_ptr->Update3DListener(gameState->listener_position, listener_velocity, listener_forward, listener_up);
+	gameState->audio_ptr->UpdateTire(listener_position, listener_velocity, listener_forward, listener_up, gameState->audio_ptr->contact);
+
 
 }
 

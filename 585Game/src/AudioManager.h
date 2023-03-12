@@ -34,9 +34,12 @@ public:
 	void LatchEvent(glm::vec3 pos);
 	void Dropoff();
 
+	void UpdateTire(const glm::vec3& pos, const glm::vec3& velocity, const glm::vec3& forward, const glm::vec3& up, bool contact);
+
 	CAudioEngine audioEngine;
 	CAudioEngine* audioEnginePtr;
 
+	bool contact;
 
 private:
 	// Bank paths
@@ -47,7 +50,7 @@ private:
 	std::string e_pod_pickup = "{18b007c8-1f2c-4417-90bb-989e3419b7f9}";
 	std::string e_dropoff = "{8152d370-812b-42ff-8376-d6cf870fa7b0}";
 	std::string e_dropoff_path = "event: / sfx / dropoff";
-
+	std::string e_tire_roll = "{7320c7ca-8c24-42ad-9aee-e1ffbe708167}";
 
 	std::string p_distance = "{a535cf27-0d8c-4dc4-8a7d-386ac746bd99}";
 
