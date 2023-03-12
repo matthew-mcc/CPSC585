@@ -15,7 +15,7 @@ public:
 	void renderToScreen();
 	void renderQuad();
 
-	void render(GameState* gameState, std::string mode);
+	void render(GameState* gameState, std::string mode, vec3 lightPos, std::shared_ptr<CallbackInterface> callback_ptr);
 
 	float getWidth();
 	float getHeight();
