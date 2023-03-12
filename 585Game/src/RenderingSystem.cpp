@@ -121,6 +121,9 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> callback
 		view = lookAt(camera_previous_position + camOffset, playerEntity->transform->getPosition() + target_offset, world_up);
 	}
 	
+	// For audio - probably need to change later
+	gameState->listener_position = camera_previous_position;
+
 	glm::vec3 Camera_collision = PhysicsSystem::CameraRaycasting(camera_previous_position);
 	if (Camera_collision.x != 0.f && Camera_collision.y != 0 && Camera_collision.z != 0) {//not sure which one to use XD
 		camera_position_forward += Camera_collision.z;//* (float)timer->getDeltaTime();//camera_previous_position.z += 1.f; //* (float)timer->getDeltaTime();//cout << "???" << endl;

@@ -259,6 +259,18 @@ void PhysicsSystem::attachTrailer(Trailer* trailer, Vehicle* vehicle) {
 	vehicle->attachedTrailers.push_back(trailer);
 	vehicle->attachedJoints.push_back(joint);
 	updateJointLimits(vehicle);
+
+	// Play some audio
+	glm::vec3 vehiclePos = toGLMVec3(trailer->rigidBody->getGlobalPose().p);
+	//glm::vec3 playerPos = gameState->findEntity("vehicle_0")->transform->getPosition();
+
+	//vehiclePos = vehiclePos - gameState->listener_position;
+
+	//std::cout << "position: " << vehiclePos.x;
+	//std::cout << ", " << vehiclePos.y;
+	//std::cout << ", " << vehiclePos.z << std::endl;
+
+	gameState->audio_ptr->Latch(vehiclePos);
 }
 
 void PhysicsSystem::detachTrailer(Trailer* trailer, Vehicle* vehicle) {
@@ -292,6 +304,7 @@ void PhysicsSystem::detachTrailer(Trailer* trailer, Vehicle* vehicle) {
 	vehicle->attachedTrailers = newTrailers;
 	updateJointLimits(vehicle);
 }
+
 //PxRaycastHit hitBuffer[10];
 PxRaycastBuffer cameraRayBuffer(0,0);
 glm::vec3 PhysicsSystem::CameraRaycasting(glm::vec3 campos) {
@@ -349,7 +362,7 @@ glm::vec3 PhysicsSystem::CameraRaycasting(glm::vec3 campos) {
 	}*/
 }
 
-void PhysicsSystem::RoundFly() {
+void PhysicsSystem::RoundFly(float deltaTime) {
 	for (int i = 0; i < trailers.size(); i++) {
 		// Only apply forces to trailers with the isFlying flag set to true
 		if (trailers.at(i)->isFlying) {
@@ -373,8 +386,8 @@ void PhysicsSystem::RoundFly() {
 
 			// therefore, eventually we want the pulling force defeat spin force, which let them assemble to a point
 			// but we need to make the process reasonable slow that play can feel trailers are gradually pulling together rather than immediately.
-			trailers.at(i)->rigidBody->addForce(dir * coffi2, PxForceMode().eVELOCITY_CHANGE);
-			trailers.at(i)->rigidBody->addForce(PxVec3(-sinf(glm::radians(circle + i * 55)) * coffi, 0.5f, cosf(glm::radians(circle + i * 55)) * coffi), PxForceMode().eVELOCITY_CHANGE);
+			trailers.at(i)->rigidBody->addForce(dir * coffi2 * deltaTime * 100.f, PxForceMode().eVELOCITY_CHANGE);
+			trailers.at(i)->rigidBody->addForce(PxVec3(-sinf(glm::radians(circle + i * 55)) * coffi, 0.5f, cosf(glm::radians(circle + i * 55)) * coffi) * deltaTime * 100.f, PxForceMode().eVELOCITY_CHANGE);
 		}
 	}
 }
@@ -696,16 +709,15 @@ void PhysicsSystem::stepPhysics(shared_ptr<CallbackInterface> callback_ptr, Time
 		attachTrailer(trailers.at(rigidBodyAddIndex), vehicles.at(0));
 		callback_ptr->addTrailer = false;
 		rigidBodyAddIndex++;
-		// Audio Test
-		gameState->audio_ptr->SFX("hahathisdoesnothing, is just test");
-		//gameState->audio_ptr->Latch(gameState->findEntity("name")->transform->getPosition());
+
+		// Position Debug
 		std::cout << "position: " << gameState->findEntity("vehicle_0")->transform->getPosition().x;
 		std::cout << ", " << gameState->findEntity("vehicle_0")->transform->getPosition().y;
 		std::cout << ", " << gameState->findEntity("vehicle_0")->transform->getPosition().z << std::endl;
 	}
 
 	// Spinning motion for dropped off trailers
-	RoundFly();
+	RoundFly(timestep);
 	if (circle > 360) circle = 0;
 	else circle++;
 
@@ -737,10 +749,9 @@ void PhysicsSystem::stepPhysics(shared_ptr<CallbackInterface> callback_ptr, Time
 
 				std::string otherstr = "vehicle_";
 				otherstr += to_string(i);
-				glm::vec3 playerpos = gameState->findEntity("vehicle_0")->transform->getPosition();
-				//glm::vec3 otherpos = gameState->findEntity(otherstr)->transform->getPosition();
-				//gameState->audio_ptr->Dropoff(otherpos);
-				gameState->audio_ptr->Dropoff(playerpos);
+
+				// AUDIO : Dropoff Sound
+				gameState->audio_ptr->Dropoff();
 				
 			}
 		}
@@ -849,6 +860,15 @@ void PhysicsSystem::stepPhysics(shared_ptr<CallbackInterface> callback_ptr, Time
 			vehicleIndex++;
 		}
 	}
+
+	// Audio Update
+	//glm::vec3 listener_position = gameState->findEntity("vehicle_0")->transform->getPosition();
+	glm::vec3 listener_velocity = gameState->findEntity("vehicle_0")->transform->getLinearVelocity();
+	glm::vec3 listener_forward = gameState->findEntity("vehicle_0")->transform->getForwardVector();
+	glm::vec3 listener_up = gameState->findEntity("vehicle_0")->transform->getUpVector();
+
+	gameState->audio_ptr->Update3DListener(gameState->listener_position, listener_velocity, listener_forward, listener_up);
+
 }
 
 void PhysicsSystem::AI_StateController(Vehicle* vehicle) {

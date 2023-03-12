@@ -33,9 +33,14 @@ void Instance::Update() {
 	CAudioEngine::ErrorCheck(mpStudioSystem->update());
 }
 
+
+void Instance::UpdateListenerAttributes(const FMOD_3D_ATTRIBUTES &attributes) {
+	CAudioEngine::ErrorCheck(mpStudioSystem->setListenerAttributes(0, &attributes));
+}
+
+
 // Instance of implementation to be used
 Instance* sgpImplementation = nullptr;
-
 
 void CAudioEngine::Init() {
 	sgpImplementation = new Instance;
@@ -43,6 +48,11 @@ void CAudioEngine::Init() {
 
 void CAudioEngine::Update() {
 	sgpImplementation->Update();
+}
+
+void CAudioEngine::UpdateListenerAttributes(const glm::vec3 &pos, const glm::vec3 &velocity, const glm::vec3 &forward, const glm::vec3 &up) {
+	listener_attributes = Gen3DAttributes(pos, velocity, forward, up);
+	sgpImplementation->UpdateListenerAttributes(listener_attributes);
 }
 
 // Load sounds: takes in parameters on streaming, looping, 3d and stores into sound map
@@ -104,6 +114,16 @@ int CAudioEngine::PlaySound(const std::string &strSoundName, const glm::vec3 &vP
 	}
 	// ID returned in case we need it later
 	return nChannelID;
+}
+
+void CAudioEngine::SetEvent3dAttributes(const string& strEventName, const glm::vec3& pos, const glm::vec3& velocity, const glm::vec3& forward, const glm::vec3& up) {
+	auto tFoundIt = sgpImplementation->mEvents.find(strEventName);
+	if (tFoundIt != sgpImplementation->mEvents.end())
+		return;
+	FMOD_3D_ATTRIBUTES attributes;
+	attributes = Gen3DAttributes(pos, velocity, forward, up);
+
+
 }
 
 
@@ -234,6 +254,21 @@ FMOD_VECTOR CAudioEngine::VectorToFmod(const glm::vec3& vPosition) {
 	fVec.y = vPosition.y;
 	fVec.z = vPosition.z;
 	return fVec;
+}
+
+FMOD_3D_ATTRIBUTES CAudioEngine::Gen3DAttributes(const glm::vec3& pos, const glm::vec3& velocity, const glm::vec3& forward, const glm::vec3 up) {
+	FMOD_3D_ATTRIBUTES attributes;
+	FMOD_VECTOR fpos = VectorToFmod(pos);
+	FMOD_VECTOR fvelocity = VectorToFmod(velocity);
+	FMOD_VECTOR fforward = VectorToFmod(forward);
+	FMOD_VECTOR fup = VectorToFmod(up);
+
+	attributes.position = fpos;
+	attributes.velocity = fvelocity;
+	attributes.forward = fforward;
+	attributes.up = fup;
+
+	return attributes;
 }
 
 float CAudioEngine::dbToVolume(float dB) {
