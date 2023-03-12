@@ -546,9 +546,11 @@ void PhysicsSystem::initPhysXMeshes() {
 
 				PxTriangleMeshGeometry meshGeo = PxTriangleMeshGeometry(mesh, PxMeshScale(1));
 				PxShape* meshShape = gPhysics->createShape(meshGeo, *gMaterial, true);
-
-				PxFilterData meshFilter(COLLISION_FLAG_GROUND, COLLISION_FLAG_GROUND_AGAINST, 0, 0);
-				meshShape->setSimulationFilterData(meshFilter);
+				
+				if (gameState->entityList.at(i).name != "map_border") {
+					PxFilterData meshFilter(COLLISION_FLAG_GROUND, COLLISION_FLAG_GROUND_AGAINST, 0, 0);
+					meshShape->setSimulationFilterData(meshFilter);
+				}
 
 				PxTransform meshTrans(physx::PxVec3(0, 0, 0), PxQuat(PxIdentity));
 				PxRigidStatic* meshStatic = gPhysics->createRigidStatic(meshTrans);
