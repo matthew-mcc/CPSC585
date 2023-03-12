@@ -599,6 +599,7 @@ void PhysicsSystem::initVehicles(int vehicleCount) {
 		//Set the vehicle in 1st gear.
 		vehicles.back()->vehicle.mEngineDriveState.gearboxState.currentGear = vehicles.back()->vehicle.mEngineDriveParams.gearBoxParams.neutralGear + 1;
 		vehicles.back()->vehicle.mEngineDriveState.gearboxState.targetGear = vehicles.back()->vehicle.mEngineDriveParams.gearBoxParams.neutralGear + 1;
+		vehicles.back()->vehicle.mEngineDriveParams.gearBoxParams.switchTime = 0.1;
 
 		//Set the vehicle to use the automatic gearbox.
 		vehicles.back()->vehicle.mTransmissionCommandState.targetGear = PxVehicleEngineDriveTransmissionCommandState::eAUTOMATIC_GEAR;
@@ -759,25 +760,35 @@ void PhysicsSystem::stepPhysics(shared_ptr<CallbackInterface> callback_ptr, Time
 		// PLAYER VEHICLE INPUT
 		if (i == 0) {
 			// On Ground
-			//if (!gContactReportCallback->AirOrNot) {
 			if (gScene->raycast(vehicle_transform.p, vehicle_transform.rotateInv(PxVec3(0.f, -1.f, 0.f)), 0.7f, AircontrolBuffer) // raycasting! just like that??? 
 				&& AircontrolBuffer.block.shape->getSimulationFilterData().word0 == COLLISION_FLAG_GROUND){
-				//Apply the brake, forward throttle and steer inputs to the vehicle's command state
-				if (forwardSpeed > 0.1f) {
+
+				// Forward Drive
+				if ((forwardSpeed > -1.0f && player->playerProperties->throttle > player->playerProperties->brake) || 
+					forwardSpeed > 0.5f) {
+					// Give vehicle a help in getting moving by instantly putting into 1st when close to stationary
+					if (forwardSpeed < 0.5) {
+						vehicles.at(i)->vehicle.mEngineDriveState.gearboxState.currentGear = 2;
+					}
+					// Set inputs for forward driving
+					vehicles.at(i)->vehicle.mCommandState.throttle = player->playerProperties->throttle;
 					vehicles.at(i)->vehicle.mCommandState.brakes[0] = player->playerProperties->brake;
 					vehicles.at(i)->vehicle.mCommandState.nbBrakes = 1;
 				}
-				// Switch brake input with reverse throttle
+
+				// Reverse Drive
 				else {
-					vehicles.at(i)->vehicle.mCommandState.brakes[0] = 0;
+					// Set inputs for reverse driving
+					vehicles.at(i)->vehicle.mEngineDriveState.gearboxState.currentGear = 0;
+					vehicles.at(i)->vehicle.mCommandState.throttle = player->playerProperties->brake;
+					vehicles.at(i)->vehicle.mCommandState.brakes[0] = player->playerProperties->throttle;
 					vehicles.at(i)->vehicle.mCommandState.nbBrakes = 1;
-					vehicles.at(i)->vehicle.mPhysXState.physxActor.rigidBody->addForce(vehicle_transform.rotate(PxVec3(0.f, 0.f, -player->playerProperties->reverse * 0.2f)), PxForceMode().eVELOCITY_CHANGE);
 				}
-				//cout << vehicles.at(i)->vehicle.mPhysXState.physxActor.rigidBody->getGlobalPose().p.x << endl;
-				
-				vehicles.at(i)->vehicle.mCommandState.throttle = player->playerProperties->throttle;
+
+				// Steering Input
 				vehicles.at(i)->vehicle.mCommandState.steer = player->playerProperties->steer;
 			}
+
 			// In Air
 			else { 
 				// Set Rotation based on air controls

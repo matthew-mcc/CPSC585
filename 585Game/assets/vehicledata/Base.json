@@ -32,7 +32,7 @@
         ]
     },
     "BrakeCommandResponseParams": {
-        "MaxResponse": 1875.0,
+        "MaxResponse": 3800.0,
         "WheelResponseMultipliers": [
             1.0,
             1.0,
