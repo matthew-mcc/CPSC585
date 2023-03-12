@@ -61,7 +61,7 @@ public:
 	//void stepPhysics(std::shared_ptr<CallbackInterface> callback_ptr, Timer* timer);
 	void stepPhysics(std::shared_ptr<CallbackInterface> callback_ptr, Timer* timer);
 	
-	static float CameraRaycasting( glm::vec3 campos);
+	static glm::vec3 CameraRaycasting( glm::vec3 camposd);
 	
 
 private:
@@ -82,7 +82,7 @@ private:
 	void detachTrailer(Trailer* trailer, Vehicle* vehicle);
 	void dropOffTrailer(Vehicle* vehicle);
 	void resetCollectedTrailers();
-	void RoundFly();
+	void RoundFly(float deltaTime);
 	GameState* gameState;
 	AiController* aiController;
 	int spawnedTrailers = 0;
@@ -92,6 +92,7 @@ private:
 	int AI_State;
 	int currTrailerIndex;
 	void AI_InitSystem();
+	void AI_MoveTo(Vehicle* vehicle, PxVec3 destination);
 	void AI_FindTrailer(Vehicle* vehicle);
 	void AI_CollectTrailer(Vehicle* vehicle);
 	void AI_DropOff(Vehicle* vehicle);

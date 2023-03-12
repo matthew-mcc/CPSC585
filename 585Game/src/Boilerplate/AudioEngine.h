@@ -32,6 +32,7 @@ struct Instance {
 	~Instance();
 
 	void Update();
+	void UpdateListenerAttributes(const FMOD_3D_ATTRIBUTES& attributes);
 
 	FMOD::Studio::System* mpStudioSystem;
 	FMOD::System* mpSystem;
@@ -56,26 +57,32 @@ public:
 	static void Shutdown();
 	static int ErrorCheck(FMOD_RESULT result);
 
+
+	void UpdateListenerAttributes(const glm::vec3 &pos, const glm::vec3 &velocity, const glm::vec3 &forward, const glm::vec3 &up);
+	//
 	void LoadBank(const string &strBankName, FMOD_STUDIO_LOAD_BANK_FLAGS flags);
 	void LoadEvent(const string &strEventName);
 	void LoadSound(const string &strSoundName, bool b3d = true, bool blooping = false, bool bStream = false);
 	void UnLoadSound(const string &strSoundName);
-	void Set3dListenerAndOrientation(const glm::vec3 &vPos = glm::vec3(0.0f), float fVolumedB = 0.0f);
 	int PlaySound(const string &strSoundName, const glm::vec3 &vPos = glm::vec3(0.0f), float fVolumedB = 0.0f);
 	void PlayEvent(const string &strEventName);
+	void SetEvent3dAttributes(const string& strEventName, const glm::vec3& pos, const glm::vec3& velocity, const glm::vec3& forward, const glm::vec3& up);
 	void StopChannel(int nChannelID);
 	void StopEvent(const string &strEventName, bool bImmediate = false);
 	void GetEventParameter(const string &strEventName, const string &strEventParameter, float* parameter);
-	void SetEventParameter(const string &strEventName, const std::string& strParameterName, float fValue);
+	void SetEventParameter(const string &strEventName, const std::string& paramName, float fValue);
 	void StopAllChannels();
 	void SetChannel3dPosition(int nChannelID, const glm::vec3 &vPos);
 	void SetChannelVolume(int nChannelID, float fVolumedB);
+	void Set3dListenerAndOrientation(const glm::vec3 &vPos = glm::vec3(0.0f), float fVolumedB = 0.0f);
+
 	bool isPlaying(int nChannelID) const;
 	bool isEventPlaying(const string &strEventName) const;
 	float dbToVolume(float db);
 	float VolumeTodb(float volume);
 	FMOD_VECTOR VectorToFmod(const glm::vec3 &vPosition);
-
+	FMOD_3D_ATTRIBUTES Gen3DAttributes(const glm::vec3& pos, const glm::vec3& velocity, const glm::vec3& forward, const glm::vec3 up);
+	FMOD_3D_ATTRIBUTES listener_attributes;
 
 
 };

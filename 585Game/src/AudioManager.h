@@ -24,13 +24,15 @@ class AudioManager {
 public:
 	void Init();
 	void Update();
+	void Update3DListener(const glm::vec3& pos, const glm::vec3& velocity, const glm::vec3& forward, const glm::vec3& up);
 	void Shutdown();
 
 	void setTestFlag();
 
 	void SFX(std::string eventName);
 	void Latch(glm::vec3 pos);
-	void Dropoff(glm::vec3 pos);
+	void LatchEvent(glm::vec3 pos);
+	void Dropoff();
 
 	CAudioEngine audioEngine;
 	CAudioEngine* audioEnginePtr;

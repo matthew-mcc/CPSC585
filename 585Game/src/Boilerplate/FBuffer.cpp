@@ -1,9 +1,11 @@
+#define NOMINMAX
 #include "FBuffer.h"
 #include <stdio.h>
 #include <glm.hpp>
 #include <glad/glad.h>
 #include <gtc/matrix_transform.hpp>
 #include <Boilerplate/Shader.h>
+#include <GameState.h>
 
 FBuffer::FBuffer() {}
 
@@ -131,10 +133,6 @@ void FBuffer::update(glm::vec3 lightPos, glm::vec3 playerPos) {
 	shader.use();
 	shader.setMat4("lightSpaceMatrix", lightSpaceMatrix);
 	shader.setMat4("model", glm::mat4(1.0f));
-	glViewport(0, 0, WIDTH, HEIGHT);
-	glBindFramebuffer(GL_FRAMEBUFFER, FBO[0]);
-	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
-	glActiveTexture(GL_TEXTURE0);
 }
 
 // Update outline map
@@ -143,20 +141,14 @@ void FBuffer::update(glm::mat4 proj, glm::mat4 view) {
 	shader.use();
 	shader.setMat4("lightSpaceMatrix", lightSpaceMatrix);
 	shader.setMat4("model", glm::mat4(1.0f));
-	glViewport(0, 0, WIDTH, HEIGHT);
-	glBindFramebuffer(GL_FRAMEBUFFER, FBO[0]);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	glActiveTexture(GL_TEXTURE0);
 }
 
 void FBuffer::cleanUp(std::shared_ptr<CallbackInterface> callback_ptr) {
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-	glViewport(0, 0, callback_ptr->xres, callback_ptr->yres);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	
 }
 
 // Draw framebuffer to screen for debug purposes
-void FBuffer::render() {
+void FBuffer::renderToScreen() {
 	debugShader.use();
 	glActiveTexture(GL_TEXTURE0);
 	renderQuad();
@@ -196,6 +188,56 @@ void FBuffer::renderQuad() {
 	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 	glBindVertexArray(0);
 }
+
+void FBuffer::render(GameState* gameState, std::string mode, vec3 lightPos, std::shared_ptr<CallbackInterface> callback_ptr) {
+	glViewport(0, 0, WIDTH, HEIGHT);
+	glBindFramebuffer(GL_FRAMEBUFFER, FBO[0]);
+	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
+	glActiveTexture(GL_TEXTURE0);
+	glCullFace(GL_FRONT);
+	for (int i = 0; i < gameState->entityList.size(); i++) {
+		// Retrieve global position and rotation
+		//if (gameState->entityList.at(i).name.compare("sky_sphere") == 0) continue;
+		if (gameState->entityList.at(i).drawType != DrawType::Mesh) continue;
+		if (mode.compare("l") == 0 && gameState->entityList.at(i).name.compare("landscape") == 0) continue;
+
+		vec3 position = gameState->entityList.at(i).transform->getPosition();
+		quat rotation = gameState->entityList.at(i).transform->getRotation();
+
+		// Retrieve local positions and rotations of submeshes
+		for (int j = 0; j < gameState->entityList.at(i).localTransforms.size(); j++) {
+			vec3 localPosition = gameState->entityList.at(i).localTransforms.at(j)->getPosition();
+			quat localRotation = gameState->entityList.at(i).localTransforms.at(j)->getRotation();
+
+			// Set model matrix
+			glm::mat4 model = mat4(1.0f);
+			model = translate(model, position);
+			model = model * toMat4(rotation);
+			model = translate(model, localPosition);
+			model = model * toMat4(localRotation);
+			model = scale(model, vec3(1.0f));
+			shader.setMat4("model", model);
+
+			if (mode.compare("c") == 0) {
+				// Update relative light position
+				quat lightRotation = rotation;
+				quat localLightRotation = localRotation;
+				lightRotation.w *= -1.f;
+				localLightRotation *= -1.f;
+				vec3 newLight = (vec3)(toMat4(lightRotation) * vec4(lightPos, 0.f) * toMat4(localLightRotation));
+				shader.setVec3("sun", newLight);
+			}
+
+			// Draw model's meshes
+			gameState->entityList.at(i).model->meshes.at(j).Draw(shader);
+		}
+	}
+	glCullFace(GL_BACK);
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	glViewport(0, 0, callback_ptr->xres, callback_ptr->yres);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+}
+
 float FBuffer::getWidth() {
 	return WIDTH;
 }

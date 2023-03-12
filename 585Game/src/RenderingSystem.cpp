@@ -81,21 +81,13 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> callback
 	vec3 player_right = playerEntity->transform->getRightVector();
 	vec3 player_up = playerEntity->transform->getUpVector();
 
-	// Dynamically adjust camera zoom based on number of trailers attached
 	float camera_zoom_forward = clamp(1.0f + (float)playerEntity->nbChildEntities * 0.5f, 1.0f, 11.0f);
 	float camera_zoom_up = clamp(1.0f + (float)playerEntity->nbChildEntities * 0.4f, 1.0f, 11.0f);
 
-	float Camera_collision = PhysicsSystem::CameraRaycasting(camera_previous_position);
-	if (Camera_collision > 0.f) {//not sure which one to use XD
-		camera_position_forward += Camera_collision;//* (float)timer->getDeltaTime();//camera_previous_position.z += 1.f; //* (float)timer->getDeltaTime();//cout << "???" << endl;
-		timeTorset = 0.f;
-	}
-	else {
-		if (camera_position_forward > -7.5f && timeTorset > 2.f)
-			camera_position_forward -= 1.f * (float)timer->getDeltaTime();
-		else
-			timeTorset += (float)timer->getDeltaTime();
-	}
+
+	
+
+
 	// Chase Camera: Compute eye and target offsets
 		// Eye Offset: Camera position (world space)
 		// Target Offset: Camera focus point (world space)
@@ -103,14 +95,17 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> callback
 	vec3 target_offset = (camera_target_forward * player_forward) + (camera_target_right * player_right) + (camera_target_up * player_up);
 	
 	
+
 	// Camera lag: Generate target_position - prev_position creating a vector. Scale by constant factor, then add to prev and update
 	vec3 camera_target_position = playerEntity->transform->getPosition() + eye_offset;
 	float y = playerEntity->transform->getPosition().y + camera_position_up + (float)playerEntity->nbChildEntities * 0.4f;
 	camera_target_position.y = y;
 
+
 	vec3 camera_track_vector = camera_target_position - camera_previous_position;
 
 	camera_track_vector = camera_track_vector * camera_lag * (float)timer->getDeltaTime();
+	
 	camera_previous_position = vec3(translate(mat4(1.0f), camera_track_vector) * vec4(camera_previous_position, 1.0f));
 	
 
@@ -127,11 +122,39 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> callback
 	}
 	
 	// For audio - probably need to change later
-	gameState->camPos = camera_previous_position;
+	gameState->listener_position = camera_previous_position;
+
+	glm::vec3 Camera_collision = PhysicsSystem::CameraRaycasting(camera_previous_position);
+	if (Camera_collision.x != 0.f && Camera_collision.y != 0 && Camera_collision.z != 0) {//not sure which one to use XD
+		camera_position_forward += Camera_collision.z;//* (float)timer->getDeltaTime();//camera_previous_position.z += 1.f; //* (float)timer->getDeltaTime();//cout << "???" << endl;
+		camera_position_up += Camera_collision.y;
+		camera_position_right -= Camera_collision.x;
+		timeTorset = 0.f;
+	}
+	else {
+		if (timeTorset > 1.f) { //lag to reset the camera
+			float reset_speed = 50.f; // the speed to rset the camera
+			if (camera_position_forward > -7.55f)
+				camera_position_forward -= reset_speed * (float)timer->getDeltaTime();
+			else if (camera_position_forward < -7.45f)
+				camera_position_forward += reset_speed * (float)timer->getDeltaTime();
+
+			if (camera_position_up > 3.55f)
+				camera_position_up -= reset_speed * (float)timer->getDeltaTime();
+			else if (camera_position_up < 3.45f)
+				camera_position_up += reset_speed * (float)timer->getDeltaTime();
+
+			if (camera_position_right > 0.05f)
+				camera_position_right -= reset_speed * (float)timer->getDeltaTime();
+			else if (camera_position_right < -0.05f)
+				camera_position_right += reset_speed * (float)timer->getDeltaTime();
+		}
+		timeTorset += (float)timer->getDeltaTime();
+	}
 
 	// Set projection and view matrices
-	projection = perspective(radians(fov), (float)callback_ptr->xres / (float)callback_ptr->yres, 0.1f, 1000.0f);
-
+	projection = perspective(radians(fov), (float)callback_ptr->xres / (float)callback_ptr->yres, 0.1f, 10000.0f);
+	
 
 	// MESH ANIMATIONS
 	// Center Portal
@@ -140,187 +163,37 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> callback
 	portalEntity->localTransforms.at(0)->setRotation(normalize(portalEntity->localTransforms.at(0)->getRotation() * quat(rot)));
 
 
-	// FIRST PASS: FAR SHADOWMAP RENDER
+	// FAR SHADOWMAP RENDER
 	lightPos = vec3(sin(lightRotation) * cos(lightAngle), sin(lightAngle), cos(lightRotation) * cos(lightAngle)) * 200.f;
 	farShadowMap.update(lightPos, vec3(0.f));
-	glCullFace(GL_FRONT);
-	for (int i = 0; i < gameState->entityList.size(); i++) {
-		// Retrieve global position and rotation
-		vec3 position = gameState->entityList.at(i).transform->getPosition();
-		quat rotation = gameState->entityList.at(i).transform->getRotation();
+	farShadowMap.render(gameState, "", lightPos, callback_ptr);
 
-		// Retrieve local positions and rotations of submeshes
-		for (int j = 0; j < gameState->entityList.at(i).localTransforms.size(); j++) {
-			vec3 localPosition = gameState->entityList.at(i).localTransforms.at(j)->getPosition();
-			quat localRotation = gameState->entityList.at(i).localTransforms.at(j)->getRotation();
-
-			// Set model matrix
-			model = mat4(1.0f);
-			model = translate(model, position);
-			model = model * toMat4(rotation);
-			model = translate(model, localPosition);
-			model = model * toMat4(localRotation);
-			model = scale(model, vec3(1.0f));
-			farShadowMap.shader.setMat4("model", model);
-
-			// Draw model's meshes
-			gameState->entityList.at(i).model->meshes.at(j).Draw(farShadowMap.shader);
-		}
-	}
-	glCullFace(GL_BACK);
-	farShadowMap.cleanUp(callback_ptr);
-
-	glClear(GL_DEPTH_BUFFER_BIT);
-
-
-	// SECOND PASS: NEAR SHADOWMAP RENDER
+	// NEAR SHADOWMAP RENDER
 	lightPos = vec3(sin(lightRotation) * cos(lightAngle), sin(lightAngle), cos(lightRotation) * cos(lightAngle)) * 40.f;
 	nearShadowMap.update(lightPos, playerEntity->transform->getPosition());
-	glCullFace(GL_FRONT);
-	for (int i = 0; i < gameState->entityList.size(); i++) {
-		// Retrieve global position and rotation
-		vec3 position = gameState->entityList.at(i).transform->getPosition();
-		quat rotation = gameState->entityList.at(i).transform->getRotation();
+	nearShadowMap.render(gameState, "", lightPos, callback_ptr);
 
-		// Retrieve local positions and rotations of submeshes
-		for (int j = 0; j < gameState->entityList.at(i).localTransforms.size(); j++) {
-			vec3 localPosition = gameState->entityList.at(i).localTransforms.at(j)->getPosition();
-			quat localRotation = gameState->entityList.at(i).localTransforms.at(j)->getRotation();
-
-			// Set model matrix
-			model = mat4(1.0f);
-			model = translate(model, position);
-			model = model * toMat4(rotation);
-			model = translate(model, localPosition);
-			model = model * toMat4(localRotation);
-			model = scale(model, vec3(1.0f));
-			nearShadowMap.shader.setMat4("model", model);
-
-			// Draw model's meshes
-			gameState->entityList.at(i).model->meshes.at(j).Draw(nearShadowMap.shader);
-		}
-	}
-	glCullFace(GL_BACK);
-	nearShadowMap.cleanUp(callback_ptr);
-
-	glClear(GL_DEPTH_BUFFER_BIT);
-
-	// THIRD PASS: TOON OUTLINE (Landscape)
+	// TOON OUTLINE (Landscape)
 	outlineMap.update(projection, view);
-	glCullFace(GL_FRONT);
-	for (int i = 0; i < gameState->entityList.size(); i++) {
-		// Retrieve global position and rotation
-		vec3 position = gameState->entityList.at(i).transform->getPosition();
-		quat rotation = gameState->entityList.at(i).transform->getRotation();
+	outlineMap.render(gameState, "", lightPos, callback_ptr);
 
-		// Retrieve local positions and rotations of submeshes
-		for (int j = 0; j < gameState->entityList.at(i).localTransforms.size(); j++) {
-			vec3 localPosition = gameState->entityList.at(i).localTransforms.at(j)->getPosition();
-			quat localRotation = gameState->entityList.at(i).localTransforms.at(j)->getRotation();
-
-			// Set model matrix
-			model = mat4(1.0f);
-			model = translate(model, position);
-			model = model * toMat4(rotation);
-			model = translate(model, localPosition);
-			model = model * toMat4(localRotation);
-			model = scale(model, vec3(1.0f));
-			outlineMap.shader.setMat4("model", model);
-
-			// Draw model's meshes
-			gameState->entityList.at(i).model->meshes.at(j).Draw(outlineMap.shader);
-		}
-	}
-	glCullFace(GL_BACK);
-	outlineMap.cleanUp(callback_ptr);
-
-	glClear(GL_DEPTH_BUFFER_BIT);
-
-	// FOURTH PASS: TOON OUTLINE (Objects)
+	// TOON OUTLINE (Objects)
 	outlineMapNoLandscape.update(projection, view);
-	glCullFace(GL_FRONT);
-	for (int i = 0; i < gameState->entityList.size(); i++) {
-		if (gameState->entityList.at(i).name.compare("landscape") == 0) continue;
-		// Retrieve global position and rotation
-		vec3 position = gameState->entityList.at(i).transform->getPosition();
-		quat rotation = gameState->entityList.at(i).transform->getRotation();
+	outlineMapNoLandscape.render(gameState, "l", lightPos, callback_ptr);
 
-		// Retrieve local positions and rotations of submeshes
-		for (int j = 0; j < gameState->entityList.at(i).localTransforms.size(); j++) {
-			vec3 localPosition = gameState->entityList.at(i).localTransforms.at(j)->getPosition();
-			quat localRotation = gameState->entityList.at(i).localTransforms.at(j)->getRotation();
-
-			// Set model matrix
-			model = mat4(1.0f);
-			model = translate(model, position);
-			model = model * toMat4(rotation);
-			model = translate(model, localPosition);
-			model = model * toMat4(localRotation);
-			model = scale(model, vec3(1.0f));
-			outlineMapNoLandscape.shader.setMat4("model", model);
-
-			// Draw model's meshes
-			gameState->entityList.at(i).model->meshes.at(j).Draw(outlineMapNoLandscape.shader);
-		}
-	}
-	glCullFace(GL_BACK);
-	outlineMapNoLandscape.cleanUp(callback_ptr);
-
-	glClear(GL_DEPTH_BUFFER_BIT);
-
-	// FIFTH PASS: SCENE TO TEXTURE
-	celMap.debugShader.use();
+	// SCENE TO TEXTURE
 	celMap.update(projection, view);
-	glCullFace(GL_FRONT);
-	glActiveTexture(GL_TEXTURE1);
-	glBindTexture(GL_TEXTURE_2D, nearShadowMap.fbTextures[0]);
-	glActiveTexture(GL_TEXTURE2);
-	glBindTexture(GL_TEXTURE_2D, farShadowMap.fbTextures[0]);
-	glActiveTexture(GL_TEXTURE3);
-	glBindTexture(GL_TEXTURE_2D, outlineMap.fbTextures[0]);
-	glActiveTexture(GL_TEXTURE4);
-	glBindTexture(GL_TEXTURE_2D, outlineMapNoLandscape.fbTextures[0]);
-	glActiveTexture(GL_TEXTURE0);
-  
-	for (int i = 0; i < gameState->entityList.size(); i++) {
-		// Retrieve global position and rotation
-		vec3 position = gameState->entityList.at(i).transform->getPosition();
-		quat rotation = gameState->entityList.at(i).transform->getRotation();
+	bindTexture(1, nearShadowMap.fbTextures[0]);
+	bindTexture(2, farShadowMap.fbTextures[0]);
+	bindTexture(3, outlineMap.fbTextures[0]);
+	bindTexture(4, outlineMapNoLandscape.fbTextures[0]);
+	setCelShaderUniforms(&celMap.shader);
+	celMap.render(gameState, "c", lightPos, callback_ptr);
 
-		// Retrieve local positions and rotations of submeshes
-		for (int j = 0; j < gameState->entityList.at(i).localTransforms.size(); j++) {
-			vec3 localPosition = gameState->entityList.at(i).localTransforms.at(j)->getPosition();
-			quat localRotation = gameState->entityList.at(i).localTransforms.at(j)->getRotation();
-
-			// Set model matrix
-			model = mat4(1.0f);
-			model = translate(model, position);
-			model = model * toMat4(rotation);
-			model = translate(model, localPosition);
-			model = model * toMat4(localRotation);
-			model = scale(model, vec3(1.0f));
-			setCelShaderUniforms(&celMap.shader);
-
-			// Update relative light position
-			quat lightRotation = rotation;
-			quat localLightRotation = localRotation;
-			lightRotation.w *= -1.f;
-			localLightRotation *= -1.f;
-			vec3 newLight = (vec3)(toMat4(lightRotation) * vec4(lightPos, 0.f) * toMat4(localLightRotation));
-			celShader.setVec3("sun", newLight);
-
-			// Draw model's meshes
-			gameState->entityList.at(i).model->meshes.at(j).Draw(celMap.shader);
-		}
-	}
-  
-	glCullFace(GL_BACK);
-	celMap.cleanUp(callback_ptr);
-
-	//farShadowMap.render();		//Uncomment to see the far shadow map (light's perspective, near the car)
-	//nearShadowMap.render();		//Uncomment to see the near shadow map (light's perspective, the entire map)
-	//outlineMap.render();			//Uncomment to see the outline map (camera's position, just a depth map)
-	//outlineMapNoLandscape.render();
+	//farShadowMap.renderToScreen();		//Uncomment to see the far shadow map (light's perspective, near the car)
+	//nearShadowMap.renderToScreen();		//Uncomment to see the near shadow map (light's perspective, the entire map)
+	//outlineMap.renderToScreen();			//Uncomment to see the outline map (camera's position, just a depth map)
+	//outlineMapNoLandscape.renderToScreen();
 
 	// BLUR IMAGE FOR BLOOM
 	if (blurMap.getWidth() != callback_ptr->xres || blurMap.getHeight() != callback_ptr->yres) {
@@ -336,11 +209,7 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> callback
 		blurMap.shader.use();
 		glBindFramebuffer(GL_FRAMEBUFFER, blurMap.FBO[horizontal]);
 		blurMap.shader.setInt("horizontal", horizontal);
-		glActiveTexture(GL_TEXTURE1);
-		glBindTexture(
-			GL_TEXTURE_2D, first_iteration ? celMap.fbTextures[1] : blurMap.fbTextures[!horizontal]
-		);
-		glActiveTexture(GL_TEXTURE0);
+		bindTexture(1, first_iteration ? celMap.fbTextures[1] : blurMap.fbTextures[!horizontal]);
 		blurMap.renderQuad();
 		horizontal = !horizontal;
 		if (first_iteration)
@@ -348,14 +217,11 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> callback
 	}
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	
-	glActiveTexture(GL_TEXTURE1);
-	glBindTexture(GL_TEXTURE_2D, celMap.fbTextures[0]);
-	glActiveTexture(GL_TEXTURE2);
-	glBindTexture(GL_TEXTURE_2D, blurMap.fbTextures[0]);
-	glActiveTexture(GL_TEXTURE0);
+	bindTexture(1, celMap.fbTextures[0]);
+	bindTexture(2, blurMap.fbTextures[0]);
 
-	celMap.render();
-	//blurMap.render();
+	celMap.renderToScreen();
+	//blurMap.renderToScreen();
 
 	// SIXTH PASS: GUI RENDER
 		// Use text shader
@@ -529,4 +395,10 @@ void RenderingSystem::setCelShaderUniforms(Shader* shader) {
 	(*shader).setFloat("maxBias", maxBias);
 	(*shader).setFloat("outlineTransparency", outlineTransparency);
 	(*shader).setFloat("outlineSensitivity", outlineSensitivity);
+}
+
+void RenderingSystem::bindTexture(int location, unsigned int texture) {
+	glActiveTexture(GL_TEXTURE0 + location);
+	glBindTexture(GL_TEXTURE_2D, texture);
+	glActiveTexture(GL_TEXTURE0);
 }
