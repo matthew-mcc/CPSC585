@@ -14,12 +14,19 @@ enum class PhysType {
 	RigidBody
 };
 
+enum class DrawType {
+	Mesh,
+	Decal,
+	Invisible
+};
+
 // Entity Class
 // Contains individual object information
 class Entity {
 public:
 	string name = "unnamed_entity";
-	PhysType type = PhysType::None;
+	PhysType physType = PhysType::None;
+	DrawType drawType = DrawType::Mesh;
 	Transform* transform;
 	vector<Transform*> localTransforms;
 	Model* model;

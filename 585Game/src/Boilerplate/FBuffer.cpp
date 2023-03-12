@@ -204,8 +204,10 @@ void FBuffer::render(GameState* gameState, std::string mode) {
 	for (int i = 0; i < gameState->entityList.size(); i++) {
 		// Retrieve global position and rotation
 		//if (gameState->entityList.at(i).name.compare("sky_sphere") == 0) continue;
+		if (gameState->entityList.at(i).drawType != DrawType::Mesh) continue;
 		if (mode.compare("l") == 0 && gameState->entityList.at(i).name.compare("landscape") == 0 ||
 			mode.compare("l") == 0 && gameState->entityList.at(i).name.compare("platform_center") == 0) continue;
+
 		vec3 position = gameState->entityList.at(i).transform->getPosition();
 		quat rotation = gameState->entityList.at(i).transform->getRotation();
 

@@ -12,43 +12,45 @@ void GameState::initGameState(AudioManager* audio) {
 	Entity* e;
 
 	// Landscape
-	e = addEntity("landscape", PhysType::StaticMesh, new Transform(), vector<string>{
+	e = addEntity("landscape", PhysType::StaticMesh, DrawType::Mesh, new Transform(), vector<string>{
 		"assets/models/landscape1/landscape1.obj"});
 
-	e = addEntity("landscape_detail", PhysType::None, new Transform(), vector<string>{
+	e = addEntity("landscape_detail", PhysType::None, DrawType::Mesh, new Transform(), vector<string>{
 		"assets/models/landscape1/landscape_detail1.obj"});
 
-	e = addEntity("landscape_junk", PhysType::None, new Transform(), vector<string>{
+	e = addEntity("landscape_junk", PhysType::None, DrawType::Mesh, new Transform(), vector<string>{
 		"assets/models/junk1/junk1.obj"});
 
 	// Sky Sphere
-	e = addEntity("sky_sphere", PhysType::None, new Transform(), vector<string>{
+	e = addEntity("sky_sphere", PhysType::None, DrawType::Mesh, new Transform(), vector<string>{
 		"assets/models/sky_sphere1/sky_sphere1.obj"});
 
 	// Oil Rigs
-	e = addEntity("oil_rigs", PhysType::None, new Transform(), vector<string>{
+	e = addEntity("oil_rigs", PhysType::None, DrawType::Mesh, new Transform(), vector<string>{
 		"assets/models/oil_rig1/oil_rig2.obj"});
 
 	// Center Portal
-	e = addEntity("portal_center", PhysType::StaticMesh, new Transform(vec3(0.0f, 0.0f, 32.0f)), vector<string>{
+	e = addEntity("portal_center", PhysType::StaticMesh, DrawType::Mesh, new Transform(vec3(0.0f, 0.0f, 32.0f)), vector<string>{
 		"assets/models/portal1/portal1_1.obj",
 		"assets/models/portal1/portal1_2.obj"});
 
 	// Center Platform
-	e = addEntity("platform_center", PhysType::None, new Transform(), vector<string>{
+	e = addEntity("platform_center", PhysType::None, DrawType::Mesh, new Transform(), vector<string>{
 		"assets/models/platform1/platform1.obj"});
 
-	e = addEntity("decal_test", PhysType::None, new Transform(), vector<string>{
+	e = addEntity("decal_test", PhysType::None, DrawType::Invisible, new Transform(), vector<string>{
 		"assets/models/decals/decal1.obj"});
 }
 
-Entity* GameState::addEntity(string name, PhysType type, Transform* transform, vector<string> modelPaths) {
+Entity* GameState::addEntity(string name, PhysType physType, DrawType drawType, Transform* transform, vector<string> modelPaths) {
 	// Create new entity at end of list
 	entityList.emplace_back();
 	// Name
 	entityList.back().name = name;
 	// Physics Type
-	entityList.back().type = type;
+	entityList.back().physType = physType;
+	// Draw Type
+	entityList.back().drawType = drawType;
 	// Transform
 	entityList.back().transform = transform;
 	// Local Transforms
@@ -63,7 +65,7 @@ Entity* GameState::addEntity(string name, PhysType type, Transform* transform, v
 	// Child Entity Counter
 	entityList.back().nbChildEntities = 0;
 
-	if (type == PhysType::Vehicle) {
+	if (physType == PhysType::Vehicle) {
 		entityList.back().playerProperties = new PlayerProperties();
 	}
 	else {
@@ -101,7 +103,7 @@ Entity* GameState::spawnTrailer() {
 		break;
 	}
 
-	e = addEntity(name, PhysType::Trailer, new Transform(), vector<string>{
+	e = addEntity(name, PhysType::Trailer, DrawType::Mesh, new Transform(), vector<string>{
 		modelPath,
 		"assets/models/tire1/tire1_back2.obj",
 		"assets/models/tire1/tire1_back1.obj",
@@ -117,7 +119,7 @@ Entity* GameState::spawnTrailer() {
 
 Entity* GameState::spawnVehicle() {
 	string name = "vehicle_" + to_string(vehiclesSpawned);
-	addEntity(name, PhysType::Vehicle, new Transform(), vector<string>{
+	addEntity(name, PhysType::Vehicle, DrawType::Mesh, new Transform(), vector<string>{
 		"assets/models/truck1/truck1.obj",
 		"assets/models/tire1/tire1_front2.obj",
 		"assets/models/tire1/tire1_front1.obj",

@@ -202,6 +202,8 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> callback
   
 	setCelShaderUniforms(&celMap.shader);
 	for (int i = 0; i < gameState->entityList.size(); i++) {
+		// Skip invisible objects
+		if (gameState->entityList.at(i).drawType == DrawType::Invisible) continue;
 		// Retrieve global position and rotation
 		vec3 position = gameState->entityList.at(i).transform->getPosition();
 		quat rotation = gameState->entityList.at(i).transform->getRotation();

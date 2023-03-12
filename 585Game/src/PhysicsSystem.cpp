@@ -501,7 +501,7 @@ void PhysicsSystem::initPhysXMeshes() {
 
 	// Loop through every entity, check if it's Physics Type is StaticMesh
 	for (int i = 0; i < gameState->entityList.size(); i++) {
-		if (gameState->entityList.at(i).type == PhysType::StaticMesh) {
+		if (gameState->entityList.at(i).physType == PhysType::StaticMesh) {
 
 			// Loop through every mesh tied to the entity
 			for (int j = 0; j < gameState->entityList.at(i).model->modelPaths.size(); j++) {
@@ -809,7 +809,7 @@ void PhysicsSystem::stepPhysics(shared_ptr<CallbackInterface> callback_ptr, Time
 		quat q;		// Quaternion Temp
 
 		// TRAILERS
-		if (entityList.at(i).type == PhysType::Trailer) {
+		if (entityList.at(i).physType == PhysType::Trailer) {
 			p = toGLMVec3(trailers.at(trailerIndex)->rigidBody->getGlobalPose().p);
 			q = toGLMQuat(trailers.at(trailerIndex)->rigidBody->getGlobalPose().q);
 			entityList.at(i).transform->setPosition(p);
@@ -840,7 +840,7 @@ void PhysicsSystem::stepPhysics(shared_ptr<CallbackInterface> callback_ptr, Time
 		}
 
 		// VEHICLES
-		else if (entityList.at(i).type == PhysType::Vehicle) {
+		else if (entityList.at(i).physType == PhysType::Vehicle) {
 			// Global Transform + Linear Velocity
 			p = toGLMVec3(vehicles.at(vehicleIndex)->vehicle.mPhysXState.physxActor.rigidBody->getGlobalPose().p);
 			q = toGLMQuat(vehicles.at(vehicleIndex)->vehicle.mPhysXState.physxActor.rigidBody->getGlobalPose().q);
