@@ -160,77 +160,32 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> callback
 	portalEntity->localTransforms.at(0)->setRotation(normalize(portalEntity->localTransforms.at(0)->getRotation() * quat(rot)));
 
 
-	// FIRST PASS: FAR SHADOWMAP RENDER
+	// FAR SHADOWMAP RENDER
 	lightPos = vec3(sin(lightRotation) * cos(lightAngle), sin(lightAngle), cos(lightRotation) * cos(lightAngle)) * 200.f;
 	farShadowMap.update(lightPos, vec3(0.f));
-	farShadowMap.render(gameState, "");
-	farShadowMap.cleanUp(callback_ptr);
+	farShadowMap.render(gameState, "", lightPos, callback_ptr);
 
-	// SECOND PASS: NEAR SHADOWMAP RENDER
+	// NEAR SHADOWMAP RENDER
 	lightPos = vec3(sin(lightRotation) * cos(lightAngle), sin(lightAngle), cos(lightRotation) * cos(lightAngle)) * 40.f;
 	nearShadowMap.update(lightPos, playerEntity->transform->getPosition());
-	nearShadowMap.render(gameState, "");
-	nearShadowMap.cleanUp(callback_ptr);
+	nearShadowMap.render(gameState, "", lightPos, callback_ptr);
 
-	glClear(GL_DEPTH_BUFFER_BIT);
-
-	// THIRD PASS: TOON OUTLINE (Landscape)
+	// TOON OUTLINE (Landscape)
 	outlineMap.update(projection, view);
-	outlineMap.render(gameState, "");
-	outlineMap.cleanUp(callback_ptr);
+	outlineMap.render(gameState, "", lightPos, callback_ptr);
 
-	glClear(GL_DEPTH_BUFFER_BIT);
-
-	// FOURTH PASS: TOON OUTLINE (Objects)
+	// TOON OUTLINE (Objects)
 	outlineMapNoLandscape.update(projection, view);
-	outlineMapNoLandscape.render(gameState, "l");
-	outlineMapNoLandscape.cleanUp(callback_ptr);
+	outlineMapNoLandscape.render(gameState, "l", lightPos, callback_ptr);
 
-	glClear(GL_DEPTH_BUFFER_BIT);
-
-	// FIFTH PASS: SCENE TO TEXTURE
-	celMap.debugShader.use();
+	// SCENE TO TEXTURE
 	celMap.update(projection, view);
-	glCullFace(GL_FRONT);
 	bindTexture(1, nearShadowMap.fbTextures[0]);
 	bindTexture(2, farShadowMap.fbTextures[0]);
 	bindTexture(3, outlineMap.fbTextures[0]);
 	bindTexture(4, outlineMapNoLandscape.fbTextures[0]);
-  
 	setCelShaderUniforms(&celMap.shader);
-	for (int i = 0; i < gameState->entityList.size(); i++) {
-		// Retrieve global position and rotation
-		vec3 position = gameState->entityList.at(i).transform->getPosition();
-		quat rotation = gameState->entityList.at(i).transform->getRotation();
-		// Retrieve local positions and rotations of submeshes
-		for (int j = 0; j < gameState->entityList.at(i).localTransforms.size(); j++) {
-			vec3 localPosition = gameState->entityList.at(i).localTransforms.at(j)->getPosition();
-			quat localRotation = gameState->entityList.at(i).localTransforms.at(j)->getRotation();
-
-			// Set model matrix
-			model = mat4(1.0f);
-			model = translate(model, position);
-			model = model * toMat4(rotation);
-			model = translate(model, localPosition);
-			model = model * toMat4(localRotation);
-			model = scale(model, vec3(1.0f));
-			celShader.setMat4("model", model);
-
-			// Update relative light position
-			quat lightRotation = rotation;
-			quat localLightRotation = localRotation;
-			lightRotation.w *= -1.f;
-			localLightRotation *= -1.f;
-			vec3 newLight = (vec3)(toMat4(lightRotation) * vec4(lightPos, 0.f) * toMat4(localLightRotation));
-			celShader.setVec3("sun", newLight);
-
-			// Draw model's meshes
-			gameState->entityList.at(i).model->meshes.at(j).Draw(celMap.shader);
-		}
-	}
-  
-	glCullFace(GL_BACK);
-	celMap.cleanUp(callback_ptr);
+	celMap.render(gameState, "c", lightPos, callback_ptr);
 
 	//farShadowMap.renderToScreen();		//Uncomment to see the far shadow map (light's perspective, near the car)
 	//nearShadowMap.renderToScreen();		//Uncomment to see the near shadow map (light's perspective, the entire map)
