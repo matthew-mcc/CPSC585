@@ -59,7 +59,7 @@ private:
 	float band = 0.166f;
 	float gradient = 0.02f;
 	float shift = 0.111f;
-	vec3 skyColor = vec3(0.86f, 0.58f, 0.50f);		// (DEPRECATED) Sky color is now set with a texture
+	vec3 skyColor = vec3(0.86f, 0.58f, 0.50f);		// (DEPRECATED) Sky color is now set with a texture / fog color
 	vec3 lightPos = vec3(sin(lightRotation) * cos(lightAngle), sin(lightAngle), cos(lightRotation) * cos(lightAngle)) * 4.f;
 	vec3 lightColor = vec3(0.97f, 0.91f, 0.89f);
 	vec3 shadowColor = vec3(0.71f, 0.55f, 0.51f);
@@ -67,7 +67,7 @@ private:
 	float fogDepth = 0.00125f;
 
 	float outlineSensitivity = 12.f;
-	float outlineTransparency = 0.1f;
+	float outlineTransparency = 0.7f;
 
 	// Text
 	map<char, Character> textChars;
