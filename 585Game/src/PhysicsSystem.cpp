@@ -874,7 +874,8 @@ void PhysicsSystem::stepPhysics(shared_ptr<CallbackInterface> callback_ptr, Time
 
 	// Update Audio
 	
-	for (int i = 0; i < 4; i++) {
+	
+	for (int i = 0; i < 3; i++) {
 		std::string vehicleName = "vehicle_";
 		vehicleName += std::to_string(i);
 		float distance;
@@ -884,19 +885,21 @@ void PhysicsSystem::stepPhysics(shared_ptr<CallbackInterface> callback_ptr, Time
 		glm::vec3 audio_forward = gameState->findEntity(vehicleName)->transform->getForwardVector();
 		glm::vec3 audio_up = gameState->findEntity(vehicleName)->transform->getUpVector();
 		if (i == 0) {
+			//std::cout << "Listener updated" << std::endl;
 			gameState->audio_ptr->Update3DListener(gameState->listener_position, audio_velocity, audio_forward, audio_up);
 		}
 		distance = glm::length(glm::distance(gameState->listener_position, audio_position));
 		gameState->audio_ptr->UpdateTire(vehicleName, audio_position, audio_velocity, audio_forward, audio_up, distance, gameState->audio_ptr->contact);
+		//gameState->audio_ptr->UpdateTire(vehicleName, audio_position, audio_velocity, audio_forward, audio_up, distance, gameState->audio_ptr->contact);
+
+		
+		//std::cout << vehicleName << ": " << audio_position.x;
+		//std::cout << ", " << audio_position.y;
+		//std::cout << ", " << audio_position.z << std::endl;
 		
 
-		/*
-		std::cout << vehicleName << ": " << audio_position.x;
-		std::cout << ", " << audio_position.y;
-		std::cout << ", " << audio_position.z << std::endl;
-		*/
-
 	}
+	
 	
 	/*
 	// Update only player
@@ -907,8 +910,8 @@ void PhysicsSystem::stepPhysics(shared_ptr<CallbackInterface> callback_ptr, Time
 
 	float distance = glm::length(glm::distance(gameState->listener_position, audio_position));
 	gameState->audio_ptr->UpdateTire("vehicle_0", audio_position, audio_velocity, audio_forward, audio_up, distance, gameState->audio_ptr->contact);
+	gameState->audio_ptr->Update3DListener(gameState->listener_position, audio_velocity, audio_forward, audio_up);
 	*/
-
 	//gameState->audio_ptr->UpdateTire(listener_position, listener_velocity, listener_forward, listener_up, gameState->audio_ptr->contact);
 
 

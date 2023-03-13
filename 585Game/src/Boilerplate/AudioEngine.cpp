@@ -118,12 +118,12 @@ int CAudioEngine::PlaySound(const std::string &strSoundName, const glm::vec3 &vP
 
 void CAudioEngine::SetEvent3dAttributes(const string& strEventName, const glm::vec3& pos, const glm::vec3& velocity, const glm::vec3& forward, const glm::vec3& up) {
 	auto tFoundIt = sgpImplementation->mEvents.find(strEventName);
-	if (tFoundIt != sgpImplementation->mEvents.end())
+	if (tFoundIt == sgpImplementation->mEvents.end())
 		return;
 	FMOD_3D_ATTRIBUTES attributes;
 	attributes = Gen3DAttributes(pos, velocity, forward, up);
 
-
+	CAudioEngine::ErrorCheck(tFoundIt->second->set3DAttributes(&attributes));
 }
 
 
@@ -265,7 +265,6 @@ void CAudioEngine::SetEventParameter(const std::string &strEventName, const std:
 }
 
 
-// All following functions used to convert linear volume to dBs
 FMOD_VECTOR CAudioEngine::VectorToFmod(const glm::vec3& vPosition) {
 	FMOD_VECTOR fVec;
 	fVec.x = vPosition.x;
@@ -273,6 +272,15 @@ FMOD_VECTOR CAudioEngine::VectorToFmod(const glm::vec3& vPosition) {
 	fVec.z = vPosition.z;
 	return fVec;
 }
+
+void CAudioEngine::GetEvent3dAttributes(const string& strEventName, FMOD_3D_ATTRIBUTES* returnedAttributes) {
+	auto tFoundIt = sgpImplementation->mEvents.find(strEventName);
+	if (tFoundIt == sgpImplementation->mEvents.end())
+		return;
+
+	tFoundIt->second->get3DAttributes(returnedAttributes);
+}
+
 
 FMOD_3D_ATTRIBUTES CAudioEngine::Gen3DAttributes(const glm::vec3& pos, const glm::vec3& velocity, const glm::vec3& forward, const glm::vec3 up) {
 	FMOD_3D_ATTRIBUTES attributes;

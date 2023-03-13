@@ -71,13 +71,27 @@ void AudioManager::Dropoff() {
 
 
 void AudioManager::UpdateTire(const std::string &strEventName, const glm::vec3 &pos, const glm::vec3 &velocity, const glm::vec3 &forward, const glm::vec3 &up, float distance, bool contact) {
-	float speed;
+	float speed = 0.0f;
 	if (contact) {
 		speed = glm::length(velocity);
 	}
+	/*
 	else {
-		speed = 0.0f;
+		// In hindsight, all of this is the same as if I just -10 off transform velocity
+		FMOD_3D_ATTRIBUTES attributes;
+		FMOD_3D_ATTRIBUTES* attributes_ptr = &attributes;
+		glm::vec3 velocity;
+		audioEngine.GetEvent3dAttributes(strEventName, attributes_ptr);
+		velocity.x = attributes.velocity.x;
+		velocity.y = attributes.velocity.y;
+		velocity.z = attributes.velocity.z;
+		speed = glm::length(velocity);
+		speed -= 10.0f;
+		if (speed < 0.0f) {
+			speed = 0.0f;
+		}
 	}
+	*/
 
 	audioEngine.SetEvent3dAttributes(strEventName, pos, velocity, forward, up);
 	audioEngine.SetEventParameter(strEventName, "Speed", speed);
