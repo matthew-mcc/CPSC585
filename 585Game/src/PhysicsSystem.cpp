@@ -307,7 +307,7 @@ void PhysicsSystem::detachTrailer(Trailer* trailer, Vehicle* vehicle) {
 
 //PxRaycastHit hitBuffer[10];
 PxRaycastBuffer cameraRayBuffer(0,0);
-glm::vec3 PhysicsSystem::CameraRaycasting(glm::vec3 campos) {
+glm::vec3 PhysicsSystem::CameraRaycasting(glm::vec3 campos,float distance) {
 	PxVec3 cam = PxVec3(campos.x, campos.y, campos.z); //where the ray shoots, the origin 
 	PxVec3 start = vehicles.at(0)->vehicle.mPhysXState.physxActor.rigidBody->getGlobalPose().p;
 	PxTransform vehicle_trans = vehicles.at(0)->vehicle.mPhysXState.physxActor.rigidBody->getGlobalPose();
@@ -317,24 +317,24 @@ glm::vec3 PhysicsSystem::CameraRaycasting(glm::vec3 campos) {
 	PxVec3 moving_vector(0.f);
 	//prevent touch the ground  // just check different basis direction of the camera, give it no chance to touch the ground 
 	//prevent backward touch  
-	if (gScene->raycast(cam, vehicle_trans.rotate(PxVec3(0.f,0.f,-1.f)), 1.f, cameraRayBuffer, PxHitFlag::eNORMAL) &&
+	if (gScene->raycast(cam, vehicle_trans.rotate(PxVec3(0.f,0.f,-1.f)), distance, cameraRayBuffer, PxHitFlag::eNORMAL) &&
 		cameraRayBuffer.block.shape->getSimulationFilterData().word0 == COLLISION_FLAG_GROUND) {
 		moving_vector += cameraRayBuffer.block.normal.getNormalized();
 		
 	}
 	//prevent downward touch  
-	if (gScene->raycast(cam, vehicle_trans.rotate(PxVec3(0.f, -1.f, 0.f)), 1.f, cameraRayBuffer, PxHitFlag::eNORMAL) &&
+	if (gScene->raycast(cam, vehicle_trans.rotate(PxVec3(0.f, -1.f, 0.f)), distance, cameraRayBuffer, PxHitFlag::eNORMAL) &&
 		cameraRayBuffer.block.shape->getSimulationFilterData().word0 == COLLISION_FLAG_GROUND) {
 		moving_vector += cameraRayBuffer.block.normal.getNormalized();
 		
 	}
 	//prevent side touches  
-	if (gScene->raycast(cam, vehicle_trans.rotate(PxVec3(-1.f, 0.f, 0.f)), 1.f, cameraRayBuffer, PxHitFlag::eNORMAL) &&
+	if (gScene->raycast(cam, vehicle_trans.rotate(PxVec3(-1.f, 0.f, 0.f)), distance, cameraRayBuffer, PxHitFlag::eNORMAL) &&
 		cameraRayBuffer.block.shape->getSimulationFilterData().word0 == COLLISION_FLAG_GROUND) {
 		moving_vector += cameraRayBuffer.block.normal.getNormalized();
 		
 	}
-	if (gScene->raycast(cam, vehicle_trans.rotate(PxVec3(1.f, 0.f, 0.f)), 1.f, cameraRayBuffer, PxHitFlag::eNORMAL) &&
+	if (gScene->raycast(cam, vehicle_trans.rotate(PxVec3(1.f, 0.f, 0.f)), distance, cameraRayBuffer, PxHitFlag::eNORMAL) &&
 		cameraRayBuffer.block.shape->getSimulationFilterData().word0 == COLLISION_FLAG_GROUND) {
 		moving_vector += cameraRayBuffer.block.normal.getNormalized();
 		
@@ -762,7 +762,7 @@ void PhysicsSystem::stepPhysics(shared_ptr<CallbackInterface> callback_ptr, Time
 		// PLAYER VEHICLE INPUT
 		if (i == 0) {
 			// On Ground
-			if (gScene->raycast(vehicle_transform.p, vehicle_transform.rotateInv(PxVec3(0.f, -1.f, 0.f)), 0.7f, AircontrolBuffer) // raycasting! just like that??? 
+			if (gScene->raycast(vehicle_transform.p, vehicle_transform.rotate(PxVec3(0.f, -1.f, 0.f)), 0.7f, AircontrolBuffer) // raycasting! just like that??? 
 				&& AircontrolBuffer.block.shape->getSimulationFilterData().word0 == COLLISION_FLAG_GROUND){
 
 				// Forward Drive
@@ -836,7 +836,7 @@ void PhysicsSystem::stepPhysics(shared_ptr<CallbackInterface> callback_ptr, Time
 				PxVec3 down = PxVec3(-up.x, -up.y, -up.z);
 				PxVec3 rayStart = trailers.at(trailerIndex)->rigidBody->getGlobalPose().p;
 				PxQueryFilterData filterData(PxQueryFlag::eSTATIC);
-				gScene->raycast(rayStart, down, 1.5f, TrailerBuffer, PxHitFlag::eDEFAULT, filterData);
+				gScene->raycast(rayStart,  down, 1.5f, TrailerBuffer, PxHitFlag::eDEFAULT, filterData);
 				if (TrailerBuffer.hasAnyHits()) {
 					trailers.at(trailerIndex)->groundDistance = (TrailerBuffer.block.position - rayStart).magnitude();
 				}
