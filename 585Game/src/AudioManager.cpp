@@ -25,7 +25,7 @@ void AudioManager::Init() {
 	audioEngine.PlaySound("assets/audio/SpaceMusic1.wav", glm::vec3(0.0f), 1.0f);
 
 
-	audioEngine.PlayEvent("vehicle_0");
+	//audioEngine.PlayEvent("vehicle_0");
 	audioEngine.PlayEvent("vehicle_1");
 	audioEngine.PlayEvent("vehicle_2");
 	audioEngine.PlayEvent("vehicle_3");
