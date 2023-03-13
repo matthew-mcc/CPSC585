@@ -58,7 +58,17 @@ void RenderingSystem::initRenderer() {
 	textShader.use();
 }
 
-float timeTorset = 0.f;
+void resetValue(float &target, float range, float desireValue,float speed,float step) {
+	if (target > desireValue)
+		target -= speed * step;
+	else if(target < desireValue)
+		target += speed * step;
+	
+	if (target > (desireValue - range) && target < (desireValue + range))
+		target = desireValue;
+}
+
+//float timeTorset = 0.f;
 // Update Renderer
 void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> callback_ptr, GameState* gameState, Timer* timer) {
 	// BACKGROUND
@@ -111,45 +121,41 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> callback
 
 	// If user is controlling camera, set view accordingly
 	vec3 camOffset = vec3(0.f);
+	glm::vec3 Camera_collision;
+	glm::vec3 Reset_collision;
 	if (callback_ptr->moveCamera) {
 		camOffset = camera_previous_position - playerEntity->transform->getPosition();
 		camOffset = vec4(camOffset, 0.f) * glm::rotate(glm::mat4(1.f), callback_ptr->xAngle, world_up);
 		camOffset += playerEntity->transform->getPosition();
 		view = lookAt(camOffset, playerEntity->transform->getPosition() + target_offset, world_up);
+		Camera_collision = PhysicsSystem::CameraRaycasting(camOffset,1.f); // works but may need to wait for later changes
+		Reset_collision = PhysicsSystem::CameraRaycasting(camOffset, 2.f);
 	}
 	else {
 		view = lookAt(camera_previous_position + camOffset, playerEntity->transform->getPosition() + target_offset, world_up);
+		Camera_collision = PhysicsSystem::CameraRaycasting(camera_previous_position,1.f);
+		Reset_collision = PhysicsSystem::CameraRaycasting(camera_previous_position, 2.f);
 	}
 	
 	// For audio - probably need to change later
 	gameState->listener_position = camera_previous_position;
 
-	glm::vec3 Camera_collision = PhysicsSystem::CameraRaycasting(camera_previous_position);
 	if (Camera_collision.x != 0.f && Camera_collision.y != 0 && Camera_collision.z != 0) {//not sure which one to use XD
 		camera_position_forward += Camera_collision.z;//* (float)timer->getDeltaTime();//camera_previous_position.z += 1.f; //* (float)timer->getDeltaTime();//cout << "???" << endl;
 		camera_position_up += Camera_collision.y;
 		camera_position_right -= Camera_collision.x;
-		timeTorset = 0.f;
+		//timeTorset = 0.f;
 	}
 	else {
-		if (timeTorset > 1.f) { //lag to reset the camera
+		if (Reset_collision.x == 0.f && Reset_collision.y == 0 && Reset_collision.z == 0) { //lag to reset the camera
 			float reset_speed = 50.f; // the speed to rset the camera
-			if (camera_position_forward > -7.55f)
-				camera_position_forward -= reset_speed * (float)timer->getDeltaTime();
-			else if (camera_position_forward < -7.45f)
-				camera_position_forward += reset_speed * (float)timer->getDeltaTime();
-
-			if (camera_position_up > 3.55f)
-				camera_position_up -= reset_speed * (float)timer->getDeltaTime();
-			else if (camera_position_up < 3.45f)
-				camera_position_up += reset_speed * (float)timer->getDeltaTime();
-
-			if (camera_position_right > 0.05f)
-				camera_position_right -= reset_speed * (float)timer->getDeltaTime();
-			else if (camera_position_right < -0.05f)
-				camera_position_right += reset_speed * (float)timer->getDeltaTime();
+			float step_time = (float)timer->getDeltaTime();
+			float step_range = step_time * reset_speed;
+			resetValue(camera_position_forward,step_range,-7.5f,reset_speed, step_time);
+			resetValue(camera_position_up, step_range, 3.5f, reset_speed, step_time);
+			resetValue(camera_position_right, step_range, 0.f, reset_speed, step_time);
 		}
-		timeTorset += (float)timer->getDeltaTime();
+		//timeTorset += (float)timer->getDeltaTime();
 	}
 
 	// Set projection and view matrices
