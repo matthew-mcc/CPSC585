@@ -933,12 +933,13 @@ void PhysicsSystem::stepPhysics(shared_ptr<CallbackInterface> callback_ptr, Time
 }
 
 void PhysicsSystem::AI_StateController(Vehicle* vehicle) {
-	//cout << currTrailerIndex << endl;
-	//cout << vehicles.at(0)->vehicle.mPhysXState.physxActor.rigidBody->getGlobalPose().p.x << " " << vehicles.at(0)->vehicle.mPhysXState.physxActor.rigidBody->getGlobalPose().p.y << " " << vehicles.at(0)->vehicle.mPhysXState.physxActor.rigidBody->getGlobalPose().p.x << endl;
+
+	cout << vehicle->AI_State << endl;
+	
+	
 	if (vehicle->AI_State == 0) {
 		AI_FindTrailer(vehicle);
 		AI_CollectTrailer(vehicle);
-
 	}
 	if (vehicle->AI_State == 1) {
 		AI_DropOff(vehicle);
@@ -1068,6 +1069,8 @@ void PhysicsSystem::AI_FindTrailer(Vehicle* vehicle) {
 void PhysicsSystem::AI_CollectTrailer(Vehicle* vehicle) {
 
 
+	AI_DetermineAttackPatterns(vehicle, vehicles.at(0));
+
 	Trailer* currTrailer = trailers.at(vehicle->AI_CurrTrailerIndex);
 	AI_MoveTo(vehicle, currTrailer->rigidBody->getGlobalPose().p);
 
@@ -1102,11 +1105,32 @@ void PhysicsSystem::AI_CollectTrailer(Vehicle* vehicle) {
 void PhysicsSystem::AI_DropOff(Vehicle* vehicle) {
 
 	AI_MoveTo(vehicle, PxVec3(-0.45f, 0.45f, -0.45f));
-
+	
+	if (vehicle->attachedTrailers.size() == 0) {
+		vehicle->AI_State = 0;
+	}
 
 }
 
+void PhysicsSystem::AI_DetermineAttackPatterns(Vehicle* vehicle, Vehicle* target) {
+	PxVec3 delta = target->vehicle.mPhysXState.physxActor.rigidBody->getGlobalPose().p - vehicle->vehicle.mPhysXState.physxActor.rigidBody->getGlobalPose().p;
+	PxReal distanceSq = delta.x * delta.x + delta.z * delta.z;
+
+
+	// If there is a player in front and close
+	PxReal dotProductPlayer = delta.dot(vehicle->vehicle.mPhysXState.physxActor.rigidBody->getGlobalPose().q.rotate(PxVec3(0, 0, 1)));
+
+	if (dotProductPlayer > 0) {
+		if (distanceSq < 2500.f) {
+			vehicle->AI_State = 2;
+			cout << "ATTACK!" << endl;
+
+		}
+	}
+}
+
 void PhysicsSystem::AI_BumpPlayer(Vehicle* vehicle) {
+
 
 	PxVec3 delta = vehicles.at(0)->vehicle.mPhysXState.physxActor.rigidBody->getGlobalPose().p - vehicle->vehicle.mPhysXState.physxActor.rigidBody->getGlobalPose().p;
 	PxReal distanceSq = delta.x * delta.x + delta.z * delta.z;
@@ -1116,64 +1140,13 @@ void PhysicsSystem::AI_BumpPlayer(Vehicle* vehicle) {
 	PxReal dotProductPlayer = delta.dot(vehicle->vehicle.mPhysXState.physxActor.rigidBody->getGlobalPose().q.rotate(PxVec3(0, 0, 1)));
 
 	if (dotProductPlayer <= 0 || distanceSq >= 2000.f) {
-		AI_State = 0;
+		vehicle->AI_State = 0;
 	}
 	else {
-		Entity* aiVehicle = gameState->findEntity("vehicle_1");
 
 
-		vehicle->vehicle.mCommandState.steer = 0.f;
-		vehicle->vehicle.mCommandState.throttle = 0.5f;
-		PxQuat pxrot = vehicle->vehicle.mPhysXState.physxActor.rigidBody->getGlobalPose().q;
-		//cout << "GLM: " << rotation.w << " " << "PX: " << pxrot.w << endl;
-		//cout << rotation << " " << vehicle->vehicle.mPhysXState.physxActor.rigidBody->getGlobalPose().q << endl;
-
-		glm::quat rotation;
-		rotation.w = pxrot.w;
-		rotation.x = pxrot.x;
-		rotation.y = pxrot.y;
-		rotation.z = pxrot.z;
-		glm::mat4 rotationMat = glm::toMat4(rotation);
-
-		glm::vec3 vanHeading = (rotationMat * glm::vec4(0.f, 0.f, -1.f, 1.f));
-
-		PxVec3 pos = vehicle->vehicle.mPhysXState.physxActor.rigidBody->getGlobalPose().p;
-		PxVec3 target;
-
-
-		PxVec3 dest = vehicles.at(0)->vehicle.mPhysXState.physxActor.rigidBody->getGlobalPose().p;
-
-
-
-		float offset = 0.f;
-
-		PxVec3 vanHeadingPx;
-		vanHeadingPx.x = vanHeading.x;
-		vanHeadingPx.y = vanHeading.y;
-		vanHeadingPx.z = vanHeading.z;
-
-		target.x = dest.x - pos.x;
-		target.y = dest.y - pos.y;
-		target.z = dest.z - pos.z;
-
+		AI_MoveTo(vehicle, vehicles.at(0)->vehicle.mPhysXState.physxActor.rigidBody->getGlobalPose().p);
 		
-
-		target.normalize();
-
-		float dot = target.dot(vanHeadingPx);
-		if (sqrt(dot * dot) > 0.95f) {
-			vehicle->vehicle.mCommandState.steer = 0.f;
-		}
-		else {
-			PxVec3 cross = vanHeadingPx.cross(target);
-			cross.normalize();
-			if (cross.y < 0) {
-				vehicle->vehicle.mCommandState.steer = 1.f;
-			}
-			else {
-				vehicle->vehicle.mCommandState.steer = -1.f;
-			}
-		}
 
 	}
 }

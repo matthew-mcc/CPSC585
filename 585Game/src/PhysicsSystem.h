@@ -98,7 +98,7 @@ private:
 	void AI_DropOff(Vehicle* vehicle);
 	void AI_BumpPlayer(Vehicle* vehicle);
 	void AI_StateController(Vehicle* vehicle);
-	
+	void AI_DetermineAttackPatterns(Vehicle* vehicle, Vehicle* target);
 };
 
 
