@@ -675,6 +675,12 @@ void PhysicsSystem::initVehicles(int vehicleCount) {
 	gContactReportCallback->cars = vehicles;
 	gScene->setVisualizationParameter(physx::PxVisualizationParameter::eJOINT_LOCAL_FRAMES, 1.0f);
 	gScene->setVisualizationParameter(physx::PxVisualizationParameter::eJOINT_LIMITS, 1.0f);
+
+
+	// Init AI Vehicle Personality
+	vehicles.at(1)->AI_Personality = "Aggressive";
+	vehicles.at(2)->AI_Personality = "Defensive";
+
 }
 
 void PhysicsSystem::initPhysicsSystem(GameState* gameState, AiController* aiController) {
@@ -932,10 +938,14 @@ void PhysicsSystem::stepPhysics(shared_ptr<CallbackInterface> callback_ptr, Time
 
 }
 
-void PhysicsSystem::AI_StateController(Vehicle* vehicle) {
 
-	cout << vehicle->AI_State << endl;
+// ====================================================================================================================
+
+
+void PhysicsSystem::AI_StateController(Vehicle* vehicle) {
 	
+	//cout << vehicles.at(0)->vehicle.mPhysXState.physxActor.rigidBody->getGlobalPose().p.x << " " << vehicles.at(0)->vehicle.mPhysXState.physxActor.rigidBody->getGlobalPose().p.y << " " << vehicles.at(0)->vehicle.mPhysXState.physxActor.rigidBody->getGlobalPose().p.z << endl;
+	//cout << vehicle->AI_State << endl;
 	
 	if (vehicle->AI_State == 0) {
 		AI_FindTrailer(vehicle);
@@ -1057,9 +1067,21 @@ void PhysicsSystem::AI_FindTrailer(Vehicle* vehicle) {
 		if (dotProduct <= 0) {
 			continue;
 		}
-		if (distanceSq < closestDistanceSq) {
+
+		if (trailers.at(i)->rigidBody->getGlobalPose().p.y > 10) {
+			continue;
+		}
+
+		
+
+		else if (distanceSq < closestDistanceSq) {
+
+			
+			
 			closestDistanceSq = distanceSq;
 			tempIdx = i;
+			
+			
 		}
 	}
 
@@ -1075,6 +1097,9 @@ void PhysicsSystem::AI_CollectTrailer(Vehicle* vehicle) {
 	AI_MoveTo(vehicle, currTrailer->rigidBody->getGlobalPose().p);
 
 	
+	if (vehicle->AI_Personality == "Defensive") {
+		AI_DefensiveManeuvers(vehicle, vehicles.at(0));
+	}
 
 	
 	// Calculating Attack Patterns
@@ -1085,31 +1110,73 @@ void PhysicsSystem::AI_CollectTrailer(Vehicle* vehicle) {
 	// If there is a player in front and close
 	PxReal dotProductPlayer = delta.dot(vehicle->vehicle.mPhysXState.physxActor.rigidBody->getGlobalPose().q.rotate(PxVec3(0, 0, 1)));
 	
-	if (dotProductPlayer > 0) {
-		if (distanceSq < 2500.f) {
-			AI_State = 2;
-			//cout << "ATTACK!" << endl;
-
-		}
-	}
 	
 	
-
-	if (vehicle->attachedTrailers.size() > 4) {
+	
+	/*if (vehicle->AI_Personality == "Defensive" && vehicle->attachedTrailers.size() > 6) {
+		cout << "Defensive Robot Dropping Off" << endl;
 		vehicle->AI_State = 1;
 	}
+	if (vehicle->attachedTrailers.size() > 4) {
+		vehicle->AI_State = 1;
+	}*/
+
+	if (vehicle->AI_Personality == "Defensive") {
+		if (vehicle->attachedTrailers.size() > 7) {
+			vehicle->AI_State = 1;
+			cout << "Defensive bot dropping off!" << endl;
+		}
+	}
+	else {
+		if(vehicle->attachedTrailers.size() > 4){
+			vehicle->AI_State = 1;
+		}
+	}
+
 
 
 }
 
 void PhysicsSystem::AI_DropOff(Vehicle* vehicle) {
 
-	AI_MoveTo(vehicle, PxVec3(-0.45f, 0.45f, -0.45f));
+	AI_MoveTo(vehicle, PxVec3(0.f, 0.f, 32.f));
 	
 	if (vehicle->attachedTrailers.size() == 0) {
 		vehicle->AI_State = 0;
 	}
 
+}
+
+void PhysicsSystem::AI_DefensiveManeuvers(Vehicle* self, Vehicle* attacker) {
+
+	// Calc distance to attacker
+	PxVec3 delta = attacker->vehicle.mPhysXState.physxActor.rigidBody->getGlobalPose().p - self->vehicle.mPhysXState.physxActor.rigidBody->getGlobalPose().p;
+	PxReal distanceSq = delta.x * delta.x + delta.z * delta.z;
+	PxVec3 objectDirection = (attacker->vehicle.mPhysXState.physxActor.rigidBody->getGlobalPose().p - self->vehicle.mPhysXState.physxActor.rigidBody->getGlobalPose().p).getNormalized();
+	PxReal dotProduct = objectDirection.dot(self->vehicle.mPhysXState.physxActor.rigidBody->getGlobalPose().q.rotate(PxVec3(1, 0, 0)));
+
+	PxReal dotProductFront = delta.dot(self->vehicle.mPhysXState.physxActor.rigidBody->getGlobalPose().q.rotate(PxVec3(0, 0, 1)));
+
+	
+
+
+	if (distanceSq < 1000.f) { // Dangerously Close
+			// If attacker to the right of self, hard right
+		//cout << "holy shit that's close, deploy the flares!" << endl;
+
+		if (dotProductFront <= 0) {
+			cout << "GET US OUT OF HERE!" << endl;
+		}
+		else if (dotProduct > 0) {
+			self->vehicle.mCommandState.steer = 1.f;
+		}
+		else if (dotProduct < 0) {
+			self->vehicle.mCommandState.steer = -1.f;
+		}
+	
+		
+	}
+	// If attacker to the left of self, hard left
 }
 
 void PhysicsSystem::AI_DetermineAttackPatterns(Vehicle* vehicle, Vehicle* target) {
@@ -1120,8 +1187,18 @@ void PhysicsSystem::AI_DetermineAttackPatterns(Vehicle* vehicle, Vehicle* target
 	// If there is a player in front and close
 	PxReal dotProductPlayer = delta.dot(vehicle->vehicle.mPhysXState.physxActor.rigidBody->getGlobalPose().q.rotate(PxVec3(0, 0, 1)));
 
-	if (dotProductPlayer > 0) {
-		if (distanceSq < 2500.f) {
+
+	
+
+	float attackDistanceModifier = 0;
+	float attackAngleModifier = 0.f;
+	if (vehicle->AI_Personality == "Aggressive") {
+		attackDistanceModifier = 2000.f;
+		attackAngleModifier = -0.5f;
+	}
+
+	if (dotProductPlayer > 0 + attackAngleModifier && vehicle->AI_Personality!="Defensive") {
+		if (distanceSq < 2500.f + attackDistanceModifier ) {
 			vehicle->AI_State = 2;
 			cout << "ATTACK!" << endl;
 
@@ -1138,8 +1215,15 @@ void PhysicsSystem::AI_BumpPlayer(Vehicle* vehicle) {
 
 	// If there is a player in front and close
 	PxReal dotProductPlayer = delta.dot(vehicle->vehicle.mPhysXState.physxActor.rigidBody->getGlobalPose().q.rotate(PxVec3(0, 0, 1)));
+	
 
-	if (dotProductPlayer <= 0 || distanceSq >= 2000.f) {
+	float attackDistanceModifier = 0;
+	float attackAngleModifier = 0.f;
+	if (vehicle->AI_Personality == "Aggressive") {
+		attackDistanceModifier = 2000.f;
+		attackAngleModifier = 0.5f;
+	}
+	if (dotProductPlayer <= 0 + attackAngleModifier || distanceSq >= 2500.f + attackDistanceModifier) {
 		vehicle->AI_State = 0;
 	}
 	else {
