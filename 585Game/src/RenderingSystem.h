@@ -89,4 +89,8 @@ private:
 	// Camera Parameters
 	float camera_lag = 5.0f;
 	float fov = 45.f;
+
+	// Audio Parameters
+	float playerVolume = 0.5f;
+	float npcVolume = 1.0f;
 };

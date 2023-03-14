@@ -356,8 +356,21 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> callback
 	ImGui::SliderFloat("Camera Target Forward", &camera_target_forward, -30.f, 30.f);
 	ImGui::SliderFloat("Camera Target Up", &camera_target_up, -30.f, 30.f);
 	ImGui::SliderFloat("Camera Target Right", &camera_target_right, -30.f, 30.f);
-	ImGui::End();
+	
 
+	ImGui::Text("Audio");
+	if (ImGui::SliderFloat("Player ", &playerVolume, 0.0f, 2.0f)) {
+		gameState->audio_ptr->setVolume("vehicle_0", playerVolume);
+	}
+	if (ImGui::SliderFloat("NPC ", &npcVolume, 0.0f, 2.0f)) {
+		for (int i = 1; i < 4; i++) {
+			std::string vehicleName = "vehicle_";
+			vehicleName += to_string(i);
+			gameState->audio_ptr->setVolume(vehicleName, npcVolume);
+		}
+	}
+
+	ImGui::End();
 	ImGui::Render();
 	ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
