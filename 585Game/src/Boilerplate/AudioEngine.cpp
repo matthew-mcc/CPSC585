@@ -305,6 +305,15 @@ float CAudioEngine::VolumeTodb(float volume) {
 	return 20.0f * log10f(volume);
 }
 
+void CAudioEngine::SetEventVolume(const string& strEventName, float db) {
+	auto tFoundIt = sgpImplementation->mEvents.find(strEventName);
+	if (tFoundIt == sgpImplementation->mEvents.end())
+		return;
+
+	tFoundIt->second->setVolume(db);
+}
+
+
 // ** important **
 int CAudioEngine::ErrorCheck(FMOD_RESULT result) {
 	if (result != FMOD_OK) {

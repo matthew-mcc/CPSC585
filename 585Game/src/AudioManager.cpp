@@ -25,11 +25,12 @@ void AudioManager::Init() {
 	audioEngine.PlaySound("assets/audio/SpaceMusic1.wav", glm::vec3(0.0f), 1.0f);
 
 
-	//audioEngine.PlayEvent("vehicle_0");
+	audioEngine.PlayEvent("vehicle_0");
 	audioEngine.PlayEvent("vehicle_1");
 	audioEngine.PlayEvent("vehicle_2");
 	audioEngine.PlayEvent("vehicle_3");
 
+	audioEngine.SetEventVolume("vehicle_0", 0.5f);
 }
 
 
@@ -98,6 +99,9 @@ void AudioManager::UpdateTire(const std::string &strEventName, const glm::vec3 &
 	audioEngine.SetEventParameter(strEventName, "Distance", distance);
 }
 
+void AudioManager::setVolume(const std::string& strEventName, float db) {
+	audioEngine.SetEventVolume(strEventName, db);
+}
 
 
 
