@@ -678,8 +678,8 @@ void PhysicsSystem::initVehicles(int vehicleCount) {
 
 
 	// Init AI Vehicle Personality
-	vehicles.at(1)->AI_Personality = "Aggressive";
-	vehicles.at(2)->AI_Personality = "Defensive";
+	vehicles.at(1)->AI_Personality = "Defensive";
+	vehicles.at(2)->AI_Personality = "Aggressive";
 
 }
 
@@ -894,7 +894,7 @@ void PhysicsSystem::stepPhysics(shared_ptr<CallbackInterface> callback_ptr, Time
 	// Update Audio
 	
 	
-	for (int i = 0; i < 3; i++) {
+	for (int i = 0; i < vehicles.size(); i++) {
 		std::string vehicleName = "vehicle_";
 		vehicleName += std::to_string(i);
 		float distance;
@@ -1053,9 +1053,35 @@ void PhysicsSystem::AI_FindTrailer(Vehicle* vehicle) {
 			continue;
 		}
 
+		// If it's attached to itself
 		if (find(vehicle->attachedTrailers.begin(), vehicle->attachedTrailers.end(), trailers.at(i)) != vehicle->attachedTrailers.end()) {
 			continue;
 		}
+
+		// Preference to not pick up a trailer near another person
+		if (vehicle->AI_Personality == "Defensive") {
+			bool trailerClose = false;
+			for (Vehicle* currVehicle : vehicles) {
+
+				if (currVehicle == vehicle)
+					continue;
+				// Get the distance between trailer(i) and currVehicle
+				PxVec3 delta = trailers.at(i)->rigidBody->getGlobalPose().p - currVehicle->vehicle.mPhysXState.physxActor.rigidBody->getGlobalPose().p;
+				PxReal distanceSq = delta.x * delta.x + delta.z * delta.z;
+
+				if (distanceSq < 750.f) {
+					trailerClose = true;
+				}
+
+			}
+			if (trailerClose)
+				continue;
+		}
+
+		/*if (vehicle->AI_Personality == "Aggressive") {
+
+		}*/
+
 
 		PxVec3 delta = trailers.at(i)->rigidBody->getGlobalPose().p - vehicle->vehicle.mPhysXState.physxActor.rigidBody->getGlobalPose().p;
 		PxReal distanceSq = delta.x * delta.x + delta.z * delta.z;
@@ -1113,13 +1139,6 @@ void PhysicsSystem::AI_CollectTrailer(Vehicle* vehicle) {
 	
 	
 	
-	/*if (vehicle->AI_Personality == "Defensive" && vehicle->attachedTrailers.size() > 6) {
-		cout << "Defensive Robot Dropping Off" << endl;
-		vehicle->AI_State = 1;
-	}
-	if (vehicle->attachedTrailers.size() > 4) {
-		vehicle->AI_State = 1;
-	}*/
 
 	if (vehicle->AI_Personality == "Defensive") {
 		if (vehicle->attachedTrailers.size() > 7) {
@@ -1162,21 +1181,28 @@ void PhysicsSystem::AI_DefensiveManeuvers(Vehicle* self, Vehicle* attacker) {
 
 	if (distanceSq < 1000.f) { // Dangerously Close
 			// If attacker to the right of self, hard right
-		//cout << "holy shit that's close, deploy the flares!" << endl;
+		
 
+		// If the attacker is behind us
 		if (dotProductFront <= 0) {
-			cout << "GET US OUT OF HERE!" << endl;
+			
+
+			// Implement a boost here
 		}
-		else if (dotProduct > 0) {
-			self->vehicle.mCommandState.steer = 1.f;
-		}
-		else if (dotProduct < 0) {
-			self->vehicle.mCommandState.steer = -1.f;
+		else {
+			// + dot Product --> vehicle on left of AI
+			// - dot Product --> Vehicle on right of AI
+			if (dotProduct > 0) {
+				self->vehicle.mCommandState.steer = 1.f;
+			}
+			else if (dotProduct < 0) {
+				self->vehicle.mCommandState.steer = -1.f;
+			}
 		}
 	
 		
 	}
-	// If attacker to the left of self, hard left
+	
 }
 
 void PhysicsSystem::AI_DetermineAttackPatterns(Vehicle* vehicle, Vehicle* target) {
@@ -1200,7 +1226,7 @@ void PhysicsSystem::AI_DetermineAttackPatterns(Vehicle* vehicle, Vehicle* target
 	if (dotProductPlayer > 0 + attackAngleModifier && vehicle->AI_Personality!="Defensive") {
 		if (distanceSq < 2500.f + attackDistanceModifier ) {
 			vehicle->AI_State = 2;
-			cout << "ATTACK!" << endl;
+			//cout << "ATTACK!" << endl;
 
 		}
 	}
