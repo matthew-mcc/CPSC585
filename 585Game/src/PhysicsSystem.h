@@ -112,12 +112,13 @@ private:
 	void AI_InitSystem();
 	void AI_MoveTo(Vehicle* vehicle, PxVec3 destination);
 	void AI_FindTrailer(Vehicle* vehicle);
-	void AI_CollectTrailer(Vehicle* vehicle);
+	void AI_CollectTrailer(Vehicle* vehicle, PxReal timestep);
 	void AI_DropOff(Vehicle* vehicle);
 	void AI_BumpPlayer(Vehicle* vehicle);
-	void AI_StateController(Vehicle* vehicle);
+	void AI_StateController(Vehicle* vehicle, PxReal timestep);
 	void AI_DetermineAttackPatterns(Vehicle* vehicle, Vehicle* target);
-	void AI_DefensiveManeuvers(Vehicle* self, Vehicle* attacker);
+	void AI_DefensiveManeuvers(Vehicle* self, Vehicle* attacker, PxReal timestep);
+	void AI_ApplyBoost(Vehicle* vehicle);
 };
 
 
