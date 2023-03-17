@@ -1117,7 +1117,10 @@ void PhysicsSystem::AI_FindTrailer(Vehicle* vehicle) {
 void PhysicsSystem::AI_CollectTrailer(Vehicle* vehicle, PxReal timestep) {
 
 
-	AI_DetermineAttackPatterns(vehicle, vehicles.at(0));
+	if (vehicles.at(0)->attachedTrailers.size() > 0) {
+		AI_DetermineAttackPatterns(vehicle, vehicles.at(0));
+	}
+	
 
 	Trailer* currTrailer = trailers.at(vehicle->AI_CurrTrailerIndex);
 	AI_MoveTo(vehicle, currTrailer->rigidBody->getGlobalPose().p);
@@ -1245,6 +1248,7 @@ void PhysicsSystem::AI_DetermineAttackPatterns(Vehicle* vehicle, Vehicle* target
 
 void PhysicsSystem::AI_BumpPlayer(Vehicle* vehicle) {
 
+	
 
 	PxVec3 delta = vehicles.at(0)->vehicle.mPhysXState.physxActor.rigidBody->getGlobalPose().p - vehicle->vehicle.mPhysXState.physxActor.rigidBody->getGlobalPose().p;
 	PxReal distanceSq = delta.x * delta.x + delta.z * delta.z;
