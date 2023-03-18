@@ -172,16 +172,16 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> callback
 	// FAR SHADOWMAP RENDER
 	lightPos = vec3(sin(lightRotation) * cos(lightAngle), sin(lightAngle), cos(lightRotation) * cos(lightAngle)) * 200.f;
 	farShadowMap.update(lightPos, vec3(0.f));
-	farShadowMap.render(gameState, "", lightPos, callback_ptr);
+	farShadowMap.render(gameState, "s", lightPos, callback_ptr);
 
 	// NEAR SHADOWMAP RENDER
 	lightPos = vec3(sin(lightRotation) * cos(lightAngle), sin(lightAngle), cos(lightRotation) * cos(lightAngle)) * 40.f;
 	nearShadowMap.update(lightPos, playerEntity->transform->getPosition());
-	nearShadowMap.render(gameState, "", lightPos, callback_ptr);
+	nearShadowMap.render(gameState, "s", lightPos, callback_ptr);
 
 	// TOON OUTLINE (Landscape)
 	outlineMap.update(projection, view);
-	outlineMap.render(gameState, "", lightPos, callback_ptr);
+	outlineMap.render(gameState, "t", lightPos, callback_ptr);
 
 	// TOON OUTLINE (Objects)
 	outlineMapNoLandscape.update(projection, view);

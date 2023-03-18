@@ -15,6 +15,9 @@ void GameState::initGameState(AudioManager* audio) {
 	e = addEntity("landscape", PhysType::StaticMesh, DrawType::Mesh, new Transform(), vector<string>{
 		"assets/models/landscape1/landscape1.obj"});
 
+	e = addEntity("landscape_background", PhysType::StaticMesh, DrawType::Mesh, new Transform(), vector<string>{
+		"assets/models/landscape1/landscape1_background1.obj"});
+
 	e = addEntity("landscape_detail", PhysType::None, DrawType::Mesh, new Transform(), vector<string>{
 		"assets/models/landscape1/landscape_detail1.obj"});
 

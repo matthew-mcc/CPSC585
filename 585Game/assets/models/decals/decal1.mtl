@@ -1,7 +1,7 @@
 # Blender 3.1.0 MTL File: 'Props.blend'
 # www.blender.org
 
-newmtl decal1
+newmtl decal1_diffuse
 Ns 250.000000
 Ka 1.000000 1.000000 1.000000
 Kd 0.800000 0.800000 0.800000

@@ -636,7 +636,7 @@ void PhysicsSystem::initVehicles(int vehicleCount) {
 		//sha->setFlag(PxShapeFlag::eTRIGGER_SHAPE, true);//set a trigger, for reset AirOrNot condition, it doesn't take part during physics simulation
 		//gVehicle.mPhysXState.physxActor.rigidBody->attachShape(*sha); //not really work as expected
 		PxU32 shapes = vehicles.back()->vehicle.mPhysXState.physxActor.rigidBody->getNbShapes();
-		PxBoxGeometry chassisShape = PxBoxGeometry(0.9f, 0.5f, 2.f);
+		PxBoxGeometry chassisShape = PxBoxGeometry(0.9f, 0.5f, 2.5f);
 
 		if (i == 0){// only simulate for player
 			for (PxU32 j = 0; j < shapes; j++) {
