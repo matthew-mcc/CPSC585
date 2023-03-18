@@ -1,0 +1,70 @@
+#version 330 core
+out vec4 FragColor;
+  
+in vec2 TexCoords;
+
+uniform sampler2D outline1;
+uniform sampler2D outline2;
+uniform mat4 projMatrixInv;
+uniform mat4 viewMatrixInv;
+uniform float outlineSensitivity;
+uniform float fogDepth;
+uniform vec3 fogColor;
+
+vec3 WorldPos(float depthPos, vec2 TexCoord) {
+    float z = depthPos * 2.0 - 1.0;
+
+    vec4 clipSpacePosition = vec4(TexCoord * 2.0 - 1.0, z, 1.0);
+    vec4 viewSpacePosition = projMatrixInv * clipSpacePosition;
+
+    // Perspective division
+    viewSpacePosition /= viewSpacePosition.w;
+
+    vec4 worldSpacePosition = viewMatrixInv * viewSpacePosition;
+
+    return worldSpacePosition.xyz;
+}
+
+void main()
+{
+    vec2 texelSize = 1.0 / textureSize(outline1, 0);
+    int thickness = 2;
+    float nearest = 0.0;
+    float closest = 0.0;
+    vec2 nearestOffset = vec2(0.0);
+    for(int x = -thickness; x <= thickness; ++x) {                                      // determine whether point should be part of an outline
+        for(int y = -thickness; y <= thickness; ++y) {
+            if (sqrt(pow(x, 2) + pow(y, 2)) > thickness) continue;
+            float currentDepth = texture(outline1, TexCoords.xy).r;
+            float currentDepthNoLand = texture(outline2, TexCoords.xy).r;
+
+            vec2 offset = TexCoords.xy + vec2(x, y) * texelSize;
+            float offsetDepth = texture(outline1, offset).r;
+            float offsetDepthNoLand = texture(outline2, offset).r;
+
+            if (offsetDepth > currentDepth) continue;
+            if (length(WorldPos(currentDepth, TexCoords.xy) - WorldPos(offsetDepth, offset)) > outlineSensitivity) {
+                if (offsetDepth < nearest || nearest == 0.0) {
+                    nearest = offsetDepth;
+                    nearestOffset = offset;
+                }
+            }
+            if (length(WorldPos(currentDepthNoLand, TexCoords.xy) - WorldPos(offsetDepthNoLand, offset)) > outlineSensitivity) {
+                if ((offsetDepthNoLand < nearest || nearest == 0.0) && offsetDepth == offsetDepthNoLand) {
+                    nearest = offsetDepth;
+                    nearestOffset = offset;
+                }
+            }
+        }    
+    }
+    float outline = length(WorldPos(nearest, nearestOffset) - WorldPos(0.0, nearestOffset)) * fogDepth;
+    if (outline > 1.0) outline = 1.0;
+    if (outline > 0.0) {
+        FragColor = vec4(0.0, 0.0, 0.0, 1.0);
+        FragColor = vec4((1.0-outline)*FragColor.xyz + (outline)*fogColor, FragColor.a);
+    }
+    else FragColor = vec4(0.0, 0.0, 0.0, 0.0);
+
+    //float test = texture(outline1, TexCoords).r;
+    //FragColor = vec4(1.0, 1.0, 0.0, 0.5);
+}

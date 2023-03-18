@@ -39,8 +39,10 @@ private:
 	FBuffer farShadowMap;
 	FBuffer outlineMap;
 	FBuffer outlineMapNoLandscape;
+	FBuffer outlineToTexture;
 	FBuffer celMap;
 	FBuffer blurMap;
+	FBuffer intermediateBuffer;
 
 	// Shaders
 	Shader textShader;
@@ -67,7 +69,8 @@ private:
 	float fogDepth = 0.00125f;
 
 	float outlineSensitivity = 16.f;
-	float outlineTransparency = 0.55f;
+	float outlineTransparency = 0.7f;
+	float outlineBlur = 0.15f;
 
 	// Text
 	map<char, Character> textChars;
