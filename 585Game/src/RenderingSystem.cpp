@@ -182,10 +182,16 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> callback
 	nearShadowMap.render(gameState, "", lightPos, callback_ptr);
 
 	// TOON OUTLINE (Landscape)
+	if (outlineMap.getWidth() != callback_ptr->xres || outlineMap.getHeight() != callback_ptr->yres) {
+		outlineMap = FBuffer(callback_ptr->xres, callback_ptr->yres, "o");
+	}
 	outlineMap.update(projection, view);
 	outlineMap.render(gameState, "", lightPos, callback_ptr);
 
 	// TOON OUTLINE (Objects)
+	if (outlineMapNoLandscape.getWidth() != callback_ptr->xres || outlineMapNoLandscape.getHeight() != callback_ptr->yres) {
+		outlineMapNoLandscape = FBuffer(callback_ptr->xres, callback_ptr->yres, "o");
+	}
 	outlineMapNoLandscape.update(projection, view);
 	outlineMapNoLandscape.render(gameState, "l", lightPos, callback_ptr);
 

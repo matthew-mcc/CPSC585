@@ -28,7 +28,7 @@ vec3 WorldPos(float depthPos, vec2 TexCoord) {
 void main()
 {
     vec2 texelSize = 1.0 / textureSize(outline1, 0);
-    int thickness = 2;
+    int thickness = 3;
     float nearest = 0.0;
     float closest = 0.0;
     vec2 nearestOffset = vec2(0.0);
