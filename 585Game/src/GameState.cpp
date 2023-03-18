@@ -4,6 +4,7 @@
 
 using namespace std;
 
+// Counters
 int vehiclesSpawned = 0;
 int trailersSpawned = 0;
 

@@ -38,8 +38,12 @@ vector<PxVec3> vehicleStartPositions = vector<PxVec3>{
 	PxVec3(0.0f, 8.0f, -250.0f),
 	PxVec3(-250.0f, 8.0f, 0.0f),
 	PxVec3(0.0f, 8.0f, 250.0f),
-	PxVec3(250.0f, 8.0f, 0.0f)};
+	PxVec3(250.0f, 8.0f, 0.0f),
+	PxVec3(150.0f, 8.0f, 0.0f),
+	PxVec3(50.0f, 8.0f, 0.0f)};
 vector<PxQuat> vehicleStartRotations = vector<PxQuat>{
+	PxQuat(0.0f, 0.0f, 0.0f, 1.0f),
+	PxQuat(0.0f, 0.0f, 0.0f, 1.0f),
 	PxQuat(0.0f, 0.0f, 0.0f, 1.0f),
 	PxQuat(0.0f, 0.0f, 0.0f, 1.0f),
 	PxQuat(0.0f, 0.0f, 0.0f, 1.0f),
@@ -582,8 +586,8 @@ void PhysicsSystem::initVehicles(int vehicleCount) {
 		vehicles.push_back(new Vehicle());
 
 		// Init AI_State
-		vehicles[i]->AI_State = 0;
-		vehicles[i]->AI_CurrTrailerIndex = 0;
+		vehicles.at(i)->AI_State = 0;
+		vehicles.at(i)->AI_CurrTrailerIndex = 0;
 
 		//Load the params from json or set directly.
 		gVehicleDataPath = "assets/vehicledata";
@@ -690,10 +694,10 @@ void PhysicsSystem::initPhysicsSystem(GameState* gameState, AiController* aiCont
 	initPhysX();
 	initPhysXMeshes();
 	initMaterialFrictionTable();
-	initVehicles(4);
+	initVehicles(gameState->numVehicles);
 
 	// Baseline of 30 Trailers
-	for (int i = 0; i < 30; i++) {
+	for (int i = 0; i < gameState->numTrailers; i++) {
 		spawnTrailer();
 	}
 }

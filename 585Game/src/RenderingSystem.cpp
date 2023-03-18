@@ -230,7 +230,6 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> callback
 	//blurMap.renderToScreen();
 
 	// SIXTH PASS: GUI RENDER
-		// Use text shader
 	textShader.use();
 	mat4 textProjection = ortho(0.0f, static_cast<float>(callback_ptr->xres), 0.0f, static_cast<float>(callback_ptr->yres));
 	textShader.setMat4("projection", textProjection);
@@ -242,16 +241,12 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> callback
 
 	// Game Ended Screen
 	if (gameState->gameEnded) {
-		string winnerText;
-		if (gameState->winner == NULL) {
-			winnerText = "Tie Game!";
-		}
-		else {
-			string winnerName = gameState->winner->name;
-			if (winnerName == "vehicle_0") winnerText = "Salvager #1 Wins!";
-			if (winnerName == "vehicle_1") winnerText = "Salvager #2 Wins!";
-			if (winnerName == "vehicle_2") winnerText = "Salvager #3 Wins!";
-			if (winnerName == "vehicle_3") winnerText = "Salvager #4 Wins!";
+		string winnerText = "Tie Game!";
+		if (!gameState->winner == NULL) {
+			string winnerNum(1, gameState->winner->name.back());
+			winnerNum = to_string(stoi(winnerNum) + 1);
+			std::cout << winnerNum << "\n";
+			winnerText = "Salvager #" + winnerNum + " Wins!";
 		}
 		RenderText(textShader, textVAO, textVBO, winnerText,
 			callback_ptr->xres / 2 - (18 * winnerText.length()),
@@ -292,39 +287,12 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> callback
 			textChars);
 
 		// Display player scores
-		string scoreText = "";
-		if (gameState->findEntity("vehicle_0") != NULL) {
-			scoreText = "Salvager #1: " + to_string(gameState->findEntity("vehicle_0")->playerProperties->getScore());
+		for (int i = 0; i < gameState->numVehicles; i++) {
+			string vehicleName = "vehicle_" + to_string(i);
+			string scoreText = "Salvager #" + to_string(i+1) + ": " + to_string(gameState->findEntity(vehicleName)->playerProperties->getScore());
 			RenderText(textShader, textVAO, textVBO, scoreText,
 				callback_ptr->xres - (16 * (int)scoreText.size()),
-				callback_ptr->yres - 100.f,
-				0.6f,
-				vec3(0.2, 0.2f, 0.2f),
-				textChars);
-		}
-		if (gameState->findEntity("vehicle_1") != NULL) {
-			scoreText = "Salvager #2: " + to_string(gameState->findEntity("vehicle_1")->playerProperties->getScore());
-			RenderText(textShader, textVAO, textVBO, scoreText,
-				callback_ptr->xres - (16 * (int)scoreText.size()),
-				callback_ptr->yres - 150.f,
-				0.6f,
-				vec3(0.2, 0.2f, 0.2f),
-				textChars);
-		}
-		if (gameState->findEntity("vehicle_2") != NULL) {
-			scoreText = "Salvager #3: " + to_string(gameState->findEntity("vehicle_2")->playerProperties->getScore());
-			RenderText(textShader, textVAO, textVBO, scoreText,
-				callback_ptr->xres - (16 * (int)scoreText.size()),
-				callback_ptr->yres - 200.f,
-				0.6f,
-				vec3(0.2, 0.2f, 0.2f),
-				textChars);
-		}
-		if (gameState->findEntity("vehicle_3") != NULL) {
-			scoreText = "Salvager #4: " + to_string(gameState->findEntity("vehicle_3")->playerProperties->getScore());
-			RenderText(textShader, textVAO, textVBO, scoreText,
-				callback_ptr->xres - (16 * (int)scoreText.size()),
-				callback_ptr->yres - 250.f,
+				callback_ptr->yres - 100.f - (i * 50.f),
 				0.6f,
 				vec3(0.2, 0.2f, 0.2f),
 				textChars);
