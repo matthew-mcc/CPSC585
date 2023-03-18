@@ -58,7 +58,7 @@ int main() {
 
 		// Update Input Drivers
 		xInput.update();
-		callback_ptr->XboxUpdate(xInput, timer);
+		callback_ptr->XboxUpdate(xInput, timer, length(gameState->findEntity("vehicle_0")->transform->getLinearVelocity()));
 
 		// Update Audio Manager
 		audio.Update();

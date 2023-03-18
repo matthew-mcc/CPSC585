@@ -80,14 +80,16 @@ public:
 	float throttle = 0.f;
 	float brake = 0.f;
 	float steer = 0.f;
-	float steer_speed = 0.f;
+	float steer_target = 0.f;
 	float reverse = 0.f;
 	float AirPitch = 0.f;
 	float AirRoll = 0.f;
 
 	// Vehicle Control Parameters
-	float steer_release_speed = 4.0f;
-	float steer_activate_speed = 3.5f;
+	float steer_release_speed = 2.5f;			// Higher = Quicker snap back to neutral steering
+	float steer_activate_speed = 2.0f;			// Higher = Quicker snap to input steer level
+	float steer_speed_sensitivity = 75.f;		// Higher = More responsive at high speeds
+	float min_speed_sensitivity = 0.68f;		// Higher = Less effective speed sensitivity (range [0..1])
 
 	bool boosterrrrr = false;
 
@@ -102,11 +104,11 @@ public:
 
 	// GAMEPAD VEHICLE INPUT
 
-	void XboxUpdate(XboxInput x, Timer* timer) {
+	void XboxUpdate(XboxInput x, Timer* timer, float vehicleSpeed) {
 		if (keys_pressed <= 0) {
 			throttle = x.data.RT / 255.f;
 			brake = x.data.LT / 255.f;
-			steer_speed = -x.data.LThumb_X_direction;
+			steer_target = -x.data.LThumb_X_direction * x.data.LThumb_magnitude;
 			reverse = x.data.LT / 255.f;
 			AirPitch = x.data.LThumb_Y_direction;
 			AirRoll = -x.data.LThumb_X_direction;
@@ -127,13 +129,15 @@ public:
 		float deltaTime = (float)timer->getDeltaTime();
 		
 		// If Steer Speed is near-zero and the steering angle isn't 0, unwind the steering input
-		if (abs(steer_speed) <= 0.01f) {
+		if (abs(steer_target) <= 0.01f) {
 			if (steer < -0.01f) steer = steer + steer_release_speed * deltaTime;
-			if (steer > 0.01f) steer = steer - steer_release_speed * deltaTime;
+			else if (steer > 0.01f) steer = steer - steer_release_speed * deltaTime;
+			else steer = 0.f;
 		}
 		// Otherwise add the steering input to steer
 		else {
-			steer = glm::clamp(steer + steer_speed * steer_activate_speed * deltaTime, -1.f, 1.f);
+			float maxSteer = glm::clamp(1.0f - vehicleSpeed / steer_speed_sensitivity, min_speed_sensitivity, 1.0f);
+			steer = glm::clamp(steer + steer_target * steer_activate_speed * deltaTime, -maxSteer, maxSteer);
 		}
 	}
 };

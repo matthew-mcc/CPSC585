@@ -4,6 +4,7 @@
 
 using namespace std;
 
+// Counters
 int vehiclesSpawned = 0;
 int trailersSpawned = 0;
 
@@ -14,6 +15,9 @@ void GameState::initGameState(AudioManager* audio) {
 	// Landscape
 	e = addEntity("landscape", PhysType::StaticMesh, DrawType::Mesh, new Transform(), vector<string>{
 		"assets/models/landscape1/landscape1.obj"});
+
+	e = addEntity("landscape_background", PhysType::StaticMesh, DrawType::Mesh, new Transform(), vector<string>{
+		"assets/models/landscape1/landscape1_background1.obj"});
 
 	e = addEntity("landscape_detail", PhysType::None, DrawType::Mesh, new Transform(), vector<string>{
 		"assets/models/landscape1/landscape_detail1.obj"});
@@ -42,8 +46,13 @@ void GameState::initGameState(AudioManager* audio) {
 	e = addEntity("platform_center", PhysType::None, DrawType::Mesh, new Transform(), vector<string>{
 		"assets/models/platform1/platform1.obj"});
 
-	e = addEntity("decal_test", PhysType::None, DrawType::Decal, new Transform(), vector<string>{
-		"assets/models/decals/decal1.obj"});
+	// Portal Effect
+	e = addEntity("effect_portal", PhysType::None, DrawType::Decal, new Transform(), vector<string>{
+		"assets/models/effects/effect_portal1.obj"});
+
+	// Decals
+	e = addEntity("decal_tracks", PhysType::None, DrawType::Decal, new Transform(), vector<string>{
+		"assets/models/decals/decal_tracks1.obj"});
 }
 
 Entity* GameState::addEntity(string name, PhysType physType, DrawType drawType, Transform* transform, vector<string> modelPaths) {

@@ -250,7 +250,8 @@ void FBuffer::render(GameState* gameState, std::string mode, vec3 lightPos, std:
 	for (int i = 0; i < gameState->entityList.size(); i++) {
 		// Retrieve global position and rotation
 		//if (gameState->entityList.at(i).name.compare("sky_sphere") == 0) continue;
-		if (gameState->entityList.at(i).drawType != DrawType::Mesh) continue;
+		if (gameState->entityList.at(i).drawType == DrawType::Invisible) continue;
+		if (gameState->entityList.at(i).drawType == DrawType::Decal && mode.compare("c") != 0) continue;
 		if (mode.compare("l") == 0 && gameState->entityList.at(i).name.compare("landscape") == 0) continue;
 
 		vec3 position = gameState->entityList.at(i).transform->getPosition();

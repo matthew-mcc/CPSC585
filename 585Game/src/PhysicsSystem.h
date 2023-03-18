@@ -47,6 +47,24 @@ struct Vehicle {
 	vector<PxD6Joint*> attachedJoints;
 	int AI_State;
 	int AI_CurrTrailerIndex;
+	
+	// Maybe we don't need a map of values, but instead just one personality?
+	/*map<string, float> AI_Personalities = {
+		{"Aggressive", 0.f},
+		{"Defensive", 0.f},
+		{"Optimal", 0.f},
+		{"Reckless", 0.f}
+	};*/
+	string AI_Personality = "Default";
+	/*
+	Potential Personalities:
+	1. Aggressive --> Tries ramming into other players often, and will relentlessly chase players.
+	Might even go for the boxes that other players are trying to get (guess which box they are going for and get it).
+	2. Defensive / Longest Train --> Tries getting at least 10 trailers before dropoff. Will avoid other players on the map
+	to ensure that it can maintain a long train.
+	3. Optimal --> Does a mixture of stealing and drop off that is the "best" way to play the game. Should be the best AI.
+	4. Reckless --> Prioritizes going very fast and flying around the map. Will likely be low scoring but fun to watch.
+	*/
 };
 
 class PhysicsSystem {
@@ -94,11 +112,13 @@ private:
 	void AI_InitSystem();
 	void AI_MoveTo(Vehicle* vehicle, PxVec3 destination);
 	void AI_FindTrailer(Vehicle* vehicle);
-	void AI_CollectTrailer(Vehicle* vehicle);
+	void AI_CollectTrailer(Vehicle* vehicle, PxReal timestep);
 	void AI_DropOff(Vehicle* vehicle);
 	void AI_BumpPlayer(Vehicle* vehicle);
-	void AI_StateController(Vehicle* vehicle);
-	
+	void AI_StateController(Vehicle* vehicle, PxReal timestep);
+	void AI_DetermineAttackPatterns(Vehicle* vehicle, Vehicle* target);
+	void AI_DefensiveManeuvers(Vehicle* self, Vehicle* attacker, PxReal timestep);
+	void AI_ApplyBoost(Vehicle* vehicle);
 };
 
 
