@@ -45,8 +45,13 @@ void GameState::initGameState(AudioManager* audio) {
 	e = addEntity("platform_center", PhysType::None, DrawType::Mesh, new Transform(), vector<string>{
 		"assets/models/platform1/platform1.obj"});
 
-	e = addEntity("decal_test", PhysType::None, DrawType::Decal, new Transform(), vector<string>{
-		"assets/models/decals/decal1.obj"});
+	// Portal Effect
+	e = addEntity("effect_portal", PhysType::None, DrawType::Decal, new Transform(), vector<string>{
+		"assets/models/effects/effect_portal1.obj"});
+
+	// Decals
+	e = addEntity("decal_tracks", PhysType::None, DrawType::Decal, new Transform(), vector<string>{
+		"assets/models/decals/decal_tracks1.obj"});
 }
 
 Entity* GameState::addEntity(string name, PhysType physType, DrawType drawType, Transform* transform, vector<string> modelPaths) {
