@@ -172,20 +172,20 @@ void main(){
 
     float shadow = ShadowCalculation(NearFragPosLightSpace, FarFragPosLightSpace);      // Calculate if point is in shadow
     vec3 light = LightCalculation(shadow);                                              // Calculate light color
-    float outline = OutlineCalculation(OutlineFragPosSpace);                            // Calculate if point is in an outline
-    if (outline > 1.0) outline = 1.0;
+    //float outline = OutlineCalculation(OutlineFragPosSpace);                            // Calculate if point is in an outline
+    //if (outline > 1.0) outline = 1.0;
 
 
     FragColor = vec4(texture(texture_diffuse1, TexCoords).xyz * light, texture(texture_diffuse1, TexCoords).a);
     FragColor = vec4((1.0-depth)*FragColor.xyz + (depth)*fogColor, FragColor.a);
 
-    vec4 FragColorWithOutline;
+    /*vec4 FragColorWithOutline;
     if (outline > 0.0) {
         FragColorWithOutline = vec4(0.0, 0.0, 0.0, 1.0);
         FragColorWithOutline = vec4((1.0-outline)*FragColorWithOutline.xyz + (outline)*fogColor, FragColor.a);
     }
     else FragColorWithOutline = FragColor;
-    FragColor = vec4((1.0-outlineTransparency)*FragColorWithOutline + (outlineTransparency)*FragColor);
+    FragColor = vec4((1.0-outlineTransparency)*FragColorWithOutline + (outlineTransparency)*FragColor);*/
 
     if (length(FragColor.xyz) > length(vec3(0.8, 0.8, 0.8))) BrightColor = vec4(FragColor.xyz / 3.0, FragColor.a);
     else BrightColor = vec4(0.0, 0.0, 0.0, 1.0);

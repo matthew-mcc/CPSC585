@@ -44,8 +44,10 @@ void RenderingSystem::initRenderer() {
 	farShadowMap = FBuffer(16384, 4096, 800.f, 300.f, -700.f, 1000.f);
 	outlineMap = FBuffer(1920, 1080, "o");
 	outlineMapNoLandscape = FBuffer(1920, 1080, "o");
+	outlineToTexture = FBuffer(1920, 1080, "ot");
 	celMap = FBuffer(1920, 1080, "c");
 	blurMap = FBuffer(1920, 1080, "b");
+	intermediateBuffer = FBuffer(1920, 1080, "i");
 
 	// WORLD SHADER INITIALIZATION
 	stbi_set_flip_vertically_on_load(true);
@@ -180,12 +182,41 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> callback
 	nearShadowMap.render(gameState, "s", lightPos, callback_ptr);
 
 	// TOON OUTLINE (Landscape)
+	if (outlineMap.getWidth() != callback_ptr->xres || outlineMap.getHeight() != callback_ptr->yres) {
+		outlineMap = FBuffer(callback_ptr->xres, callback_ptr->yres, "o");
+	}
 	outlineMap.update(projection, view);
 	outlineMap.render(gameState, "t", lightPos, callback_ptr);
 
 	// TOON OUTLINE (Objects)
+	if (outlineMapNoLandscape.getWidth() != callback_ptr->xres || outlineMapNoLandscape.getHeight() != callback_ptr->yres) {
+		outlineMapNoLandscape = FBuffer(callback_ptr->xres, callback_ptr->yres, "o");
+	}
 	outlineMapNoLandscape.update(projection, view);
 	outlineMapNoLandscape.render(gameState, "l", lightPos, callback_ptr);
+
+	// OUTLINE TO TEXTURE
+	if (outlineToTexture.getWidth() != callback_ptr->xres || outlineToTexture.getHeight() != callback_ptr->yres) {
+		outlineToTexture = FBuffer(callback_ptr->xres, callback_ptr->yres, "ot");
+	}
+
+	outlineToTexture.shader.use();
+	outlineToTexture.shader.setInt("outline1", 1);
+	outlineToTexture.shader.setInt("outline2", 2);
+	outlineToTexture.shader.setMat4("projMatrixInv", glm::inverse(projection));
+	outlineToTexture.shader.setMat4("viewMatrixInv", glm::inverse(view));
+	outlineToTexture.shader.setFloat("outlineSensitivity", outlineSensitivity);
+	outlineToTexture.shader.setFloat("fogDepth", fogDepth);
+	outlineToTexture.shader.setVec3("fogColor", fogColor);
+	glBindFramebuffer(GL_FRAMEBUFFER, outlineToTexture.FBO[0]);
+	glDisable(GL_BLEND);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	bindTexture(1, outlineMap.fbTextures[0]);
+	bindTexture(2, outlineMapNoLandscape.fbTextures[0]);
+	outlineToTexture.renderQuad(outlineToTexture.fbTextures[0], 0.1f);
+	glEnable(GL_BLEND);
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	//outlineToTexture.renderToScreen(outlineToTexture.fbTextures[0]);
 
 	// SCENE TO TEXTURE
 	celMap.update(projection, view);
@@ -195,6 +226,18 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> callback
 	bindTexture(4, outlineMapNoLandscape.fbTextures[0]);
 	setCelShaderUniforms(&celMap.shader);
 	celMap.render(gameState, "c", lightPos, callback_ptr);
+
+	glBindFramebuffer(GL_READ_FRAMEBUFFER, celMap.FBO[0]);
+	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, intermediateBuffer.FBO[0]);
+	glReadBuffer(GL_COLOR_ATTACHMENT0);
+	glDrawBuffer(GL_COLOR_ATTACHMENT0);
+	glBlitFramebuffer(0, 0, 1920, 1080, 0, 0, 1920, 1080, GL_COLOR_BUFFER_BIT, GL_NEAREST);
+
+	glReadBuffer(GL_COLOR_ATTACHMENT1);
+	glDrawBuffer(GL_COLOR_ATTACHMENT1);
+	glBlitFramebuffer(0, 0, 1920, 1080, 0, 0, 1920, 1080, GL_COLOR_BUFFER_BIT, GL_NEAREST);
+
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 	//farShadowMap.renderToScreen();		//Uncomment to see the far shadow map (light's perspective, near the car)
 	//nearShadowMap.renderToScreen();		//Uncomment to see the near shadow map (light's perspective, the entire map)
@@ -215,19 +258,24 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> callback
 		blurMap.shader.use();
 		glBindFramebuffer(GL_FRAMEBUFFER, blurMap.FBO[horizontal]);
 		blurMap.shader.setInt("horizontal", horizontal);
-		bindTexture(1, first_iteration ? celMap.fbTextures[1] : blurMap.fbTextures[!horizontal]);
-		blurMap.renderQuad();
+		bindTexture(1, first_iteration ? intermediateBuffer.fbTextures[1] : blurMap.fbTextures[!horizontal]);
+		blurMap.renderQuad(blurMap.fbTextures[0], 0.1f);
 		horizontal = !horizontal;
 		if (first_iteration)
 			first_iteration = false;
 	}
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	
-	bindTexture(1, celMap.fbTextures[0]);
+	bindTexture(1, intermediateBuffer.fbTextures[0]);
 	bindTexture(2, blurMap.fbTextures[0]);
+	bindTexture(3, outlineToTexture.fbTextures[0]);
 
-	celMap.renderToScreen();
+	celMap.debugShader.use();
+	celMap.debugShader.setFloat("outlineTransparency", outlineTransparency);
+	celMap.debugShader.setFloat("outlineBlur", outlineBlur);
+	celMap.renderToScreen(intermediateBuffer.fbTextures[0], 0.1f);
 	//blurMap.renderToScreen();
+	//outlineMap.renderToScreen();
 
 	// SIXTH PASS: GUI RENDER
 	textShader.use();
@@ -314,6 +362,7 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> callback
 	ImGui::SliderFloat("Fog depth", &fogDepth, 0.f, 0.2f);
 	ImGui::SliderFloat("Outline Transparency", &outlineTransparency, 0.f, 1.f);
 	ImGui::SliderFloat("Outline Sensitivity", &outlineSensitivity, 0.f, 50.f);
+	ImGui::SliderFloat("Outline Blur", &outlineBlur, 0.f, 1.f);
 	ImGui::SliderFloat("Min bias", &minBias, 0.0f, 100.f);
 	ImGui::SliderFloat("Max bias", &maxBias, 0.0f, 0.1f);
 

@@ -5,28 +5,77 @@ in vec2 TexCoords;
 
 uniform sampler2D depthMap;
 uniform sampler2D bloomMap;
+uniform sampler2D outlineMap;
 uniform bool isDepth;
 uniform float offset;
+uniform float outlineTransparency;
+uniform float outlineBlur;
 
 uniform float gamma;
 uniform float exposure;
+
+vec4 blur(sampler2D map, vec2 coords) {
+    float offset = outlineBlur / 300.0;
+    vec2 offsets[25] = vec2[](
+        vec2(-2*offset,  2*offset),
+        vec2(-1*offset,  2*offset),
+        vec2(0.0,  2*offset),
+        vec2(1*offset,  2*offset),
+        vec2(2*offset,  2*offset),
+        vec2(-2*offset,  1*offset),
+        vec2(-1*offset,  1*offset),
+        vec2(0.0,  1*offset),
+        vec2(1*offset,  1*offset),
+        vec2(2*offset,  1*offset),
+        vec2(-2*offset,  0.0),
+        vec2(-1*offset,  0.0),
+        vec2(0.0,  0.0),
+        vec2(1*offset,  0.0),
+        vec2(2*offset,  0.0),
+        vec2(-2*offset,  -1*offset),
+        vec2(-1*offset,  -1*offset),
+        vec2(0.0,  -1*offset),
+        vec2(1*offset,  -1*offset),
+        vec2(2*offset,  -1*offset),
+        vec2(-2*offset,  -2*offset),
+        vec2(-1*offset,  -2*offset),
+        vec2(0.0,  -2*offset),
+        vec2(1*offset,  -2*offset),
+        vec2(2*offset,  -2*offset)
+    );
+
+    float kernel[25] = float[](
+        1.0 / 100, 2.0 / 100, 4.0 / 100, 2.0 / 100, 1.0 / 100,
+        2.0 / 100, 4.0 / 100, 8.0 / 100, 4.0 / 100, 2.0 / 100,
+        4.0 / 100, 8.0 / 100, 16.0 / 100, 8.0 / 100, 4.0 / 100,
+        2.0 / 100, 4.0 / 100, 8.0 / 100, 4.0 / 100, 2.0 / 100,
+        1.0 / 100, 2.0 / 100, 4.0 / 100, 2.0 / 100, 1.0 / 100
+    );
+    
+    vec4 sampleTex[25];
+    for(int i = 0; i < 25; i++)
+    {
+        sampleTex[i] = texture(map, coords + offsets[i]);
+    }
+    vec4 col = vec4(0.0);
+    for(int i = 0; i < 25; i++)
+        col += sampleTex[i] * kernel[i];
+    
+    return col;
+}
 
 void main()
 {             
     float depthValue = texture(depthMap, TexCoords).r;
     if (isDepth) FragColor = vec4(vec3(depthValue), 1.0);
     else {
-        vec3 color = texture(depthMap, TexCoords).rgb;      
+        vec3 color = texture(depthMap, TexCoords).rgb;
+        vec4 outlineSample = blur(outlineMap, TexCoords);
+        float outline = outlineSample.a;
+        outline *= outlineTransparency;
+        color = (outline)*(outlineSample.rgb) + (1.0-outline)*color;
         vec3 bloomColor = texture(bloomMap, TexCoords).rgb;
         color += bloomColor; // additive blending
-        // tone mapping
-        /*vec3 result = vec3(1.0) - exp(-color * exposure);
-        // also gamma correct while we're at it       
-        result = pow(result, vec3(1.0 / gamma))
-        FragColor = vec4(result, 1.0);*/
         FragColor = vec4(color, 1.0);
-        
-        
-        //FragColor = vec4(vec3(texture(depthMap, TexCoords)), 1.0);
     }
 }

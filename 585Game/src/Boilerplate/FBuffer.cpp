@@ -19,7 +19,14 @@ FBuffer::FBuffer(int width, int height, std::string mode) {
 	if (mode.compare("o") == 0) {
 		shader = Shader("src/Shaders/shadowVertex.txt", "src/Shaders/shadowFragment.txt");
 		debugShader = Shader("src/Shaders/shadowDebugVertex.txt", "src/Shaders/shadowDebugFragment.txt");
+		debugShader.use();
 		debugShader.setBool("isDepth", true);
+	}
+	else if (mode.compare("ot") == 0) {
+		shader = Shader("src/Shaders/outlineVertex.txt", "src/Shaders/outlineFragment.txt");
+		debugShader = Shader("src/Shaders/shadowDebugVertex.txt", "src/Shaders/shadowDebugFragment.txt");
+		debugShader.use();
+		debugShader.setBool("isDepth", false);
 	}
 	else if (mode.compare("c") == 0) {
 		shader = Shader("src/Shaders/celVertex.txt", "src/Shaders/celFragment.txt");
@@ -28,11 +35,21 @@ FBuffer::FBuffer(int width, int height, std::string mode) {
 		debugShader.setBool("isDepth", false);
 		debugShader.setInt("depthMap", 1);
 		debugShader.setInt("bloomMap", 2);
+		debugShader.setInt("outlineMap", 3);
 	}
 	else if (mode.compare("b") == 0) {
 		shader = Shader("src/Shaders/blurVertex.txt", "src/Shaders/blurFragment.txt");
 		debugShader = Shader("src/Shaders/shadowDebugVertex.txt", "src/Shaders/shadowDebugFragment.txt");
+		debugShader.use();
 		debugShader.setBool("isDepth", false);
+	}
+	else if (mode.compare("i") == 0) {
+		debugShader = Shader("src/Shaders/shadowDebugVertex.txt", "src/Shaders/shadowDebugFragment.txt");
+		debugShader.use();
+		debugShader.setBool("isDepth", false);
+		debugShader.setInt("depthMap", 1);
+		debugShader.setInt("bloomMap", 2);
+		debugShader.setInt("outlineMap", 3);
 	}
 
 	quadVAO = 0;
@@ -62,7 +79,7 @@ void FBuffer::setup(std::string mode) {
 
 	// Generate texture
 	glGenTextures(2, fbTextures);
-	glBindTexture(GL_TEXTURE_2D, fbTextures[0]);
+	if (mode.compare("c") != 0) glBindTexture(GL_TEXTURE_2D, fbTextures[0]);
 
 	// Outline framebuffer
 	if (mode.compare("o") == 0) {
@@ -81,17 +98,32 @@ void FBuffer::setup(std::string mode) {
 		glReadBuffer(GL_NONE);
 	}
 
+	// Outline to texture framebuffer
+	else if (mode.compare("ot") == 0) {
+		glTexImage2D(
+			GL_TEXTURE_2D, 0, GL_RGBA16F, WIDTH, HEIGHT, 0, GL_RGBA, GL_FLOAT, NULL
+		);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+		glFramebufferTexture2D(
+			GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, fbTextures[0], 0
+		);
+	}
+
 	// Cel framebuffer
 	else if (mode.compare("c") == 0) {
+		int samples = 4;
 		for (int i = 0; i < 2; i++) {
-			glBindTexture(GL_TEXTURE_2D, fbTextures[i]);
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB,
-				WIDTH, HEIGHT, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+			glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, fbTextures[i]);
+			glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, samples, GL_RGB,
+				WIDTH, HEIGHT, GL_TRUE);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 			// Attach texture to FBO
 			glBindFramebuffer(GL_FRAMEBUFFER, FBO[0]);
-			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, GL_TEXTURE_2D, fbTextures[i], 0);
+			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, GL_TEXTURE_2D_MULTISAMPLE, fbTextures[i], 0);
 		}
 		unsigned int attachments[2] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1 };
 		glDrawBuffers(2, attachments);
@@ -99,7 +131,7 @@ void FBuffer::setup(std::string mode) {
 		unsigned int rbo;
 		glGenRenderbuffers(1, &rbo);
 		glBindRenderbuffer(GL_RENDERBUFFER, rbo);
-		glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, WIDTH, HEIGHT); // use a single renderbuffer object for both a depth AND stencil buffer.
+		glRenderbufferStorageMultisample(GL_RENDERBUFFER, samples, GL_DEPTH24_STENCIL8, WIDTH, HEIGHT); // use a single renderbuffer object for both a depth AND stencil buffer.
 		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rbo); // now actually attach it
 		// now that we actually created the framebuffer and added all attachments we want to check if it is actually complete now
 		if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
@@ -123,6 +155,21 @@ void FBuffer::setup(std::string mode) {
 				GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, fbTextures[i], 0
 			);
 		}
+	}
+
+	else if (mode.compare("i") == 0) {
+		for (int i = 0; i < 2; i++) {
+			glBindTexture(GL_TEXTURE_2D, fbTextures[i]);
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, WIDTH, HEIGHT, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+			glBindFramebuffer(GL_FRAMEBUFFER, FBO[0]);
+			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, GL_TEXTURE_2D, fbTextures[i], 0);
+		}
+		unsigned int attachments[2] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1 };
+		glDrawBuffers(2, attachments);
+		if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+			std::cout << "ERROR::FRAMEBUFFER:: Framebuffer is not complete!" << std::endl;
 	}
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
@@ -148,10 +195,10 @@ void FBuffer::cleanUp(std::shared_ptr<CallbackInterface> callback_ptr) {
 }
 
 // Draw framebuffer to screen for debug purposes
-void FBuffer::renderToScreen() {
+void FBuffer::renderToScreen(unsigned int texture, float layer) {
 	debugShader.use();
 	glActiveTexture(GL_TEXTURE0);
-	renderQuad();
+	renderQuad(texture, layer);
 }
 
 void FBuffer::ConfigureShaderAndMatrices(glm::vec3 lightPos, glm::vec3 playerPos) {
@@ -162,15 +209,15 @@ void FBuffer::ConfigureShaderAndMatrices(glm::vec3 lightPos, glm::vec3 playerPos
 	lightSpaceMatrix = lightProjection * lightView;
 }
 
-void FBuffer::renderQuad() {
+void FBuffer::renderQuad(unsigned int texture, float layer) {
 	if (quadVAO == 0)
 	{
 		float quadVertices[] = {
 			// positions        // texture Coords
-			-1.0f,  1.0f, 0.1f, 0.0f, 1.0f,
-			-1.0f, -1.0f, 0.1f, 0.0f, 0.0f,
-			 1.0f,  1.0f, 0.1f, 1.0f, 1.0f,
-			 1.0f, -1.0f, 0.1f, 1.0f, 0.0f,
+			-1.0f,  1.0f, layer, 0.0f, 1.0f,
+			-1.0f, -1.0f, layer, 0.0f, 0.0f,
+			 1.0f,  1.0f, layer, 1.0f, 1.0f,
+			 1.0f, -1.0f, layer, 1.0f, 0.0f,
 		};
 		// setup plane VAO
 		glGenVertexArrays(1, &quadVAO);
@@ -184,14 +231,19 @@ void FBuffer::renderQuad() {
 		glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
 	}
 	glBindVertexArray(quadVAO);
-	glBindTexture(GL_TEXTURE_2D, fbTextures[0]);
+	glBindTexture(GL_TEXTURE_2D, texture);
 	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 	glBindVertexArray(0);
 }
 
 void FBuffer::render(GameState* gameState, std::string mode, vec3 lightPos, std::shared_ptr<CallbackInterface> callback_ptr) {
 	glViewport(0, 0, WIDTH, HEIGHT);
-	glBindFramebuffer(GL_FRAMEBUFFER, FBO[0]);
+	/*if (mode.compare("c") == 0) {
+		glBindFramebuffer(GL_READ_FRAMEBUFFER, FBO[0]);
+		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+		glBlitFramebuffer(0, 0, WIDTH, HEIGHT, 0, 0, WIDTH, HEIGHT, GL_COLOR_BUFFER_BIT, GL_NEAREST);
+	}
+	else */glBindFramebuffer(GL_FRAMEBUFFER, FBO[0]);
 	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 	glActiveTexture(GL_TEXTURE0);
 	glCullFace(GL_FRONT);
@@ -236,7 +288,7 @@ void FBuffer::render(GameState* gameState, std::string mode, vec3 lightPos, std:
 	glCullFace(GL_BACK);
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glViewport(0, 0, callback_ptr->xres, callback_ptr->yres);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	//glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 
 float FBuffer::getWidth() {
