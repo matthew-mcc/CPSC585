@@ -131,7 +131,8 @@ public:
 		// If Steer Speed is near-zero and the steering angle isn't 0, unwind the steering input
 		if (abs(steer_target) <= 0.01f) {
 			if (steer < -0.01f) steer = steer + steer_release_speed * deltaTime;
-			if (steer > 0.01f) steer = steer - steer_release_speed * deltaTime;
+			else if (steer > 0.01f) steer = steer - steer_release_speed * deltaTime;
+			else steer = 0.f;
 		}
 		// Otherwise add the steering input to steer
 		else {
