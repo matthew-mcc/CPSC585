@@ -885,12 +885,17 @@ void PhysicsSystem::stepPhysics(shared_ptr<CallbackInterface> callback_ptr, Time
 			gameState->entityList.at(i).nbChildEntities = vehicles.at(vehicleIndex)->attachedTrailers.size();
 
 			// Local Wheel Transforms
-			for (int j = 1; j < entityList.at(i).localTransforms.size(); j++) {
-				p = toGLMVec3(vehicles.at(vehicleIndex)->vehicle.mPhysXState.physxActor.wheelShapes[j - 1]->getLocalPose().p);
-				q = toGLMQuat(vehicles.at(vehicleIndex)->vehicle.mPhysXState.physxActor.wheelShapes[j - 1]->getLocalPose().q);
+			for (int j = 2; j < entityList.at(i).localTransforms.size(); j++) {
+				p = toGLMVec3(vehicles.at(vehicleIndex)->vehicle.mPhysXState.physxActor.wheelShapes[j - 2]->getLocalPose().p);
+				q = toGLMQuat(vehicles.at(vehicleIndex)->vehicle.mPhysXState.physxActor.wheelShapes[j - 2]->getLocalPose().q);
 				entityList.at(i).localTransforms.at(j)->setPosition(p);
 				entityList.at(i).localTransforms.at(j)->setRotation(q);
 			}
+
+			// Fan Rotation
+			vec3 rot(0.0f, 0.0f, 6.0f * timer->getDeltaTime());
+			entityList.at(i).localTransforms.at(1)->setRotation(normalize(entityList.at(i).localTransforms.at(1)->getRotation() * quat(rot)));
+
 			vehicleIndex++;
 		}
 	}

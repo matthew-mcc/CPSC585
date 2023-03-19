@@ -132,14 +132,16 @@ Entity* GameState::spawnTrailer() {
 
 Entity* GameState::spawnVehicle() {
 	string name = "vehicle_" + to_string(vehiclesSpawned);
-	addEntity(name, PhysType::Vehicle, DrawType::Mesh, new Transform(), vector<string>{
+	Entity* vehicle = addEntity(name, PhysType::Vehicle, DrawType::Mesh, new Transform(), vector<string>{
 		"assets/models/truck1/truck1.obj",
+		"assets/models/truck1/truck1_fan1.obj",
 		"assets/models/tire1/tire1_front2.obj",
 		"assets/models/tire1/tire1_front1.obj",
 		"assets/models/tire1/tire1_back2.obj",
 		"assets/models/tire1/tire1_back1.obj",
 		"assets/models/tire1/tire1_back1.obj",
 		"assets/models/tire1/tire1_back2.obj"});
+	vehicle->localTransforms.at(1)->setPosition(vec3(0.f, 1.2879f, -0.82054f));
 	vehiclesSpawned++;
 }
 
