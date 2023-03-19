@@ -158,6 +158,15 @@ Trailer* PhysicsSystem::getTrailerObject(PxRigidDynamic* trailerBody) {
 	return NULL;
 }
 
+Vehicle* PhysicsSystem::getVehicleObject(PxRigidDynamic* vehicleBody) {
+	for (int i = 0; i < vehicles.size(); i++) {
+		if (vehicles.at(i)->vehicle.mPhysXState.physxActor.rigidBody == vehicleBody) {
+			return vehicles.at(i);
+		}
+	}
+	return NULL;
+}
+
 void PhysicsSystem::updateJointLimits(Vehicle* vehicle) {
 	for (int i = 0; i < vehicle->attachedJoints.size(); i++) {
 		if (i == vehicle->attachedJoints.size() - 1) {
@@ -194,19 +203,17 @@ void PhysicsSystem::processTrailerCollision() {
 		for (int i = 0; i < vehicles.size(); i++) {
 			if (vehicles.at(i)->vehicle.mPhysXState.physxActor.rigidBody == gContactReportCallback->contactPair.actors[1]) {
 				// Find vehicle that is pulling the trailer (if one exists)
+				// If the pulling vehicle and colliding vehicle are different, detach from old vehicle, then attach to the colliding vehicle
 				Vehicle* pullingVehicle = getPullingVehicle(trailer);
-				// If a pulling vehicle exists, detach the trailer
-				if (pullingVehicle != NULL) {
-					detachTrailer(trailer, pullingVehicle);
-					// If the pulling vehicle and colliding vehicle are different, attach the trailer to the colliding vehicle
-					if (pullingVehicle != vehicles.at(i)) {
-						attachTrailer(trailer, vehicles.at(i));
-					}
+				if (pullingVehicle != NULL && pullingVehicle != vehicles.at(i)) {
+					detachTrailer(trailer, pullingVehicle, vehicles.at(i));
+					attachTrailer(trailer, vehicles.at(i));
 					return;
 				}
 				// Otherwise if no pulling vehicle exists, simply attach trailer to colliding vehicle
 				else {
 					attachTrailer(trailer, vehicles.at(i));
+					return;
 				}
 			}
 		}
@@ -277,6 +284,7 @@ void PhysicsSystem::attachTrailer(Trailer* trailer, Vehicle* vehicle) {
 
 	// Add new trailer to attachedTrailers tracking list, update flags
 	trailer->isTowed = true;
+	trailer->vaccuumTarget = NULL;
 	vehicle->attachedTrailers.push_back(trailer);
 	vehicle->attachedJoints.push_back(joint);
 	updateJointLimits(vehicle);
@@ -294,7 +302,7 @@ void PhysicsSystem::attachTrailer(Trailer* trailer, Vehicle* vehicle) {
 	gameState->audio_ptr->Latch(vehiclePos);
 }
 
-void PhysicsSystem::detachTrailer(Trailer* trailer, Vehicle* vehicle) {
+void PhysicsSystem::detachTrailer(Trailer* trailer, Vehicle* vehicle, Vehicle* vaccuumTarget) {
 	// Init local vars
 	int breakPoint = 0;
 	vector<PxD6Joint*> newJoints;
@@ -315,6 +323,7 @@ void PhysicsSystem::detachTrailer(Trailer* trailer, Vehicle* vehicle) {
 	for (int i = vehicle->attachedTrailers.size() - 1; i >= breakPoint; i--) {
 		vehicle->attachedJoints.at(i)->release();
 		vehicle->attachedTrailers.at(i)->isTowed = false;
+		vehicle->attachedTrailers.at(i)->vaccuumTarget = vaccuumTarget;
 		vehicle->attachedTrailers.at(i)->rigidBody->setAngularDamping(1);
 		vehicle->attachedTrailers.at(i)->rigidBody->setLinearDamping(1);
 		changeRigidDynamicShape(vehicle->attachedTrailers.at(i)->rigidBody, detachedTrailerShape);
@@ -383,9 +392,9 @@ glm::vec3 PhysicsSystem::CameraRaycasting(glm::vec3 campos,float distance) {
 	}*/
 }
 
-void PhysicsSystem::RoundFly(float deltaTime) {
+void PhysicsSystem::trailerForces(float deltaTime) {
 	for (int i = 0; i < trailers.size(); i++) {
-		// Only apply forces to trailers with the isFlying flag set to true
+		// PORTAL SPINNING FORCE
 		if (trailers.at(i)->isFlying) {
 			PxVec3 dir = (PxVec3(0.0f, 0.0f, 32.0f) - trailers.at(i)->rigidBody->getGlobalPose().p);
 			dir = 3.0f * (dir / dir.magnitude());
@@ -409,6 +418,13 @@ void PhysicsSystem::RoundFly(float deltaTime) {
 			// but we need to make the process reasonable slow that play can feel trailers are gradually pulling together rather than immediately.
 			trailers.at(i)->rigidBody->addForce(dir * coffi2 * deltaTime * 100.f, PxForceMode().eVELOCITY_CHANGE);
 			trailers.at(i)->rigidBody->addForce(PxVec3(-sinf(glm::radians(circle + i * 55)) * coffi, 0.5f, cosf(glm::radians(circle + i * 55)) * coffi) * deltaTime * 100.f, PxForceMode().eVELOCITY_CHANGE);
+		}
+
+		// STOLEN TRAILER VACCUUM FORCE
+		else if (trailers.at(i)->vaccuumTarget != NULL) {
+			PxVec3 target = trailers.at(i)->vaccuumTarget->vehicle.mPhysXState.physxActor.rigidBody->getGlobalPose().p;
+			PxVec3 position = trailers.at(i)->rigidBody->getGlobalPose().p;
+			trailers.at(i)->rigidBody->addForce((target - position).getNormalized() * deltaTime * 250.0f, PxForceMode().eVELOCITY_CHANGE);
 		}
 	}
 }
@@ -751,12 +767,14 @@ void PhysicsSystem::stepPhysics(shared_ptr<CallbackInterface> callback_ptr, Time
 		std::cout << "====================================" << std::endl;
 	}
 
-	// Spinning motion for dropped off trailers
-	RoundFly(timestep);
+	// Apply trailer forces
+		// Spinning motion for dropped off trailers
+		// Vaccuum effect for stolen trailers
+	trailerForces(timestep);
 	if (circle > 360) circle = 0;
 	else circle++;
 
-	// Reset collected trailers that have risen to a high enough height
+	// Reset collected trailers that have risen to a tall enough height
 	resetCollectedTrailers();
 
 	// Store entity list

@@ -32,9 +32,12 @@ using namespace std;
 #define shape5 16
 #define shape6 32*/
 
+struct Trailer;
+struct Vehicle;
 
 struct Trailer {
 	PxRigidDynamic* rigidBody;
+	Vehicle* vaccuumTarget;
 	int entityIndex;
 	bool isFlying = false;
 	bool isTowed = false;
@@ -94,13 +97,14 @@ private:
 	void updateJointLimits(Vehicle* vehicle);
 	void changeRigidDynamicShape(PxRigidDynamic* rigidBody, PxBoxGeometry newGeom);
 	Trailer* getTrailerObject(PxRigidDynamic* trailerBody);
+	Vehicle* getVehicleObject(PxRigidDynamic* vehicleBody);
 	int getVehicleIndex(Vehicle* vehicle);
 	Vehicle* getPullingVehicle(Trailer* trailer);
 	void attachTrailer(Trailer* trailer, Vehicle* vehicle);
-	void detachTrailer(Trailer* trailer, Vehicle* vehicle);
+	void detachTrailer(Trailer* trailer, Vehicle* vehicle, Vehicle* vaccuumTarget);
 	void dropOffTrailer(Vehicle* vehicle);
 	void resetCollectedTrailers();
-	void RoundFly(float deltaTime);
+	void trailerForces(float deltaTime);
 	GameState* gameState;
 	AiController* aiController;
 	int spawnedTrailers = 0;
