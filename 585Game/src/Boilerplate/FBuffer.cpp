@@ -64,7 +64,7 @@ FBuffer::FBuffer(unsigned int width, unsigned int height, float x, float y, floa
 	nearPlane = near_plane;
 	farPlane = far_plane;
 
-	setup("o");
+	setup("s");
 
 	shader = Shader("src/Shaders/shadowVertex.txt", "src/Shaders/shadowFragment.txt");
 	debugShader = Shader("src/Shaders/shadowDebugVertex.txt", "src/Shaders/shadowDebugFragment.txt");
@@ -81,8 +81,28 @@ void FBuffer::setup(std::string mode) {
 	glGenTextures(2, fbTextures);
 	if (mode.compare("c") != 0) glBindTexture(GL_TEXTURE_2D, fbTextures[0]);
 
+	// Shadow framebuffer
+	if (mode.compare("s") == 0) {
+		for (int i = 0; i < 2; i++) {
+			glBindFramebuffer(GL_FRAMEBUFFER, FBO[i]);
+			glBindTexture(GL_TEXTURE_2D, fbTextures[i]);
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT,
+				WIDTH, HEIGHT, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+			float borderColor[] = { 1.0, 1.0, 1.0, 1.0 };
+			glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);
+			// Attach texture to FBO
+			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, fbTextures[i], 0);
+			glDrawBuffer(GL_NONE);
+			glReadBuffer(GL_NONE);
+		}
+	}
+
 	// Outline framebuffer
-	if (mode.compare("o") == 0) {
+	else if (mode.compare("o") == 0) {
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT,
 		WIDTH, HEIGHT, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
@@ -249,54 +269,63 @@ void FBuffer::renderQuad(unsigned int texture, float layer, float x0, float y0, 
 
 void FBuffer::render(GameState* gameState, std::string mode, vec3 lightPos, std::shared_ptr<CallbackInterface> callback_ptr) {
 	glViewport(0, 0, WIDTH, HEIGHT);
-	/*if (mode.compare("c") == 0) {
-		glBindFramebuffer(GL_READ_FRAMEBUFFER, FBO[0]);
-		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
-		glBlitFramebuffer(0, 0, WIDTH, HEIGHT, 0, 0, WIDTH, HEIGHT, GL_COLOR_BUFFER_BIT, GL_NEAREST);
-	}
-	else */glBindFramebuffer(GL_FRAMEBUFFER, FBO[0]);
-	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
-	glActiveTexture(GL_TEXTURE0);
-	glCullFace(GL_FRONT);
-	for (int i = 0; i < gameState->entityList.size(); i++) {
-		// Retrieve global position and rotation
-		//if (gameState->entityList.at(i).name.compare("sky_sphere") == 0) continue;
-		if (gameState->entityList.at(i).drawType == DrawType::Invisible) continue;
-		if (gameState->entityList.at(i).drawType == DrawType::Decal && mode.compare("c") != 0) continue;
-		if (mode.compare("l") == 0 && gameState->entityList.at(i).name.compare("landscape") == 0) continue;
+	int buffers = 1;
+	if (mode.compare("s") == 0) buffers++;
+	for (int fbo = 0; fbo < buffers; fbo++) {
+		glBindFramebuffer(GL_FRAMEBUFFER, FBO[fbo]);
+		glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
+		glActiveTexture(GL_TEXTURE0);
+		glCullFace(GL_FRONT);
+		for (int i = 0; i < gameState->entityList.size(); i++) {
+			// Retrieve global position and rotation
+			//if (gameState->entityList.at(i).name.compare("sky_sphere") == 0) continue;
+			if (gameState->entityList.at(i).drawType == DrawType::Invisible) continue;
+			if (gameState->entityList.at(i).drawType == DrawType::Decal && mode.compare("c") != 0) continue;
+			if (mode.compare("l") == 0 && gameState->entityList.at(i).name.compare("landscape") == 0) continue;
+			if (mode.compare("s") == 0 && fbo == 1 && (gameState->entityList.at(i).name.compare("landscape") == 0 || gameState->entityList.at(i).name.compare("landscape_background") == 0 || gameState->entityList.at(i).name.compare("oil_rigs") == 0)) continue;
 
-		vec3 position = gameState->entityList.at(i).transform->getPosition();
-		quat rotation = gameState->entityList.at(i).transform->getRotation();
+			vec3 position = gameState->entityList.at(i).transform->getPosition();
+			quat rotation = gameState->entityList.at(i).transform->getRotation();
 
-		// Retrieve local positions and rotations of submeshes
-		for (int j = 0; j < gameState->entityList.at(i).localTransforms.size(); j++) {
-			vec3 localPosition = gameState->entityList.at(i).localTransforms.at(j)->getPosition();
-			quat localRotation = gameState->entityList.at(i).localTransforms.at(j)->getRotation();
+			// Retrieve local positions and rotations of submeshes
+			for (int j = 0; j < gameState->entityList.at(i).localTransforms.size(); j++) {
+				vec3 localPosition = gameState->entityList.at(i).localTransforms.at(j)->getPosition();
+				quat localRotation = gameState->entityList.at(i).localTransforms.at(j)->getRotation();
 
-			// Set model matrix
-			glm::mat4 model = mat4(1.0f);
-			model = translate(model, position);
-			model = model * toMat4(rotation);
-			model = translate(model, localPosition);
-			model = model * toMat4(localRotation);
-			model = scale(model, vec3(1.0f));
-			shader.setMat4("model", model);
+				// Set model matrix
+				glm::mat4 model = mat4(1.0f);
+				model = translate(model, position);
+				model = model * toMat4(rotation);
+				model = translate(model, localPosition);
+				model = model * toMat4(localRotation);
+				model = scale(model, vec3(1.0f));
+				shader.setMat4("model", model);
 
-			if (mode.compare("c") == 0) {
-				// Update relative light position
-				quat lightRotation = rotation;
-				quat localLightRotation = localRotation;
-				lightRotation.w *= -1.f;
-				localLightRotation *= -1.f;
-				vec3 newLight = (vec3)(toMat4(lightRotation) * vec4(lightPos, 0.f) * toMat4(localLightRotation));
-				shader.setVec3("sun", newLight);
+				if (mode.compare("c") == 0) {
+					// Update relative light position
+					quat lightRotation = rotation;
+					quat localLightRotation = localRotation;
+					lightRotation.w *= -1.f;
+					localLightRotation *= -1.f;
+					vec3 newLight = (vec3)(toMat4(lightRotation) * vec4(lightPos, 0.f) * toMat4(localLightRotation));
+					shader.setVec3("sun", newLight);
+					if (gameState->entityList.at(i).name.compare("landscape") == 0) {
+						//shader.setBool("renderingLand", true);
+						shader.setFloat("maxBias", 0.006f);
+					}
+					else {
+						shader.setBool("renderingLand", false);
+						shader.setFloat("maxBias", 0.002f);
+					}
+				}
+
+				// Draw model's meshes
+				gameState->entityList.at(i).model->meshes.at(j).Draw(shader);
 			}
-
-			// Draw model's meshes
-			gameState->entityList.at(i).model->meshes.at(j).Draw(shader);
 		}
+		glCullFace(GL_BACK);
 	}
-	glCullFace(GL_BACK);
+
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glViewport(0, 0, callback_ptr->xres, callback_ptr->yres);
 	//glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);

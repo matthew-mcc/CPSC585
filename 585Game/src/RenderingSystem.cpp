@@ -228,6 +228,8 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> cbp, Gam
 	bindTexture(2, farShadowMap.fbTextures[0]);
 	bindTexture(3, outlineMap.fbTextures[0]);
 	bindTexture(4, outlineMapNoLandscape.fbTextures[0]);
+	bindTexture(5, nearShadowMap.fbTextures[1]);
+	bindTexture(6, farShadowMap.fbTextures[1]);
 	setCelShaderUniforms(&celMap.shader);
 	celMap.render(gameState, "c", lightPos, callback_ptr);
 
@@ -368,8 +370,8 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> cbp, Gam
 	ImGui::SliderFloat("Outline Transparency", &outlineTransparency, 0.f, 1.f);
 	ImGui::SliderFloat("Outline Sensitivity", &outlineSensitivity, 0.f, 50.f);
 	ImGui::SliderFloat("Outline Blur", &outlineBlur, 0.f, 1.f);
-	ImGui::SliderFloat("Min bias", &minBias, 0.0f, 100.f);
-	ImGui::SliderFloat("Max bias", &maxBias, 0.0f, 0.1f);
+	ImGui::SliderFloat("Min bias", &minBias, 0.0f, 0.5f);
+	ImGui::SliderFloat("Max bias", &maxBias, 0.0f, 0.5f);
 
 	ImGui::Text("Camera Parameters");
 	ImGui::SliderFloat("Camera Position Forward", &camera_position_forward, -200.f, 200.f);
@@ -423,6 +425,8 @@ void RenderingSystem::setCelShaderUniforms(Shader* shader) {
 	(*shader).setInt("farShadowMap", 2);
 	(*shader).setInt("outlineMap", 3);
 	(*shader).setInt("outlineMapNoLandscape", 4);
+	(*shader).setInt("nearShadowMap2", 5);
+	(*shader).setInt("farShadowMap2", 6);
 
 	(*shader).setVec3("lightColor", lightColor);
 	(*shader).setVec3("shadowColor", shadowColor);
