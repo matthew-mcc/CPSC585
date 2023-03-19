@@ -636,6 +636,7 @@
     <ClInclude Include="src\PlayerProperties.h" />
   </ItemGroup>
   <ItemGroup>
+    <Image Include="assets\textures\alien.png" />
     <Image Include="assets\textures\container.jpg" />
     <Image Include="assets\textures\nice.jpg" />
   </ItemGroup>

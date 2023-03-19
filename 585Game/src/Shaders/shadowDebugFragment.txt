@@ -7,6 +7,7 @@ uniform sampler2D depthMap;
 uniform sampler2D bloomMap;
 uniform sampler2D outlineMap;
 uniform bool isDepth;
+uniform bool UI;
 uniform float offset;
 uniform float outlineTransparency;
 uniform float outlineBlur;
@@ -68,6 +69,9 @@ void main()
 {             
     float depthValue = texture(depthMap, TexCoords).r;
     if (isDepth) FragColor = vec4(vec3(depthValue), 1.0);
+    else if (UI) {
+        FragColor = texture(depthMap, TexCoords);
+    }
     else {
         vec3 color = texture(depthMap, TexCoords).rgb;
         vec4 outlineSample = blur(outlineMap, TexCoords);

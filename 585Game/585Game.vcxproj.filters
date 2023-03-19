@@ -1454,6 +1454,9 @@
     <Image Include="assets\textures\nice.jpg">
       <Filter>Resource Files</Filter>
     </Image>
+    <Image Include="assets\textures\alien.png">
+      <Filter>Resource Files</Filter>
+    </Image>
   </ItemGroup>
   <ItemGroup>
     <Font Include="assets\fonts\arial.ttf" />

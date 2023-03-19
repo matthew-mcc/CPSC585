@@ -33,6 +33,9 @@ public:
 private:
 	void setCelShaderUniforms(Shader* shader);
 	void bindTexture(int location, unsigned int texture);
+	void drawUI(unsigned int texture, float x0, float y0, float x1, float y1);
+
+	std::shared_ptr<CallbackInterface> callback_ptr;
 
 	// Frame buffers
 	FBuffer nearShadowMap;
@@ -43,6 +46,9 @@ private:
 	FBuffer celMap;
 	FBuffer blurMap;
 	FBuffer intermediateBuffer;
+
+	// UI Textures
+	unsigned int testTexture;
 
 	// Shaders
 	Shader textShader;

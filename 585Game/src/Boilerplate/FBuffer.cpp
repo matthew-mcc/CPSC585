@@ -197,6 +197,7 @@ void FBuffer::cleanUp(std::shared_ptr<CallbackInterface> callback_ptr) {
 // Draw framebuffer to screen for debug purposes
 void FBuffer::renderToScreen(unsigned int texture, float layer) {
 	debugShader.use();
+	debugShader.setBool("UI", false);
 	glActiveTexture(GL_TEXTURE0);
 	renderQuad(texture, layer);
 }
@@ -210,15 +211,19 @@ void FBuffer::ConfigureShaderAndMatrices(glm::vec3 lightPos, glm::vec3 playerPos
 }
 
 void FBuffer::renderQuad(unsigned int texture, float layer) {
+	renderQuad(texture, layer, -1.0, 1.0, 1.0, -1.0);
+}
+
+void FBuffer::renderQuad(unsigned int texture, float layer, float x0, float y0, float x1, float y1) {
+	float quadVertices[] = {
+		// positions        // texture Coords
+		x0, y0, layer, 0.0f, 1.0f,	// Top left
+		x0, y1, layer, 0.0f, 0.0f,	// Bottom Left
+		x1, y0, layer, 1.0f, 1.0f,	// Top Right
+		x1, y1, layer, 1.0f, 0.0f,	// Bottom right
+	};
 	if (quadVAO == 0)
 	{
-		float quadVertices[] = {
-			// positions        // texture Coords
-			-1.0f,  1.0f, layer, 0.0f, 1.0f,
-			-1.0f, -1.0f, layer, 0.0f, 0.0f,
-			 1.0f,  1.0f, layer, 1.0f, 1.0f,
-			 1.0f, -1.0f, layer, 1.0f, 0.0f,
-		};
 		// setup plane VAO
 		glGenVertexArrays(1, &quadVAO);
 		glGenBuffers(1, &quadVBO);
@@ -231,6 +236,12 @@ void FBuffer::renderQuad(unsigned int texture, float layer) {
 		glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
 	}
 	glBindVertexArray(quadVAO);
+	glBindBuffer(GL_ARRAY_BUFFER, quadVBO);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), &quadVertices, GL_STATIC_DRAW);
+	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
+	glEnableVertexAttribArray(1);
+	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
 	glBindTexture(GL_TEXTURE_2D, texture);
 	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 	glBindVertexArray(0);

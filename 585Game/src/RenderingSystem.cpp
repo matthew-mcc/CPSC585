@@ -7,6 +7,7 @@
 #include <gtc/type_ptr.hpp>
 #include <gtc/matrix_transform.hpp>
 #include <Boilerplate/stb_image.h>
+#include <Boilerplate/Texture.h>
 #include "imgui.h"
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_opengl3.h"
@@ -49,6 +50,8 @@ void RenderingSystem::initRenderer() {
 	blurMap = FBuffer(1920, 1080, "b");
 	intermediateBuffer = FBuffer(1920, 1080, "i");
 
+	testTexture = generateTexture("assets/textures/alien.png", false);
+
 	// WORLD SHADER INITIALIZATION
 	stbi_set_flip_vertically_on_load(true);
 	celShader = Shader("src/Shaders/celVertex.txt", "src/Shaders/celFragment.txt");
@@ -72,7 +75,8 @@ void resetValue(float &target, float range, float desireValue,float speed,float 
 
 //float timeTorset = 0.f;
 // Update Renderer
-void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> callback_ptr, GameState* gameState, Timer* timer) {
+void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> cbp, GameState* gameState, Timer* timer) {
+	callback_ptr = cbp;
 	// BACKGROUND
 	glClearColor(skyColor.r, skyColor.g, skyColor.b, 1.0f);	// Set Background (Sky) Color
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -306,6 +310,7 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> callback
 
 	// Normal Gameplay Screen
 	else {
+		drawUI(testTexture, callback_ptr->xres - 300.f, 30.f, callback_ptr->xres - 30.f, 300.f);
 		// Display game timer / countdown
 		std::string timerMins = std::to_string(abs(timer->getCountdownMins()));
 		std::string timerSeconds = std::to_string(abs(timer->getCountdownSecs()));
@@ -437,4 +442,15 @@ void RenderingSystem::bindTexture(int location, unsigned int texture) {
 	glActiveTexture(GL_TEXTURE0 + location);
 	glBindTexture(GL_TEXTURE_2D, texture);
 	glActiveTexture(GL_TEXTURE0);
+}
+
+void RenderingSystem::drawUI(unsigned int texture, float x0, float y0, float x1, float y1) {
+	x0 /= callback_ptr->xres; x0 *= 2.f; x0 -= 1.f;
+	y0 /= callback_ptr->yres; y0 *= 2.f; y0 -= 1.f;
+	x1 /= callback_ptr->xres; x1 *= 2.f; x1 -= 1.f;
+	y1 /= callback_ptr->yres; y1 *= 2.f; y1 -= 1.f;
+	celMap.debugShader.use();
+	celMap.debugShader.setBool("UI", true);
+	bindTexture(1, testTexture);
+	celMap.renderQuad(testTexture, 0.05f, x0, y0, x1, y1);
 }
