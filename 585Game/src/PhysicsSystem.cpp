@@ -1,3 +1,5 @@
+#define _USE_MATH_DEFINES
+
 #include <ctype.h>
 #include "PxPhysicsAPI.h"
 #include "vehicle2/PxVehicleAPI.h"
@@ -11,6 +13,7 @@
 #include <stdlib.h>
 #include <time.h> 
 #include <map>
+#include <math.h>
 
 //PhysX management class instances.
 PxDefaultAllocator gAllocator;
@@ -106,10 +109,24 @@ quat toGLMQuat(PxQuat pxTransform) {
 }
 
 PxVec3 PhysicsSystem::randomSpawnPosition() {
-	int max = 250;
-	int min = -250;
-	int range = max - min + 1;
-	return PxVec3(rand() % range + min, 60.f, rand() % range + min);
+	// Iterate until desirable location is found
+	while (true) {
+		// radius = distance from circle center
+		// If smaller than 45.0, try again (otherwise location will be inside portal)
+		float radius = 250.f * sqrt(((float)rand()) / (RAND_MAX));
+		if (radius < 45.f) continue;
+
+		// angle = rotation around circle
+		float angle = ((float)rand() / (RAND_MAX)) * 2 * M_PI;
+
+		// x = x coordinate of point in circle
+		// y = y coordinate of point in circle (offset by 32.0 due to portal location)
+		float x = 0.0f + radius * cos(angle);
+		float z = 32.f + radius * sin(angle);
+
+		// Return final location
+		return PxVec3(x, 60.f, z);
+	}
 }
 
 int PhysicsSystem::getVehicleIndex(Vehicle* vehicle) {
@@ -761,7 +778,12 @@ void PhysicsSystem::stepPhysics(shared_ptr<CallbackInterface> callback_ptr, Time
 		vehicles.at(i)->vehicle.step(timestep, gVehicleSimulationContext);
 
 		// Trailer dropoff detection
-		if (vehicle_transform.p.x < 24 && vehicle_transform.p.x > -24 && vehicle_transform.p.z < 56 && vehicle_transform.p.z > 8) {
+		// (x - circle_x)^2 + (z - circle_z)^2 <= r^2
+		// Where:
+			// r = 30.0
+			// circle_x = 0.0
+			// circle_z = 32.0
+		if (vehicle_transform.p.x * vehicle_transform.p.x + (vehicle_transform.p.z - 32.f) * (vehicle_transform.p.z - 32.f) <= 900.f){
 			if (vehicles.at(i)->attachedTrailers.size() > 0) {
 				dropOffTrailer(vehicles.at(i));
 
@@ -947,9 +969,9 @@ void PhysicsSystem::stepPhysics(shared_ptr<CallbackInterface> callback_ptr, Time
 
 }
 
-
+// Physics ^
 // ====================================================================================================================
-
+// AI
 
 void PhysicsSystem::AI_StateController(Vehicle* vehicle, PxReal timestep) {
 	

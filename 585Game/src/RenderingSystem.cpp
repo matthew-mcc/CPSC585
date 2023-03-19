@@ -297,7 +297,6 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> cbp, Gam
 		if (!gameState->winner == NULL) {
 			string winnerNum(1, gameState->winner->name.back());
 			winnerNum = to_string(stoi(winnerNum) + 1);
-			std::cout << winnerNum << "\n";
 			winnerText = "Salvager #" + winnerNum + " Wins!";
 		}
 		RenderText(textShader, textVAO, textVBO, winnerText,
