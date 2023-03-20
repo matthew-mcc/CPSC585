@@ -54,6 +54,9 @@ private:
 	// UI Textures
 	unsigned int testTexture;
 	unsigned int orbTexture;
+	unsigned int boostBlue;
+	unsigned int boostOrange;
+	unsigned int boostGrey;
 
 	// Shaders
 	Shader textShader;

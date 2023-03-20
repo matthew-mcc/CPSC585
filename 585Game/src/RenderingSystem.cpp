@@ -41,6 +41,9 @@ void RenderingSystem::initRenderer() {
 
 	testTexture = generateTexture("assets/textures/alien.png", false);
 	orbTexture = generateTexture("assets/textures/orb.png", false);
+	boostBlue = generateTexture("assets/textures/boostBlue.png", false);
+	boostGrey = generateTexture("assets/textures/boostGrey.png", false);
+	boostOrange = generateTexture("assets/textures/boostOrange.png", false);
 
 	// PARTICLE SYSTEM INITIALIZATIONS
 	particleShader = Shader("src/Shaders/particleVertex.txt", "src/Shaders/particleFragment.txt");
@@ -325,7 +328,29 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> cbp, Gam
 
 	// Normal Gameplay Screen
 	else {
-		drawUI(testTexture, callback_ptr->xres - 300.f, 30.f, callback_ptr->xres - 30.f, 300.f);
+		//drawUI(testTexture, callback_ptr->xres - 300.f, 30.f, callback_ptr->xres - 30.f, 300.f);
+
+		// Boost meter
+		for (int i = 0; i < 10; i++) {
+			int boost_meter = (int)gameState->findEntity("vehicle_0")->playerProperties->boost_meter;
+			int offset = 50 * i;
+			int boostoffset = 10 * i;
+
+			if (boost_meter > boostoffset && i < 8) {
+				drawUI(boostBlue, 50.0f + offset, 50.f, 100.0f + offset, 100.f);
+			}
+			else if (boost_meter > boostoffset) {
+				drawUI(boostOrange, 50.0f + offset, 50.f, 100.0f + offset, 100.f);
+			}
+			else {
+				drawUI(boostGrey, 50.0f + offset, 50.f, 100.0f + offset, 100.f);
+			}
+
+		}
+
+		//drawUI(boostBlue, callback_ptr->xres - 1800.f, 30.f, callback_ptr->xres - 1730.f, 100.f);
+
+
 		// Display game timer / countdown
 		std::string timerMins = std::to_string(abs(timer->getCountdownMins()));
 		std::string timerSeconds = std::to_string(abs(timer->getCountdownSecs()));
@@ -347,12 +372,14 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> cbp, Gam
 			vec3(0.2, 0.2f, 0.2f),
 			textChars);
 
-		// Display boost meter
+		// Display boost meter - deprecated
+		/*
 		RenderText(textShader, textVAO, textVBO, "Boost Meter: " + to_string((int)playerEntity->playerProperties->boost_meter),
 			20,
 			40, 0.6f,
 			vec3(0.2, 0.2f, 0.2f),
 			textChars);
+		*/
 
 		// Display player scores
 		for (int i = 0; i < gameState->numVehicles; i++) {
@@ -468,6 +495,6 @@ void RenderingSystem::drawUI(unsigned int texture, float x0, float y0, float x1,
 	y1 /= callback_ptr->yres; y1 *= 2.f; y1 -= 1.f;
 	celMap.debugShader.use();
 	celMap.debugShader.setBool("UI", true);
-	bindTexture(1, testTexture);
-	celMap.renderQuad(testTexture, 0.05f, x0, y0, x1, y1);
+	bindTexture(1, texture);
+	celMap.renderQuad(texture, 0.05f, x0, y0, x1, y1);
 }
