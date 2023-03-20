@@ -241,8 +241,8 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> cbp, Gam
 	glBindFramebuffer(GL_FRAMEBUFFER, celMap.FBO[0]);
 	glDepthMask(GL_FALSE);
 	glViewport(0, 0, 1920, 1080);
-	testParticles.Update(timer->getDeltaTime(), 1, gameState->findEntity("platform_center")->transform->getPosition(), glm::vec3(0.f, 0.f, 0.f), glm::vec3(0.f, 3.f, 25.f));
-	testParticles.Draw(view, projection);
+	testParticles.Update(timer->getDeltaTime(), fps, gameState->findEntity("platform_center")->transform->getPosition(), glm::vec3(0.f, 0.f, 0.f), glm::vec3(0.f, 0.f, 15.8f));
+	testParticles.Draw(view, projection, camera_previous_position);
 	glViewport(0, 0, callback_ptr->xres, callback_ptr->yres);
 	glDepthMask(GL_TRUE);
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
