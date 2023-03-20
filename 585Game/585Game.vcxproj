@@ -183,6 +183,7 @@
       <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)\libraries\fmod\studio\inc;$(SolutionDir)\libraries\fmod\core\inc;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <ClCompile Include="src\NavMesh.cpp" />
+    <ClCompile Include="src\ParticleSystem.cpp" />
     <ClCompile Include="src\Pathfinder.cpp" />
     <ClCompile Include="src\PhysicsSystem.cpp" />
     <ClCompile Include="src\RenderingSystem.cpp" />
@@ -629,6 +630,7 @@
     <ClInclude Include="src\Boilerplate\OBJ_Loader.h" />
     <ClInclude Include="src\NavMesh.h" />
     <ClInclude Include="src\Node.h" />
+    <ClInclude Include="src\ParticleSystem.h" />
     <ClInclude Include="src\Pathfinder.h" />
     <ClInclude Include="src\PhysicsSystem.h" />
     <ClInclude Include="src\RenderingSystem.h" />

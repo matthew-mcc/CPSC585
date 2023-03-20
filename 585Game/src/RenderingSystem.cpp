@@ -39,6 +39,14 @@ void RenderingSystem::initRenderer() {
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
+	testTexture = generateTexture("assets/textures/alien.png", false);
+	orbTexture = generateTexture("assets/textures/orb.png", false);
+
+	// PARTICLE SYSTEM INITIALIZATIONS
+	particleShader = Shader("src/Shaders/particleVertex.txt", "src/Shaders/particleFragment.txt");
+	particleShader.use();
+	particleShader.setInt("sprite", 1);
+	testParticles = ParticleSystem(particleShader, orbTexture, 400);
 
 	// FRAME BUFFER INITIALIZATIONS
 	nearShadowMap = FBuffer(8192, 2048, 40.f, 10.f, -500.f, 100.f);
@@ -49,8 +57,6 @@ void RenderingSystem::initRenderer() {
 	celMap = FBuffer(1920, 1080, "c");
 	blurMap = FBuffer(1920, 1080, "b");
 	intermediateBuffer = FBuffer(1920, 1080, "i");
-
-	testTexture = generateTexture("assets/textures/alien.png", false);
 
 	// WORLD SHADER INITIALIZATION
 	stbi_set_flip_vertically_on_load(true);
@@ -232,6 +238,14 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> cbp, Gam
 	bindTexture(6, farShadowMap.fbTextures[1]);
 	setCelShaderUniforms(&celMap.shader);
 	celMap.render(gameState, "c", lightPos, callback_ptr);
+	glBindFramebuffer(GL_FRAMEBUFFER, celMap.FBO[0]);
+	glDepthMask(GL_FALSE);
+	glViewport(0, 0, 1920, 1080);
+	testParticles.Update(timer->getDeltaTime(), 1, gameState->findEntity("platform_center")->transform->getPosition(), glm::vec3(0.f, 0.f, 0.f), glm::vec3(0.f, 3.f, 25.f));
+	testParticles.Draw(view, projection);
+	glViewport(0, 0, callback_ptr->xres, callback_ptr->yres);
+	glDepthMask(GL_TRUE);
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 	glBindFramebuffer(GL_READ_FRAMEBUFFER, celMap.FBO[0]);
 	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, intermediateBuffer.FBO[0]);

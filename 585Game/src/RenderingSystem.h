@@ -6,6 +6,7 @@
 #include <Boilerplate/Timer.h>
 #include <Boilerplate/FBuffer.h>
 #include <GameState.h>
+#include <ParticleSystem.h>
 //#include <Boilerplate/Input.h>
 
 using namespace glm;
@@ -37,6 +38,9 @@ private:
 
 	std::shared_ptr<CallbackInterface> callback_ptr;
 
+	// Particle Generators
+	ParticleSystem testParticles;
+
 	// Frame buffers
 	FBuffer nearShadowMap;
 	FBuffer farShadowMap;
@@ -49,10 +53,12 @@ private:
 
 	// UI Textures
 	unsigned int testTexture;
+	unsigned int orbTexture;
 
 	// Shaders
 	Shader textShader;
 	Shader celShader;
+	Shader particleShader;
 
 	// Coordinate Transformations
 	mat4 model = mat4(1.0f);
