@@ -78,7 +78,10 @@ void resetValue(float &target, float range, float desireValue,float speed,float 
 	if (target > (desireValue - range) && target < (desireValue + range))
 		target = desireValue;
 }
-
+void RenderingSystem::updateRadius(float base,float zoom) {
+	camera_radius = base*zoom;
+	//cout << camera_radius << endl;
+}
 //float timeTorset = 0.f;
 // Update Renderer
 void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> cbp, GameState* gameState, Timer* timer) {
@@ -106,8 +109,7 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> cbp, Gam
 
 	float camera_zoom_forward = clamp(1.0f + (float)playerEntity->nbChildEntities * 0.5f, 1.0f, 11.0f);
 	float camera_zoom_up = clamp(1.0f + (float)playerEntity->nbChildEntities * 0.4f, 1.0f, 11.0f);
-
-
+	
 	
 
 
@@ -135,24 +137,25 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> cbp, Gam
 
 	// If user is controlling camera, set view accordingly
 	vec3 camOffset = vec3(0.f);
-	//vec3 ResetVec = playerEntity->transform->getRotation()*vec3(0.f,3.5f*camera_zoom_up,-7.5f*camera_zoom_forward);
-	glm::vec3 Camera_collision;
-	glm::vec3 Reset_collision;
+	vec3 ResetVec = playerEntity->transform->getRotation()*vec3(0.f,3.5f*camera_zoom_up,-7.5f*camera_zoom_forward);
+	glm::vec3 Camera_collision(0.f);
+	glm::vec3 Reset_collision(1.f);
 	if (callback_ptr->moveCamera) {
 		//camOffset = camera_previous_position - player_pos;
 		//camOffset = glm::rotate(glm::mat4(1.f), callback_ptr->xAngle, world_up)*vec4(camOffset, 0.f);
 		//camOffset += player_pos;
 		//vec3 Cam_move_vec = playerEntity->transform->getRotation() * (camOffset-player_pos);
 		//view = lookAt(camOffset, target_offset, world_up);
-		camera_position_right = sinf(callback_ptr->xAngle)* 7.5f * camera_zoom_forward;
-		camera_position_forward = -cosf(callback_ptr->xAngle) * 7.5f * camera_zoom_forward;
-		Camera_collision = PhysicsSystem::CameraRaycasting(camera_previous_position, 1.f);
-		Reset_collision = PhysicsSystem::CameraRaycasting(camera_previous_position, 2.f);
+		camera_position_right = sinf(callback_ptr->xAngle) * camera_radius; 
+		camera_position_forward = -cosf(callback_ptr->xAngle) * camera_radius;
+		//glm::vec3 intercetion = PhysicsSystem::CameraIntercetionRaycasting(camera_previous_position);
+		//if(intercetion == vec3(0.f))
+		Camera_collision = PhysicsSystem::CameraRaycasting(camera_previous_position, camera_radius,3.f);
+		//Reset_collision = PhysicsSystem::CameraRaycasting(camera_previous_position, 2.f);
 	}
 	else {
-		
-		Camera_collision = PhysicsSystem::CameraRaycasting(camera_previous_position,1.f);
-		Reset_collision = PhysicsSystem::CameraRaycasting(camera_previous_position, 2.f);
+		Camera_collision = PhysicsSystem::CameraRaycasting(camera_previous_position,camera_radius,3.f);
+		Reset_collision = PhysicsSystem::CameraIntercetionRaycasting(player_pos+ResetVec);
 	}
 	view = lookAt(camera_previous_position + camOffset, target_offset, world_up);
 	// For audio - probably need to change later
@@ -162,6 +165,7 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> cbp, Gam
 		camera_position_forward += Camera_collision.z;//* (float)timer->getDeltaTime();//camera_previous_position.z += 1.f; //* (float)timer->getDeltaTime();//cout << "???" << endl;
 		camera_position_up += Camera_collision.y;
 		camera_position_right -= Camera_collision.x;
+		rad_base = clamp(rad_base - sqrtf(Camera_collision.z * Camera_collision.z + Camera_collision.x * Camera_collision.x),0.5f,7.5f);
 		//timeTorset = 0.f;
 	}
 	else {
@@ -169,13 +173,14 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> cbp, Gam
 			float reset_speed = 50.f; // the speed to rset the camera
 			float step_time = (float)timer->getDeltaTime();
 			float step_range = step_time * reset_speed;
-			resetValue(camera_position_forward,step_range,-7.5f,reset_speed, step_time);
-			resetValue(camera_position_up, step_range, 3.5f, reset_speed, step_time);
+			resetValue(camera_position_forward,step_range,-7.5f*camera_zoom_forward,reset_speed, step_time);
+			resetValue(camera_position_up, step_range, 3.5f*camera_zoom_up, reset_speed, step_time);
 			resetValue(camera_position_right, step_range, 0.f, reset_speed, step_time);
+			resetValue(rad_base, step_range, 7.5f, reset_speed, step_time);
 		}
 		//timeTorset += (float)timer->getDeltaTime();
 	}
-
+	updateRadius(rad_base,camera_zoom_forward);
 	// Set projection and view matrices
 	projection = perspective(radians(fov), (float)callback_ptr->xres / (float)callback_ptr->yres, 0.1f, 10000.0f);
 	

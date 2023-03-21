@@ -337,17 +337,14 @@ void PhysicsSystem::detachTrailer(Trailer* trailer, Vehicle* vehicle, Vehicle* v
 
 //PxRaycastHit hitBuffer[10];
 PxRaycastBuffer cameraRayBuffer(0,0);
-glm::vec3 PhysicsSystem::CameraRaycasting(glm::vec3 campos,float distance) {
+glm::vec3 PhysicsSystem::CameraIntercetionRaycasting(glm::vec3 campos) {
 	PxVec3 cam = PxVec3(campos.x, campos.y, campos.z); //where the ray shoots, the origin 
 	PxVec3 start = vehicles.at(0)->vehicle.mPhysXState.physxActor.rigidBody->getGlobalPose().p;
 	PxTransform vehicle_trans = vehicles.at(0)->vehicle.mPhysXState.physxActor.rigidBody->getGlobalPose();
-	PxVec3 dir =  start-cam; // we need the ray shoot from vehicle to camera, which then can detect the ground mesh. direction should base on global map
-	PxVec3 backward = cam-start;
-	backward.y = 0.f;
-	PxVec3 downward = vehicle_trans.rotate(PxVec3(0.f, -1.f, 0.f));
+	PxVec3 dir = start - cam; // we need the ray shoot from vehicle to camera, which then can detect the ground mesh. direction should base on global map
+	PxVec3 moving_vector(0.f);
 	PxVec3 Normal_ray_dir = cam - start;
 	PxVec3 Normal_shoot_origin;
-	PxVec3 moving_vector(0.f);
 	if (gScene->raycast(cam, dir.getNormalized(), dir.magnitude(), cameraRayBuffer, PxHitFlag::eMESH_BOTH_SIDES) &&
 		cameraRayBuffer.block.shape->getSimulationFilterData().word0 == COLLISION_FLAG_GROUND) {
 		moving_vector = dir * (cameraRayBuffer.block.distance / dir.magnitude());
@@ -357,29 +354,40 @@ glm::vec3 PhysicsSystem::CameraRaycasting(glm::vec3 campos,float distance) {
 			cameraRayBuffer.block.shape->getSimulationFilterData().word0 == COLLISION_FLAG_GROUND)
 			moving_vector += cameraRayBuffer.block.normal.getNormalized();
 		moving_vector = vehicle_trans.rotateInv(moving_vector);
-		return glm::vec3(moving_vector.x , moving_vector.y , moving_vector.z );
-
+		return glm::vec3(moving_vector.x, moving_vector.y, moving_vector.z);
 	}
+	return glm::vec3(moving_vector.x, moving_vector.y, moving_vector.z);
+}
+glm::vec3 PhysicsSystem::CameraRaycasting(glm::vec3 campos,float side,float down_back) {
+	PxVec3 cam = PxVec3(campos.x, campos.y, campos.z); //where the ray shoots, the origin 
+	PxVec3 start = vehicles.at(0)->vehicle.mPhysXState.physxActor.rigidBody->getGlobalPose().p;
+	PxTransform vehicle_trans = vehicles.at(0)->vehicle.mPhysXState.physxActor.rigidBody->getGlobalPose();
+	PxVec3 dir =  start-cam; // we need the ray shoot from vehicle to camera, which then can detect the ground mesh. direction should base on global map
+	PxVec3 backward = cam-start;
+	backward.y = 0.f;
+	PxVec3 downward = vehicle_trans.rotate(PxVec3(0.f, -1.f, 0.f));
+	PxVec3 moving_vector(0.f);
+	
 	//prevent touch the ground  // just check different basis direction of the camera, give it no chance to touch the ground 
 	//prevent backward touch  
-	if (gScene->raycast(cam, backward.getNormalized(), distance, cameraRayBuffer, PxHitFlag::eNORMAL) &&
+	if (gScene->raycast(cam, backward.getNormalized(), down_back, cameraRayBuffer, PxHitFlag::eNORMAL) &&
 		cameraRayBuffer.block.shape->getSimulationFilterData().word0 == COLLISION_FLAG_GROUND) {
 		moving_vector += cameraRayBuffer.block.normal.getNormalized();
 		
 	}
 	//prevent downward touch  
-	if (gScene->raycast(cam, downward, distance, cameraRayBuffer, PxHitFlag::eNORMAL) &&
+	if (gScene->raycast(cam, downward, down_back, cameraRayBuffer, PxHitFlag::eNORMAL) &&
 		cameraRayBuffer.block.shape->getSimulationFilterData().word0 == COLLISION_FLAG_GROUND) {
 		moving_vector += cameraRayBuffer.block.normal.getNormalized();
 		
 	}
 	//prevent side touches  
-	if (gScene->raycast(cam, downward.cross(backward).getNormalized(), distance, cameraRayBuffer, PxHitFlag::eNORMAL) &&
+	if (gScene->raycast(cam, downward.cross(backward).getNormalized(), side, cameraRayBuffer, PxHitFlag::eNORMAL) &&
 		cameraRayBuffer.block.shape->getSimulationFilterData().word0 == COLLISION_FLAG_GROUND) {
 		moving_vector += cameraRayBuffer.block.normal.getNormalized();
 		
 	}
-	else if (gScene->raycast(cam, backward.cross(downward).getNormalized(), distance, cameraRayBuffer, PxHitFlag::eNORMAL) &&
+	else if (gScene->raycast(cam, backward.cross(downward).getNormalized(), side, cameraRayBuffer, PxHitFlag::eNORMAL) &&
 		cameraRayBuffer.block.shape->getSimulationFilterData().word0 == COLLISION_FLAG_GROUND) {
 		moving_vector += cameraRayBuffer.block.normal.getNormalized();
 	}
