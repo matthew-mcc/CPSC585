@@ -765,6 +765,8 @@ void PhysicsSystem::stepPhysics(shared_ptr<CallbackInterface> callback_ptr, Time
 		std::cout << ", " << gameState->listener_position.y;
 		std::cout << ", " << gameState->listener_position.z << std::endl;
 		std::cout << "====================================" << std::endl;
+
+		std::cout << "boost: " << gameState->findEntity("vehicle_0")->playerProperties->boost << std::endl;
 	}
 
 	// Apply trailer forces
@@ -861,6 +863,7 @@ void PhysicsSystem::stepPhysics(shared_ptr<CallbackInterface> callback_ptr, Time
 			// Boost
 			if (vehicles.at(i)->vehicle.mPhysXState.physxActor.rigidBody->getLinearVelocity().magnitude() < player->playerProperties->boost_max_velocity) {
 				vehicles.at(i)->vehicle.mPhysXState.physxActor.rigidBody->addForce(vehicle_transform.rotate(PxVec3(0.f, 0.f, player->playerProperties->boost) * timestep), PxForceMode().eVELOCITY_CHANGE);
+				
 			}
 		}
 
@@ -962,7 +965,7 @@ void PhysicsSystem::stepPhysics(shared_ptr<CallbackInterface> callback_ptr, Time
 			gameState->audio_ptr->UpdateTire(vehicleName, audio_position, audio_velocity, audio_forward, audio_up, distance, true);
 			//gameState->audio_ptr->UpdateTire(vehicleName, audio_position, audio_velocity, audio_forward, audio_up, distance, gameState->audio_ptr->contact);
 		}
-		
+		gameState->audio_ptr->UpdateBoostPlaceholder(audio_position, audio_velocity, audio_forward, audio_up, distance, gameState->findEntity("vehicle_0")->playerProperties->boost);
 		//std::cout << vehicleName << ": " << audio_position.x;
 		//std::cout << ", " << audio_position.y;
 		//std::cout << ", " << audio_position.z << std::endl;

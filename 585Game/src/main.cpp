@@ -27,7 +27,8 @@ int main() {
 
 	// Initialize Systems
 	xInput.run();
-	audio.Init();
+	// Remember to change this if we ever find a better way to keep track of vehicle count
+	audio.Init(6);
 	gameState->initGameState(audio_ptr);
 	physics.initPhysicsSystem(gameState, aiController);
 	aiController->initAiSystem(gameState);

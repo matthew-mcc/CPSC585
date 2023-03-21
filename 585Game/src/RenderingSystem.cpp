@@ -41,9 +41,20 @@ void RenderingSystem::initRenderer() {
 
 	testTexture = generateTexture("assets/textures/alien.png", false);
 	orbTexture = generateTexture("assets/textures/orb.png", false);
+	// Choose one, top = squares, bottom = chevrons
 	boostBlue = generateTexture("assets/textures/boostBlue.png", false);
 	boostGrey = generateTexture("assets/textures/boostGrey.png", false);
 	boostOrange = generateTexture("assets/textures/boostOrange.png", false);
+	// Will default to chevrons if not commented out
+	boostBlue = generateTexture("assets/textures/boostChevBlue.png", false);
+	boostGrey = generateTexture("assets/textures/boostChevGrey.png", false);
+	boostOrange = generateTexture("assets/textures/boostChevOrange.png", false);
+
+	podcounterOn = generateTexture("assets/textures/podcounterOn.png", false);
+	podcounterOff = generateTexture("assets/textures/podCounterOff.png", false);
+
+
+
 
 	// PARTICLE SYSTEM INITIALIZATIONS
 	particleShader = Shader("src/Shaders/particleVertex.txt", "src/Shaders/particleFragment.txt");
@@ -328,15 +339,16 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> cbp, Gam
 
 	// Normal Gameplay Screen
 	else {
-		//drawUI(testTexture, callback_ptr->xres - 300.f, 30.f, callback_ptr->xres - 30.f, 300.f);
+		// Ayyylien
+		drawUI(testTexture, callback_ptr->xres - 300.f, 30.f, callback_ptr->xres - 30.f, 300.f);
 
-		// Boost meter
+		// Boost Meter
 		for (int i = 0; i < 10; i++) {
 			int boost_meter = (int)gameState->findEntity("vehicle_0")->playerProperties->boost_meter;
 			int offset = 50 * i;
 			int boostoffset = 10 * i;
 
-			if (boost_meter > boostoffset && i < 8) {
+			if (boost_meter > boostoffset && i < 7) {
 				drawUI(boostBlue, 50.0f + offset, 50.f, 100.0f + offset, 100.f);
 			}
 			else if (boost_meter > boostoffset) {
@@ -345,7 +357,20 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> cbp, Gam
 			else {
 				drawUI(boostGrey, 50.0f + offset, 50.f, 100.0f + offset, 100.f);
 			}
+		}
 
+		// Pod Counter
+		for (int i = 0; i < 10; i++) {
+			int pod_count = gameState->findEntity("vehicle_0")->nbChildEntities;
+			int offset = 60 * i;
+			int boostoffset = 10 * i;
+
+			if (pod_count > i) {
+				drawUI(podcounterOn, 50.0f + offset, 130.f, 100.0f + offset, 180.f);
+			}
+			else {
+				drawUI(podcounterOff, 50.0f + offset, 130.f, 100.0f + offset, 180.f);
+			}
 		}
 
 		//drawUI(boostBlue, callback_ptr->xres - 1800.f, 30.f, callback_ptr->xres - 1730.f, 100.f);
@@ -424,13 +449,13 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> cbp, Gam
 
 	ImGui::Text("Audio");
 	if (ImGui::SliderFloat("Player ", &playerVolume, 0.0f, 2.0f)) {
-		gameState->audio_ptr->setVolume("vehicle_0", playerVolume);
+		gameState->audio_ptr->setVolume("vehicle_0_tire", playerVolume);
 	}
 	if (ImGui::SliderFloat("NPC ", &npcVolume, 0.0f, 2.0f)) {
 		for (int i = 1; i < 4; i++) {
 			std::string vehicleName = "vehicle_";
 			vehicleName += to_string(i);
-			gameState->audio_ptr->setVolume(vehicleName, npcVolume);
+			gameState->audio_ptr->setVolume(vehicleName + "_tire", npcVolume);
 		}
 	}
 
