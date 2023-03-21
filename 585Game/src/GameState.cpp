@@ -25,6 +25,12 @@ void GameState::initGameState(AudioManager* audio) {
 	e = addEntity("landscape_junk", PhysType::None, DrawType::Mesh, new Transform(), vector<string>{
 		"assets/models/junk1/junk1.obj"});
 
+	e = addEntity("rock_net1", PhysType::StaticMesh, DrawType::Mesh, new Transform(), vector<string>{
+		"assets/models/rock_net1/rock_net1.obj"});
+
+	e = addEntity("rock_net2", PhysType::None, DrawType::Mesh, new Transform(), vector<string>{
+		"assets/models/rock_net1/rock_net2.obj"});
+
 	// Sky Sphere
 	e = addEntity("sky_sphere", PhysType::None, DrawType::Mesh, new Transform(), vector<string>{
 		"assets/models/sky_sphere1/sky_sphere1.obj"});
