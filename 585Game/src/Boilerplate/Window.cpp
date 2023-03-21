@@ -3,6 +3,7 @@
 #include "imgui.h"
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_opengl3.h"
+
 using namespace std;
 
 
@@ -169,28 +170,40 @@ public:
 			addTrailer = true;
 			audioTest = true;
 		}
-	}
 
+		
+			
+	}
+	
 	// MOUSE BUTTON CALLBACK
 	virtual void mouseButtonCallback(int button, int action, int mods) {
 		auto& io = ImGui::GetIO();
 
 		if (io.WantCaptureMouse) return;
 		if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS) {
-			cout << "Mouse Left clicked" << endl;
+			//cout << "Mouse Left clicked" << endl;
 			moveCamera = true;
 			clickPos = cursor_pos;
-			xAngle = 0.f;
+			keys_pressed++;
 		}
 		if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_RELEASE) {
-			cout << "Mouse left released" << endl;
+			//cout << "Mouse left released" << endl;
 			moveCamera = false;
 			clickPos = glm::vec2(0.f, 0.f);
+			xAngle = 0.f;
+			keys_pressed--;
 		}
 
 		if (button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_PRESS) {
-			cout << "Mouse Right clicked" << endl;
-
+			//cout << "Mouse Right clicked" << endl;
+			clickR = true;
+			keys_pressed++;
+		}
+		if (button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_RELEASE) {
+			//cout << "Mouse Right clicked" << endl;
+			clickR = false;
+			xAngle = 0.f;
+			keys_pressed--;
 		}
 	}
 
@@ -211,7 +224,7 @@ public:
 		//xoffset *= sensitivity;
 		//yoffset *= sensitivity;
 		if (moveCamera) {
-			xAngle = (clickPos.x - lastX) * atan(1) * 4.f;
+			xAngle = asinf(glm::clamp((clickPos.x - lastX), -1.f, 1.f));// * atan(1) * 4.f;
 		}
 	}
 

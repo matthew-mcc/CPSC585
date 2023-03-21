@@ -102,6 +102,8 @@ public:
 	bool addTrailer = false;
 	bool audioTest = false;
 
+	bool clickR = false;
+
 	// GAMEPAD VEHICLE INPUT
 
 	void XboxUpdate(XboxInput x, Timer* timer, float vehicleSpeed) {
@@ -114,17 +116,28 @@ public:
 			AirRoll = -x.data.LThumb_X_direction;
 			boosterrrrr = x.data.RB;
 			//std::cout << x.data.LB <<std::endl;
+			if (abs(x.data.RThumb_magnitude) != 0.f) {
+				moveCamera = true;
+				if (x.data.RThumb_X_direction > 0)
+					xAngle = asinf(glm::clamp(abs(x.data.RThumb_X_direction * x.data.RThumb_magnitude),-1.f,1.f));//atan(x.data.RThumb_X_direction / x.data.RThumb_Y_direction);
+				else
+					xAngle = -asinf(glm::clamp(abs(x.data.RThumb_X_direction * x.data.RThumb_magnitude), -1.f, 1.f));
+				//if (x.data.RThumb_Y_direction < 0.f) xAngle = (atan(1)*4.f) + xAngle;
+			}
+			if (x.data.R3) {
+				moveCamera = true;
+				xAngle = 3.1415126;
+			}
+			else if(!x.data.R3 && abs(x.data.RThumb_magnitude) == 0.f){
+				moveCamera = false;
+			}
 		}
-		if (abs(x.data.RThumb_magnitude) > 0.01f) {
+		
+		//lastX_Controller = x.data.RThumb_magnitude;
+		if (clickR) {
 			moveCamera = true;
-			xAngle = atan(x.data.RThumb_X_direction / x.data.RThumb_Y_direction);
-			if (x.data.RThumb_Y_direction < 0.f) xAngle = (atan(1)*4.f) + xAngle;
+			xAngle = 3.1415126;
 		}
-		else if (abs(lastX_Controller) > 0.01f) {
-			moveCamera = false;
-		}
-		lastX_Controller = x.data.RThumb_magnitude;
-
 		// Retrive Delta Time
 		float deltaTime = (float)timer->getDeltaTime();
 		
