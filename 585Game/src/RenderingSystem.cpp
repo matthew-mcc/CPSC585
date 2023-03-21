@@ -7,6 +7,7 @@
 #include <gtc/type_ptr.hpp>
 #include <gtc/matrix_transform.hpp>
 #include <Boilerplate/stb_image.h>
+#include <Boilerplate/Texture.h>
 #include "imgui.h"
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_opengl3.h"
@@ -38,14 +39,24 @@ void RenderingSystem::initRenderer() {
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
+	testTexture = generateTexture("assets/textures/alien.png", false);
+	orbTexture = generateTexture("assets/textures/orb.png", false);
+
+	// PARTICLE SYSTEM INITIALIZATIONS
+	particleShader = Shader("src/Shaders/particleVertex.txt", "src/Shaders/particleFragment.txt");
+	particleShader.use();
+	particleShader.setInt("sprite", 1);
+	testParticles = ParticleSystem(particleShader, orbTexture, 400);
 
 	// FRAME BUFFER INITIALIZATIONS
 	nearShadowMap = FBuffer(8192, 2048, 40.f, 10.f, -500.f, 100.f);
 	farShadowMap = FBuffer(16384, 4096, 800.f, 300.f, -700.f, 1000.f);
 	outlineMap = FBuffer(1920, 1080, "o");
 	outlineMapNoLandscape = FBuffer(1920, 1080, "o");
+	outlineToTexture = FBuffer(1920, 1080, "ot");
 	celMap = FBuffer(1920, 1080, "c");
 	blurMap = FBuffer(1920, 1080, "b");
+	intermediateBuffer = FBuffer(1920, 1080, "i");
 
 	// WORLD SHADER INITIALIZATION
 	stbi_set_flip_vertically_on_load(true);
@@ -70,7 +81,8 @@ void resetValue(float &target, float range, float desireValue,float speed,float 
 
 //float timeTorset = 0.f;
 // Update Renderer
-void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> callback_ptr, GameState* gameState, Timer* timer) {
+void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> cbp, GameState* gameState, Timer* timer) {
+	callback_ptr = cbp;
 	// BACKGROUND
 	glClearColor(skyColor.r, skyColor.g, skyColor.b, 1.0f);	// Set Background (Sky) Color
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -186,12 +198,41 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> callback
 	nearShadowMap.render(gameState, "s", lightPos, callback_ptr);
 
 	// TOON OUTLINE (Landscape)
+	if (outlineMap.getWidth() != callback_ptr->xres || outlineMap.getHeight() != callback_ptr->yres) {
+		outlineMap = FBuffer(callback_ptr->xres, callback_ptr->yres, "o");
+	}
 	outlineMap.update(projection, view);
 	outlineMap.render(gameState, "t", lightPos, callback_ptr);
 
 	// TOON OUTLINE (Objects)
+	if (outlineMapNoLandscape.getWidth() != callback_ptr->xres || outlineMapNoLandscape.getHeight() != callback_ptr->yres) {
+		outlineMapNoLandscape = FBuffer(callback_ptr->xres, callback_ptr->yres, "o");
+	}
 	outlineMapNoLandscape.update(projection, view);
 	outlineMapNoLandscape.render(gameState, "l", lightPos, callback_ptr);
+
+	// OUTLINE TO TEXTURE
+	if (outlineToTexture.getWidth() != callback_ptr->xres || outlineToTexture.getHeight() != callback_ptr->yres) {
+		outlineToTexture = FBuffer(callback_ptr->xres, callback_ptr->yres, "ot");
+	}
+
+	outlineToTexture.shader.use();
+	outlineToTexture.shader.setInt("outline1", 1);
+	outlineToTexture.shader.setInt("outline2", 2);
+	outlineToTexture.shader.setMat4("projMatrixInv", glm::inverse(projection));
+	outlineToTexture.shader.setMat4("viewMatrixInv", glm::inverse(view));
+	outlineToTexture.shader.setFloat("outlineSensitivity", outlineSensitivity);
+	outlineToTexture.shader.setFloat("fogDepth", fogDepth);
+	outlineToTexture.shader.setVec3("fogColor", fogColor);
+	glBindFramebuffer(GL_FRAMEBUFFER, outlineToTexture.FBO[0]);
+	glDisable(GL_BLEND);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	bindTexture(1, outlineMap.fbTextures[0]);
+	bindTexture(2, outlineMapNoLandscape.fbTextures[0]);
+	outlineToTexture.renderQuad(outlineToTexture.fbTextures[0], 0.1f);
+	glEnable(GL_BLEND);
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	//outlineToTexture.renderToScreen(outlineToTexture.fbTextures[0]);
 
 	// SCENE TO TEXTURE
 	celMap.update(projection, view);
@@ -199,8 +240,30 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> callback
 	bindTexture(2, farShadowMap.fbTextures[0]);
 	bindTexture(3, outlineMap.fbTextures[0]);
 	bindTexture(4, outlineMapNoLandscape.fbTextures[0]);
+	bindTexture(5, nearShadowMap.fbTextures[1]);
+	bindTexture(6, farShadowMap.fbTextures[1]);
 	setCelShaderUniforms(&celMap.shader);
 	celMap.render(gameState, "c", lightPos, callback_ptr);
+	glBindFramebuffer(GL_FRAMEBUFFER, celMap.FBO[0]);
+	glDepthMask(GL_FALSE);
+	glViewport(0, 0, 1920, 1080);
+	testParticles.Update(timer->getDeltaTime(), fps, gameState->findEntity("platform_center")->transform->getPosition(), glm::vec3(0.f, 0.f, 0.f), glm::vec3(0.f, 0.f, 15.8f));
+	testParticles.Draw(view, projection, camera_previous_position);
+	glViewport(0, 0, callback_ptr->xres, callback_ptr->yres);
+	glDepthMask(GL_TRUE);
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+	glBindFramebuffer(GL_READ_FRAMEBUFFER, celMap.FBO[0]);
+	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, intermediateBuffer.FBO[0]);
+	glReadBuffer(GL_COLOR_ATTACHMENT0);
+	glDrawBuffer(GL_COLOR_ATTACHMENT0);
+	glBlitFramebuffer(0, 0, 1920, 1080, 0, 0, 1920, 1080, GL_COLOR_BUFFER_BIT, GL_NEAREST);
+
+	glReadBuffer(GL_COLOR_ATTACHMENT1);
+	glDrawBuffer(GL_COLOR_ATTACHMENT1);
+	glBlitFramebuffer(0, 0, 1920, 1080, 0, 0, 1920, 1080, GL_COLOR_BUFFER_BIT, GL_NEAREST);
+
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 	//farShadowMap.renderToScreen();		//Uncomment to see the far shadow map (light's perspective, near the car)
 	//nearShadowMap.renderToScreen();		//Uncomment to see the near shadow map (light's perspective, the entire map)
@@ -221,22 +284,26 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> callback
 		blurMap.shader.use();
 		glBindFramebuffer(GL_FRAMEBUFFER, blurMap.FBO[horizontal]);
 		blurMap.shader.setInt("horizontal", horizontal);
-		bindTexture(1, first_iteration ? celMap.fbTextures[1] : blurMap.fbTextures[!horizontal]);
-		blurMap.renderQuad();
+		bindTexture(1, first_iteration ? intermediateBuffer.fbTextures[1] : blurMap.fbTextures[!horizontal]);
+		blurMap.renderQuad(blurMap.fbTextures[0], 0.1f);
 		horizontal = !horizontal;
 		if (first_iteration)
 			first_iteration = false;
 	}
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	
-	bindTexture(1, celMap.fbTextures[0]);
+	bindTexture(1, intermediateBuffer.fbTextures[0]);
 	bindTexture(2, blurMap.fbTextures[0]);
+	bindTexture(3, outlineToTexture.fbTextures[0]);
 
-	celMap.renderToScreen();
+	celMap.debugShader.use();
+	celMap.debugShader.setFloat("outlineTransparency", outlineTransparency);
+	celMap.debugShader.setFloat("outlineBlur", outlineBlur);
+	celMap.renderToScreen(intermediateBuffer.fbTextures[0], 0.1f);
 	//blurMap.renderToScreen();
+	//outlineMap.renderToScreen();
 
 	// SIXTH PASS: GUI RENDER
-		// Use text shader
 	textShader.use();
 	mat4 textProjection = ortho(0.0f, static_cast<float>(callback_ptr->xres), 0.0f, static_cast<float>(callback_ptr->yres));
 	textShader.setMat4("projection", textProjection);
@@ -248,16 +315,11 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> callback
 
 	// Game Ended Screen
 	if (gameState->gameEnded) {
-		string winnerText;
-		if (gameState->winner == NULL) {
-			winnerText = "Tie Game!";
-		}
-		else {
-			string winnerName = gameState->winner->name;
-			if (winnerName == "vehicle_0") winnerText = "Salvager #1 Wins!";
-			if (winnerName == "vehicle_1") winnerText = "Salvager #2 Wins!";
-			if (winnerName == "vehicle_2") winnerText = "Salvager #3 Wins!";
-			if (winnerName == "vehicle_3") winnerText = "Salvager #4 Wins!";
+		string winnerText = "Tie Game!";
+		if (!gameState->winner == NULL) {
+			string winnerNum(1, gameState->winner->name.back());
+			winnerNum = to_string(stoi(winnerNum) + 1);
+			winnerText = "Salvager #" + winnerNum + " Wins!";
 		}
 		RenderText(textShader, textVAO, textVBO, winnerText,
 			callback_ptr->xres / 2 - (18 * winnerText.length()),
@@ -269,6 +331,7 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> callback
 
 	// Normal Gameplay Screen
 	else {
+		drawUI(testTexture, callback_ptr->xres - 300.f, 30.f, callback_ptr->xres - 30.f, 300.f);
 		// Display game timer / countdown
 		std::string timerMins = std::to_string(abs(timer->getCountdownMins()));
 		std::string timerSeconds = std::to_string(abs(timer->getCountdownSecs()));
@@ -298,39 +361,12 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> callback
 			textChars);
 
 		// Display player scores
-		string scoreText = "";
-		if (gameState->findEntity("vehicle_0") != NULL) {
-			scoreText = "Salvager #1: " + to_string(gameState->findEntity("vehicle_0")->playerProperties->getScore());
+		for (int i = 0; i < gameState->numVehicles; i++) {
+			string vehicleName = "vehicle_" + to_string(i);
+			string scoreText = "Salvager #" + to_string(i+1) + ": " + to_string(gameState->findEntity(vehicleName)->playerProperties->getScore());
 			RenderText(textShader, textVAO, textVBO, scoreText,
 				callback_ptr->xres - (16 * (int)scoreText.size()),
-				callback_ptr->yres - 100.f,
-				0.6f,
-				vec3(0.2, 0.2f, 0.2f),
-				textChars);
-		}
-		if (gameState->findEntity("vehicle_1") != NULL) {
-			scoreText = "Salvager #2: " + to_string(gameState->findEntity("vehicle_1")->playerProperties->getScore());
-			RenderText(textShader, textVAO, textVBO, scoreText,
-				callback_ptr->xres - (16 * (int)scoreText.size()),
-				callback_ptr->yres - 150.f,
-				0.6f,
-				vec3(0.2, 0.2f, 0.2f),
-				textChars);
-		}
-		if (gameState->findEntity("vehicle_2") != NULL) {
-			scoreText = "Salvager #3: " + to_string(gameState->findEntity("vehicle_2")->playerProperties->getScore());
-			RenderText(textShader, textVAO, textVBO, scoreText,
-				callback_ptr->xres - (16 * (int)scoreText.size()),
-				callback_ptr->yres - 200.f,
-				0.6f,
-				vec3(0.2, 0.2f, 0.2f),
-				textChars);
-		}
-		if (gameState->findEntity("vehicle_3") != NULL) {
-			scoreText = "Salvager #4: " + to_string(gameState->findEntity("vehicle_3")->playerProperties->getScore());
-			RenderText(textShader, textVAO, textVBO, scoreText,
-				callback_ptr->xres - (16 * (int)scoreText.size()),
-				callback_ptr->yres - 250.f,
+				callback_ptr->yres - 100.f - (i * 50.f),
 				0.6f,
 				vec3(0.2, 0.2f, 0.2f),
 				textChars);
@@ -352,8 +388,9 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> callback
 	ImGui::SliderFloat("Fog depth", &fogDepth, 0.f, 0.2f);
 	ImGui::SliderFloat("Outline Transparency", &outlineTransparency, 0.f, 1.f);
 	ImGui::SliderFloat("Outline Sensitivity", &outlineSensitivity, 0.f, 50.f);
-	ImGui::SliderFloat("Min bias", &minBias, 0.0f, 100.f);
-	ImGui::SliderFloat("Max bias", &maxBias, 0.0f, 0.1f);
+	ImGui::SliderFloat("Outline Blur", &outlineBlur, 0.f, 1.f);
+	ImGui::SliderFloat("Min bias", &minBias, 0.0f, 0.5f);
+	ImGui::SliderFloat("Max bias", &maxBias, 0.0f, 0.5f);
 
 	ImGui::Text("Camera Parameters");
 	ImGui::SliderFloat("Camera Position Forward", &camera_position_forward, -200.f, 200.f);
@@ -407,6 +444,8 @@ void RenderingSystem::setCelShaderUniforms(Shader* shader) {
 	(*shader).setInt("farShadowMap", 2);
 	(*shader).setInt("outlineMap", 3);
 	(*shader).setInt("outlineMapNoLandscape", 4);
+	(*shader).setInt("nearShadowMap2", 5);
+	(*shader).setInt("farShadowMap2", 6);
 
 	(*shader).setVec3("lightColor", lightColor);
 	(*shader).setVec3("shadowColor", shadowColor);
@@ -426,4 +465,15 @@ void RenderingSystem::bindTexture(int location, unsigned int texture) {
 	glActiveTexture(GL_TEXTURE0 + location);
 	glBindTexture(GL_TEXTURE_2D, texture);
 	glActiveTexture(GL_TEXTURE0);
+}
+
+void RenderingSystem::drawUI(unsigned int texture, float x0, float y0, float x1, float y1) {
+	x0 /= callback_ptr->xres; x0 *= 2.f; x0 -= 1.f;
+	y0 /= callback_ptr->yres; y0 *= 2.f; y0 -= 1.f;
+	x1 /= callback_ptr->xres; x1 *= 2.f; x1 -= 1.f;
+	y1 /= callback_ptr->yres; y1 *= 2.f; y1 -= 1.f;
+	celMap.debugShader.use();
+	celMap.debugShader.setBool("UI", true);
+	bindTexture(1, testTexture);
+	celMap.renderQuad(testTexture, 0.05f, x0, y0, x1, y1);
 }

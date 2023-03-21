@@ -23,6 +23,10 @@ public:
 	// Flags
 	bool gameEnded = false;
 
+	// Game Parameters
+	int numVehicles = 6;
+	int numTrailers = 30;
+
 	// Audio 
 	AudioManager* audio_ptr = nullptr;
 	glm::vec3 listener_position;

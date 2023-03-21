@@ -6,6 +6,7 @@
 #include <Boilerplate/Timer.h>
 #include <Boilerplate/FBuffer.h>
 #include <GameState.h>
+#include <ParticleSystem.h>
 //#include <Boilerplate/Input.h>
 
 using namespace glm;
@@ -33,18 +34,31 @@ public:
 private:
 	void setCelShaderUniforms(Shader* shader);
 	void bindTexture(int location, unsigned int texture);
+	void drawUI(unsigned int texture, float x0, float y0, float x1, float y1);
+
+	std::shared_ptr<CallbackInterface> callback_ptr;
+
+	// Particle Generators
+	ParticleSystem testParticles;
 
 	// Frame buffers
 	FBuffer nearShadowMap;
 	FBuffer farShadowMap;
 	FBuffer outlineMap;
 	FBuffer outlineMapNoLandscape;
+	FBuffer outlineToTexture;
 	FBuffer celMap;
 	FBuffer blurMap;
+	FBuffer intermediateBuffer;
+
+	// UI Textures
+	unsigned int testTexture;
+	unsigned int orbTexture;
 
 	// Shaders
 	Shader textShader;
 	Shader celShader;
+	Shader particleShader;
 
 	// Coordinate Transformations
 	mat4 model = mat4(1.0f);
@@ -66,8 +80,9 @@ private:
 	vec3 fogColor = vec3(1.f, 0.728f, 0.681f);
 	float fogDepth = 0.00125f;
 
-	float outlineSensitivity = 16.f;
-	float outlineTransparency = 0.55f;
+	float outlineSensitivity = 20.f;
+	float outlineTransparency = 0.6f;
+	float outlineBlur = 0.1f;
 
 	// Text
 	map<char, Character> textChars;

@@ -119,6 +119,10 @@ void Shader::setVec3(const std::string& name, glm::vec3 value) {
     int modelLoc = glGetUniformLocation(ID, name.c_str());
     glUniform3fv(modelLoc, 1, glm::value_ptr(value));
 }
+void Shader::setVec4(const std::string& name, glm::vec4 value) {
+    int modelLoc = glGetUniformLocation(ID, name.c_str());
+    glUniform4fv(modelLoc, 1, glm::value_ptr(value));
+}
 
 void initGeomVAO(float* vertices, int size, unsigned int* VAO, unsigned int* VBO) {
     glGenVertexArrays(1, VAO);

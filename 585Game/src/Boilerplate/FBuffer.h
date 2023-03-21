@@ -12,8 +12,9 @@ public:
 	void update(glm::vec3 lightPos, glm::vec3 playerPos);
 	void update(glm::mat4 proj, glm::mat4 view);
 	void cleanUp(std::shared_ptr<CallbackInterface> callback_ptr);
-	void renderToScreen();
-	void renderQuad();
+	void renderToScreen(unsigned int texture, float layer);
+	void renderQuad(unsigned int texture, float layer);
+	void renderQuad(unsigned int texture, float layer, float x0, float y0, float x1, float y1);
 
 	void render(GameState* gameState, std::string mode, vec3 lightPos, std::shared_ptr<CallbackInterface> callback_ptr);
 
