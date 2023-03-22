@@ -28,14 +28,19 @@ public:
 	// Shutdown IMGUI Instance
 	void shutdownImgui();
 
+	// Reset any state-sensitive variables
+	void resetRenderer();
+
 	// Window Pointer
 	GLFWwindow* window;
 
 private:
 	void setCelShaderUniforms(Shader* shader);
 	void bindTexture(int location, unsigned int texture);
-	void drawUI(unsigned int texture, float x0, float y0, float x1, float y1);
+
+	void drawUI(unsigned int texture, float x0, float y0, float x1, float y1, int l = 0);
 	void updateRadius(float base,float zoom);
+  
 	std::shared_ptr<CallbackInterface> callback_ptr;
 
 	// Particle Generators
@@ -54,6 +59,12 @@ private:
 	// UI Textures
 	unsigned int testTexture;
 	unsigned int orbTexture;
+	unsigned int boostBlue;
+	unsigned int boostOrange;
+	unsigned int boostGrey;
+	unsigned int podcounterOn;
+	unsigned int podcounterOff;
+
 
 	// Shaders
 	Shader textShader;
@@ -81,7 +92,7 @@ private:
 	float fogDepth = 0.00125f;
 
 	float outlineSensitivity = 20.f;
-	float outlineTransparency = 0.6f;
+	float outlineTransparency = 0.4f;
 	float outlineBlur = 0.1f;
 
 	// Text

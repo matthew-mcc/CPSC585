@@ -198,6 +198,7 @@ void PhysicsSystem::processTrailerCollision() {
 	Trailer* trailer = getTrailerObject(trailerBody);
 
 	// Only process if the trailer is not flying (a.k.a being sucked into the portal)
+	if (trailer == nullptr) return;
 	if (!trailer->isFlying) {
 		// Find the colliding vehicle
 		for (int i = 0; i < vehicles.size(); i++) {
@@ -624,8 +625,6 @@ void PhysicsSystem::initMaterialFrictionTable() {
 }
 
 void PhysicsSystem::initVehicles(int vehicleCount) {
-	// Init AI
-	
 	for (int i = 0; i < vehicleCount; i++) {
 		// Create a new vehicle entity and physics struct
 		gameState->spawnVehicle();
@@ -736,8 +735,9 @@ void PhysicsSystem::initVehicles(int vehicleCount) {
 void PhysicsSystem::initPhysicsSystem(GameState* gameState, AiController* aiController) {
 	this->gameState = gameState;
 	this->aiController = aiController;
+	vehicles.clear();
+	trailers.clear();
 	srand(time(NULL));
-	initPhysX();
 	initPhysXMeshes();
 	initMaterialFrictionTable();
 	initVehicles(gameState->numVehicles);
@@ -778,6 +778,8 @@ void PhysicsSystem::stepPhysics(shared_ptr<CallbackInterface> callback_ptr, Time
 		std::cout << ", " << gameState->listener_position.y;
 		std::cout << ", " << gameState->listener_position.z << std::endl;
 		std::cout << "====================================" << std::endl;
+
+		std::cout << "boost: " << gameState->findEntity("vehicle_0")->playerProperties->boost << std::endl;
 	}
 
 	// Apply trailer forces
@@ -877,6 +879,7 @@ void PhysicsSystem::stepPhysics(shared_ptr<CallbackInterface> callback_ptr, Time
 			// Boost
 			if (vehicles.at(i)->vehicle.mPhysXState.physxActor.rigidBody->getLinearVelocity().magnitude() < player->playerProperties->boost_max_velocity) {
 				vehicles.at(i)->vehicle.mPhysXState.physxActor.rigidBody->addForce(vehicle_transform.rotate(PxVec3(0.f, 0.f, player->playerProperties->boost) * timestep), PxForceMode().eVELOCITY_CHANGE);
+				
 			}
 
 			// Reset
@@ -988,13 +991,15 @@ void PhysicsSystem::stepPhysics(shared_ptr<CallbackInterface> callback_ptr, Time
 		if (i == 0) {
 			//std::cout << "Listener updated" << std::endl;
 			gameState->audio_ptr->Update3DListener(gameState->listener_position, audio_velocity, audio_forward, audio_up);
+			gameState->audio_ptr->setVolume(vehicleName + "_tire", 1.f);
 			gameState->audio_ptr->UpdateTire(vehicleName, audio_position, audio_velocity, audio_forward, audio_up, distance, gameState->audio_ptr->contact);
 		}
 		else {
+			gameState->audio_ptr->setVolume(vehicleName + "_tire", 1.f);
 			gameState->audio_ptr->UpdateTire(vehicleName, audio_position, audio_velocity, audio_forward, audio_up, distance, true);
 			//gameState->audio_ptr->UpdateTire(vehicleName, audio_position, audio_velocity, audio_forward, audio_up, distance, gameState->audio_ptr->contact);
 		}
-		
+		gameState->audio_ptr->UpdateBoostPlaceholder(audio_position, audio_velocity, audio_forward, audio_up, distance, gameState->findEntity("vehicle_0")->playerProperties->boost);
 		//std::cout << vehicleName << ": " << audio_position.x;
 		//std::cout << ", " << audio_position.y;
 		//std::cout << ", " << audio_position.z << std::endl;

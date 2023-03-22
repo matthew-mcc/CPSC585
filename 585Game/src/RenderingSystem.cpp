@@ -20,6 +20,10 @@ RenderingSystem::RenderingSystem() {
 	initRenderer();
 }
 
+void RenderingSystem::resetRenderer() {
+	camera_previous_position = vec3(0.0f, 8.0f, -270.0f);
+}
+
 void RenderingSystem::SetupImgui() {
 	// IMGUI INITIALIZATION
 	IMGUI_CHECKVERSION();
@@ -41,6 +45,20 @@ void RenderingSystem::initRenderer() {
 
 	testTexture = generateTexture("assets/textures/alien.png", false);
 	orbTexture = generateTexture("assets/textures/orb.png", false);
+	// Choose one, top = squares, bottom = chevrons
+	boostBlue = generateTexture("assets/textures/boostBlue.png", false);
+	boostGrey = generateTexture("assets/textures/boostGrey.png", false);
+	boostOrange = generateTexture("assets/textures/boostOrange.png", false);
+	// Will default to chevrons if not commented out
+	boostBlue = generateTexture("assets/textures/boostChevBlue.png", false);
+	boostGrey = generateTexture("assets/textures/boostChevGrey.png", false);
+	boostOrange = generateTexture("assets/textures/boostChevOrange.png", false);
+
+	podcounterOn = generateTexture("assets/textures/podcounterOn.png", false);
+	podcounterOff = generateTexture("assets/textures/podCounterOff.png", false);
+
+
+
 
 	// PARTICLE SYSTEM INITIALIZATIONS
 	particleShader = Shader("src/Shaders/particleVertex.txt", "src/Shaders/particleFragment.txt");
@@ -90,6 +108,39 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> cbp, Gam
 	// BACKGROUND
 	glClearColor(skyColor.r, skyColor.g, skyColor.b, 1.0f);	// Set Background (Sky) Color
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+	if (gameState->gameEnded && !callback_ptr->play) {
+		gameState->inMenu = true;
+		gameState->gameEnded = false;
+	}
+
+	// MAIN MENU
+	if (gameState->inMenu) {
+		// Use Text Shader
+		textShader.use();
+		mat4 textProjection = ortho(0.0f, static_cast<float>(callback_ptr->xres), 0.0f, static_cast<float>(callback_ptr->yres));
+		textShader.setMat4("projection", textProjection);
+
+		// Load Screen
+		if (callback_ptr->play) {
+			RenderText(textShader, textVAO, textVBO, "Loading...",
+				500,
+				500,
+				1.5f,
+				vec3(0.2, 0.2f, 0.2f),
+				textChars);
+			gameState->inMenu = false;
+		}
+
+		// Menu Screen
+		else {
+			drawUI(testTexture, callback_ptr->xres - 300.f, 30.f, callback_ptr->xres - 30.f, 300.f, 0);
+		}
+
+		glfwSwapBuffers(window);
+		glfwPollEvents();
+		return;
+	}
 
 	// IMGUI INITIALIZATION
 	ImGui_ImplOpenGL3_NewFrame();
@@ -288,7 +339,7 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> cbp, Gam
 	celMap.debugShader.use();
 	celMap.debugShader.setFloat("outlineTransparency", outlineTransparency);
 	celMap.debugShader.setFloat("outlineBlur", outlineBlur);
-	celMap.renderToScreen(intermediateBuffer.fbTextures[0], 0.1f);
+	celMap.renderToScreen(intermediateBuffer.fbTextures[0], 0.99f);
 	//blurMap.renderToScreen();
 	//outlineMap.renderToScreen();
 
@@ -320,7 +371,43 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> cbp, Gam
 
 	// Normal Gameplay Screen
 	else {
-		drawUI(testTexture, callback_ptr->xres - 300.f, 30.f, callback_ptr->xres - 30.f, 300.f);
+		// Ayyylien
+		drawUI(testTexture, callback_ptr->xres - 300.f, 30.f, callback_ptr->xres - 30.f, 300.f, 0);
+
+		// Boost Meter
+		for (int i = 0; i < 10; i++) {
+			int boost_meter = (int)gameState->findEntity("vehicle_0")->playerProperties->boost_meter;
+			int offset = 50 * i;
+			int boostoffset = 10 * i;
+
+			if (boost_meter > boostoffset && i < 7) {
+				drawUI(boostBlue, 50.0f + offset, 50.f, 100.0f + offset, 100.f, 0);
+			}
+			else if (boost_meter > boostoffset) {
+				drawUI(boostOrange, 50.0f + offset, 50.f, 100.0f + offset, 100.f, 0);
+			}
+			else {
+				drawUI(boostGrey, 50.0f + offset, 50.f, 100.0f + offset, 100.f, 0);
+			}
+		}
+
+		// Pod Counter
+		for (int i = 0; i < 10; i++) {
+			int pod_count = gameState->findEntity("vehicle_0")->nbChildEntities;
+			int offset = 60 * i;
+			int boostoffset = 10 * i;
+
+			if (pod_count > i) {
+				drawUI(podcounterOn, 50.0f + offset, 130.f, 100.0f + offset, 180.f, 0);
+			}
+			else {
+				drawUI(podcounterOff, 50.0f + offset, 130.f, 100.0f + offset, 180.f, 0);
+			}
+		}
+
+		//drawUI(boostBlue, callback_ptr->xres - 1800.f, 30.f, callback_ptr->xres - 1730.f, 100.f, 0);
+
+
 		// Display game timer / countdown
 		std::string timerMins = std::to_string(abs(timer->getCountdownMins()));
 		std::string timerSeconds = std::to_string(abs(timer->getCountdownSecs()));
@@ -342,12 +429,14 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> cbp, Gam
 			vec3(0.2, 0.2f, 0.2f),
 			textChars);
 
-		// Display boost meter
+		// Display boost meter - deprecated
+		/*
 		RenderText(textShader, textVAO, textVBO, "Boost Meter: " + to_string((int)playerEntity->playerProperties->boost_meter),
 			20,
 			40, 0.6f,
 			vec3(0.2, 0.2f, 0.2f),
 			textChars);
+		*/
 
 		// Display player scores
 		for (int i = 0; i < gameState->numVehicles; i++) {
@@ -392,13 +481,13 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> cbp, Gam
 
 	ImGui::Text("Audio");
 	if (ImGui::SliderFloat("Player ", &playerVolume, 0.0f, 2.0f)) {
-		gameState->audio_ptr->setVolume("vehicle_0", playerVolume);
+		gameState->audio_ptr->setVolume("vehicle_0_tire", playerVolume);
 	}
 	if (ImGui::SliderFloat("NPC ", &npcVolume, 0.0f, 2.0f)) {
 		for (int i = 1; i < 4; i++) {
 			std::string vehicleName = "vehicle_";
 			vehicleName += to_string(i);
-			gameState->audio_ptr->setVolume(vehicleName, npcVolume);
+			gameState->audio_ptr->setVolume(vehicleName + "_tire", npcVolume);
 		}
 	}
 
@@ -456,13 +545,14 @@ void RenderingSystem::bindTexture(int location, unsigned int texture) {
 	glActiveTexture(GL_TEXTURE0);
 }
 
-void RenderingSystem::drawUI(unsigned int texture, float x0, float y0, float x1, float y1) {
+void RenderingSystem::drawUI(unsigned int texture, float x0, float y0, float x1, float y1, int l) {
+	float layer = 0.05f + ((float)l / 10.f);
 	x0 /= callback_ptr->xres; x0 *= 2.f; x0 -= 1.f;
 	y0 /= callback_ptr->yres; y0 *= 2.f; y0 -= 1.f;
 	x1 /= callback_ptr->xres; x1 *= 2.f; x1 -= 1.f;
 	y1 /= callback_ptr->yres; y1 *= 2.f; y1 -= 1.f;
 	celMap.debugShader.use();
 	celMap.debugShader.setBool("UI", true);
-	bindTexture(1, testTexture);
-	celMap.renderQuad(testTexture, 0.05f, x0, y0, x1, y1);
+	bindTexture(1, texture);
+	celMap.renderQuad(texture, layer, x0, y0, x1, y1);
 }

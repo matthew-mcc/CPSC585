@@ -189,7 +189,19 @@ public:
 			audioTest = true;
 		}
 
+		// MAIN MENU - PLAY
+		if (key == GLFW_KEY_SPACE && action == GLFW_PRESS) {
+			if (!play) {
+				play = true;
+			}
+		}
 		
+		if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
+			if (gameEnded) {
+				play = false;
+			}
+		}
+	}
 			
 	}
 	

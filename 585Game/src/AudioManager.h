@@ -22,8 +22,8 @@
 
 class AudioManager {
 public:
-	void Init();
-	void Update();
+	void Init(int vehicleCount);
+	void Update(int numVehicles, bool inMenu);
 	void Update3DListener(const glm::vec3& pos, const glm::vec3& velocity, const glm::vec3& forward, const glm::vec3& up);
 	void Shutdown();
 
@@ -35,6 +35,7 @@ public:
 	void Dropoff();
 
 	void UpdateTire(const std::string& strEventName, const glm::vec3 &pos, const glm::vec3 &velocity, const glm::vec3 &forward, const glm::vec3 &up, float distance, bool contact);
+	void UpdateBoostPlaceholder(const glm::vec3& pos, const glm::vec3& velocity, const glm::vec3& forward, const glm::vec3& up, float distance, float boost);
 
 	void setVolume(const std::string& strEventName, float db);
 
@@ -53,6 +54,8 @@ private:
 	std::string e_dropoff = "{8152d370-812b-42ff-8376-d6cf870fa7b0}";
 	std::string e_dropoff_path = "event: / sfx / dropoff";
 	std::string e_tire_roll = "{7320c7ca-8c24-42ad-9aee-e1ffbe708167}";
+	std::string e_engine = "{ad086051-df49-493c-b0c8-c8b603ef2eee}";
+	std::string e_boost = "{800dca3e-ea68-4f91-90f7-1c88dbb487b0}";
 
 	std::string p_distance = "{a535cf27-0d8c-4dc4-8a7d-386ac746bd99}";
 

@@ -75,6 +75,10 @@ public:
 	int xres = 1920;
 	int yres = 1080;
 
+	// Main Menu
+	bool play = false;
+	bool gameEnded = false;
+
 	// Vehicle Control Inputs
 	int keys_pressed = 0;
 	float throttle = 0.f;
@@ -106,9 +110,10 @@ public:
 	bool clickR = false;
 
 	// GAMEPAD VEHICLE INPUT
-
-	void XboxUpdate(XboxInput x, Timer* timer, float vehicleSpeed) {
-		// Retrive Delta Time
+	void XboxUpdate(XboxInput x, Timer* timer, float vehicleSpeed, bool gameEnded) {
+		this->gameEnded = gameEnded;
+    
+    // Retrive Delta Time
 		float deltaTime = (float)timer->getDeltaTime();
 
 		// Update input variables
@@ -152,6 +157,13 @@ public:
 		else {
 			float maxSteer = glm::clamp(1.0f - vehicleSpeed / steer_speed_sensitivity, min_speed_sensitivity, 1.0f);
 			steer = glm::clamp(steer + steer_target * steer_activate_speed * deltaTime, -maxSteer, maxSteer);
+		}
+
+		if (!play && x.data.A) {
+			play = true;
+		}
+		else if (this->gameEnded && x.data.B) {
+			play = false;
 		}
 	}
 };

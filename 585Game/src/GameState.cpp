@@ -8,8 +8,7 @@ using namespace std;
 int vehiclesSpawned = 0;
 int trailersSpawned = 0;
 
-void GameState::initGameState(AudioManager* audio) {
-	audio_ptr = audio;
+void GameState::initGameState() {
 	Entity* e;
 
 	// Landscape
@@ -24,6 +23,12 @@ void GameState::initGameState(AudioManager* audio) {
 
 	e = addEntity("landscape_junk", PhysType::None, DrawType::Mesh, new Transform(), vector<string>{
 		"assets/models/junk1/junk1.obj"});
+
+	e = addEntity("rock_net1", PhysType::StaticMesh, DrawType::Mesh, new Transform(), vector<string>{
+		"assets/models/rock_net1/rock_net1.obj"});
+
+	e = addEntity("rock_net2", PhysType::None, DrawType::Mesh, new Transform(), vector<string>{
+		"assets/models/rock_net1/rock_net2.obj"});
 
 	// Sky Sphere
 	e = addEntity("sky_sphere", PhysType::None, DrawType::Mesh, new Transform(), vector<string>{
@@ -173,4 +178,14 @@ void GameState::endGame() {
 	}
 	winner = winningVehicle;
 	gameEnded = true;
+}
+
+void GameState::resetGameState(AudioManager* audio) {
+	audio_ptr = audio;
+	entityList.clear();
+	winner = NULL;
+	vehiclesSpawned = 0;
+	trailersSpawned = 0;
+	initGameState();
+
 }
