@@ -78,18 +78,18 @@ void resetValue(float &target, float range, float desireValue,float speed,float 
 	if (target > (desireValue - range) && target < (desireValue + range))
 		target = desireValue;
 }
-void RenderingSystem::updateRadius(float base,float zoom) {
-	camera_radius = base*zoom;
-	//cout << camera_radius << endl;
+void RenderingSystem::updateRadius(float base, float zoom) {
+	camera_radius = base + zoom;
 }
-//float timeTorset = 0.f;
+
 // Update Renderer
 void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> cbp, GameState* gameState, Timer* timer) {
+	// CALLBACK POINTER
 	callback_ptr = cbp;
+
 	// BACKGROUND
 	glClearColor(skyColor.r, skyColor.g, skyColor.b, 1.0f);	// Set Background (Sky) Color
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
 
 	// IMGUI INITIALIZATION
 	ImGui_ImplOpenGL3_NewFrame();
@@ -97,68 +97,51 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> cbp, Gam
 	ImGui::NewFrame();
 
 	// CAMERA POSITION / LAG
-	// Find player entity
-	Entity* playerEntity = gameState->findEntity("vehicle_0");
-
 	// Retrieve player direction vectors
-	//camera_position_forward = camera_position_forward - (callback_ptr->camera_acceleration) / 15.f;
+	Entity* playerEntity = gameState->findEntity("vehicle_0");
 	vec3 player_forward = playerEntity->transform->getForwardVector();
 	vec3 player_right = playerEntity->transform->getRightVector();
 	vec3 player_up = playerEntity->transform->getUpVector();
 	vec3 player_pos = playerEntity->transform->getPosition();
 
+	// Camera Zoom: Pull view back with increasing number of towed trailers
 	float camera_zoom_forward = clamp(1.0f + (float)playerEntity->nbChildEntities * 0.5f, 1.0f, 11.0f);
 	float camera_zoom_up = clamp(1.0f + (float)playerEntity->nbChildEntities * 0.4f, 1.0f, 11.0f);
 	
-	
-
-
 	// Chase Camera: Compute eye and target offsets
 		// Eye Offset: Camera position (world space)
 		// Target Offset: Camera focus point (world space)
 	vec3 eye_offset = (camera_position_forward * player_forward * camera_zoom_forward) + (camera_position_right * player_right) + (camera_position_up * player_up * camera_zoom_up);
-	vec3 target_offset = (camera_target_forward * player_forward) + (camera_target_right * player_right) + (camera_target_up * player_up);
-	target_offset = player_pos + target_offset;
-	
-	
-
-	// Camera lag: Generate target_position - prev_position creating a vector. Scale by constant factor, then add to prev and update
-	vec3 camera_target_position = player_pos + eye_offset;
-	float y = player_pos.y + camera_position_up + (float)playerEntity->nbChildEntities * 0.4f;
-	camera_target_position.y = y;
-
-
-	vec3 camera_track_vector = camera_target_position - camera_previous_position;
-
-	camera_track_vector = camera_track_vector * camera_lag * (float)timer->getDeltaTime();
-	
-	camera_previous_position = vec3(translate(mat4(1.0f), camera_track_vector) * vec4(camera_previous_position, 1.0f));
-	
+	vec3 target_offset = player_pos + (camera_target_forward * player_forward) + (camera_target_right * player_right) + (camera_target_up * player_up);
 
 	// If user is controlling camera, set view accordingly
-	vec3 camOffset = vec3(0.f);
 	vec3 ResetVec = playerEntity->transform->getRotation()*vec3(0.f,3.5f*camera_zoom_up,-7.5f*camera_zoom_forward);
 	glm::vec3 Camera_collision(0.f);
 	glm::vec3 Reset_collision(1.f);
+
+	// Camera Look: Orbit camera around vehicle
+	float lag_amount = camera_lag;
 	if (callback_ptr->moveCamera) {
-		//camOffset = camera_previous_position - player_pos;
-		//camOffset = glm::rotate(glm::mat4(1.f), callback_ptr->xAngle, world_up)*vec4(camOffset, 0.f);
-		//camOffset += player_pos;
-		//vec3 Cam_move_vec = playerEntity->transform->getRotation() * (camOffset-player_pos);
-		//view = lookAt(camOffset, target_offset, world_up);
-		camera_position_right = sinf(callback_ptr->xAngle) * camera_radius; 
+		camera_position_right = sinf(callback_ptr->xAngle) * camera_radius;
 		camera_position_forward = -cosf(callback_ptr->xAngle) * camera_radius;
-		//glm::vec3 intercetion = PhysicsSystem::CameraIntercetionRaycasting(camera_previous_position);
-		//if(intercetion == vec3(0.f))
-		Camera_collision = PhysicsSystem::CameraRaycasting(camera_previous_position,camera_radius,1.f); //perhaps should use the radius?
-		//Reset_collision = PhysicsSystem::CameraRaycasting(camera_previous_position, 2.f);
+		lag_amount = camera_lag * 4.f;
+		Camera_collision = PhysicsSystem::CameraRaycasting(camera_previous_position,camera_radius,1.f);
 	}
 	else {
-
 		Camera_collision = PhysicsSystem::CameraRaycasting(camera_previous_position,camera_radius,1.f);
 		Reset_collision = PhysicsSystem::CameraRaycasting(player_pos+ResetVec, camera_radius, 1.f);
 	}
-	view = lookAt(camera_previous_position + camOffset, target_offset, world_up);
+
+	// Camera lag: Generate target_position - prev_position creating a vector. Scale by constant factor, then add to prev and update
+	vec3 camera_target_position = player_pos + eye_offset;
+	camera_target_position.y = player_pos.y + camera_position_up + (float)playerEntity->nbChildEntities * 0.4f;
+	vec3 camera_track_vector = camera_target_position - camera_previous_position;
+	camera_track_vector = camera_track_vector * lag_amount * (float)timer->getDeltaTime();
+	camera_previous_position = vec3(translate(mat4(1.0f), camera_track_vector) * vec4(camera_previous_position, 1.0f));
+
+	// Set view matrix
+	view = lookAt(camera_previous_position, target_offset, world_up);
+
 	// For audio - probably need to change later
 	gameState->listener_position = camera_previous_position;
 

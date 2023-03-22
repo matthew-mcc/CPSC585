@@ -124,17 +124,10 @@ public:
 			// Camera look
 			if (abs(x.data.RThumb_magnitude) != 0.f) {
 				moveCamera = true;
-				if (x.data.RThumb_X_direction > 0)
-					xAngle = asinf(glm::clamp(abs(x.data.RThumb_X_direction * x.data.RThumb_magnitude),-1.f,1.f));//atan(x.data.RThumb_X_direction / x.data.RThumb_Y_direction);
-				else
-					xAngle = -asinf(glm::clamp(abs(x.data.RThumb_X_direction * x.data.RThumb_magnitude), -1.f, 1.f));
-				//if (x.data.RThumb_Y_direction < 0.f) xAngle = (atan(1)*4.f) + xAngle;
+				xAngle = -atan2(x.data.RThumb_X_direction, x.data.RThumb_Y_direction);
+
 			}
-			if (x.data.R3) {
-				moveCamera = true;
-				xAngle = 3.1415126;
-			}
-			else if(!x.data.R3 && abs(x.data.RThumb_magnitude) == 0.f){
+			else {
 				moveCamera = false;
 			}
 
