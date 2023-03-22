@@ -59,6 +59,8 @@ private:
 	unsigned int boostGrey;
 	unsigned int podcounterOn;
 	unsigned int podcounterOff;
+	unsigned int boostOn;
+	unsigned int boostOff;
 
 
 	// Shaders

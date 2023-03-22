@@ -50,6 +50,9 @@ void RenderingSystem::initRenderer() {
 	boostGrey = generateTexture("assets/textures/boostChevGrey.png", false);
 	boostOrange = generateTexture("assets/textures/boostChevOrange.png", false);
 
+	boostOn = generateTexture("assets/textures/dotsOn.png", false);
+	boostOff = generateTexture("assets/textures/dotsOff.png", false);
+
 	podcounterOn = generateTexture("assets/textures/podcounterOn.png", false);
 	podcounterOff = generateTexture("assets/textures/podCounterOff.png", false);
 
@@ -343,7 +346,7 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> cbp, Gam
 		drawUI(testTexture, callback_ptr->xres - 300.f, 30.f, callback_ptr->xres - 30.f, 300.f);
 
 		// Boost Meter
-		for (int i = 0; i < 10; i++) {
+		/*for (int i = 0; i < 10; i++) {
 			int boost_meter = (int)gameState->findEntity("vehicle_0")->playerProperties->boost_meter;
 			int offset = 50 * i;
 			int boostoffset = 10 * i;
@@ -358,6 +361,49 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> cbp, Gam
 				drawUI(boostGrey, 50.0f + offset, 50.f, 100.0f + offset, 100.f);
 			}
 		}
+		*/
+
+
+
+		
+		for (int i = 0; i < 50; i++) {
+			int boost_meter = (int)gameState->findEntity("vehicle_0")->playerProperties->boost_meter;
+			int offset = 12 * i;
+			float onMeter = (float)i / 65.0f;
+			float actualMeter = (float)boost_meter / 100.0f;
+			//int boostoffset = 10 * i;
+
+			if (actualMeter > onMeter) {
+				drawUI(boostOn, 50.0f + offset, 50.f, 62.0f + offset, 100.f);
+			}
+			else {
+				drawUI(boostOff, 50.0f + offset, 50.f, 62.0f + offset, 100.f);
+			}
+		}
+
+		
+		for (int i = 0; i < 6; i++) {
+			float cx;
+			float cy;
+			float s[4];
+			float c4;
+			glm::vec3 targetPos = gameState->findEntity("vehicle_" + to_string(i))->transform->getPosition();
+			glm::mat4 MVP = projection * view * model;
+
+			s[0] = (targetPos.x * MVP[0][0]) + (targetPos.y * MVP[1][0]) + (targetPos.z * MVP[2][0]) + MVP[3][0];
+			s[1] = (targetPos.x * MVP[0][1]) + (targetPos.y * MVP[1][1]) + (targetPos.z * MVP[2][1]) + MVP[3][1];
+			s[2] = (targetPos.x * MVP[0][2]) + (targetPos.y * MVP[1][2]) + (targetPos.z * MVP[2][2]) + MVP[3][2];
+			s[3] = (targetPos.x * MVP[0][3]) + (targetPos.y * MVP[1][3]) + (targetPos.z * MVP[2][3]) + MVP[3][3];
+
+			cx = s[0] / s[3] * callback_ptr->xres / 2 + callback_ptr->xres / 2;
+			cy = s[1] / s[3] * callback_ptr->yres / 2 + callback_ptr->yres / 2;
+			drawUI(testTexture, cx - 30.0f, cy - 40.0f, cx + 30.0f, cy + 40.0f);
+		}
+		
+
+
+
+
 
 		// Pod Counter
 		for (int i = 0; i < 10; i++) {
