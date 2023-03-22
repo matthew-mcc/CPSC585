@@ -116,7 +116,7 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> cbp, Gam
 	// Chase Camera: Compute eye and target offsets
 		// Eye Offset: Camera position (world space)
 		// Target Offset: Camera focus point (world space)
-	vec3 eye_offset = (camera_position_forward * player_forward * camera_zoom_forward) + (camera_position_right * player_right) + (camera_position_up * vec3(0.0f, 1.0f, 0.0f) * camera_zoom_up);
+	vec3 eye_offset = (camera_position_forward * player_forward * camera_zoom_forward) + (camera_position_right * player_right) + (camera_position_up * player_up * camera_zoom_up);
 	vec3 target_offset = (camera_target_forward * player_forward) + (camera_target_right * player_right) + (camera_target_up * player_up);
 	target_offset = player_pos + target_offset;
 	
@@ -150,11 +150,11 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> cbp, Gam
 		camera_position_forward = -cosf(callback_ptr->xAngle) * camera_radius;
 		//glm::vec3 intercetion = PhysicsSystem::CameraIntercetionRaycasting(camera_previous_position);
 		//if(intercetion == vec3(0.f))
-		Camera_collision = PhysicsSystem::CameraRaycasting(camera_previous_position, camera_radius,3.f);
+		Camera_collision = PhysicsSystem::CameraRaycasting(camera_previous_position, 3.f,2.f); //perhaps should use the radius?
 		//Reset_collision = PhysicsSystem::CameraRaycasting(camera_previous_position, 2.f);
 	}
 	else {
-		Camera_collision = PhysicsSystem::CameraRaycasting(camera_previous_position,camera_radius,3.f);
+		Camera_collision = PhysicsSystem::CameraRaycasting(camera_previous_position,1.f,1.f);
 		Reset_collision = PhysicsSystem::CameraIntercetionRaycasting(player_pos+ResetVec);
 	}
 	view = lookAt(camera_previous_position + camOffset, target_offset, world_up);
@@ -163,7 +163,7 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> cbp, Gam
 
 	if (Camera_collision.x != 0.f && Camera_collision.y != 0 && Camera_collision.z != 0) {//not sure which one to use XD
 		camera_position_forward += Camera_collision.z;//* (float)timer->getDeltaTime();//camera_previous_position.z += 1.f; //* (float)timer->getDeltaTime();//cout << "???" << endl;
-		camera_position_up += Camera_collision.y;
+		camera_position_up = clamp(camera_position_up+Camera_collision.y,3.5f,100.f);
 		camera_position_right -= Camera_collision.x;
 		rad_base = clamp(rad_base - sqrtf(Camera_collision.z * Camera_collision.z + Camera_collision.x * Camera_collision.x),0.5f,7.5f);
 		//timeTorset = 0.f;
