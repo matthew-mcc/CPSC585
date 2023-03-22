@@ -77,6 +77,7 @@ public:
 
 	// Main Menu
 	bool play = false;
+	bool gameEnded = false;
 
 	// Vehicle Control Inputs
 	int keys_pressed = 0;
@@ -87,6 +88,7 @@ public:
 	float reverse = 0.f;
 	float AirPitch = 0.f;
 	float AirRoll = 0.f;
+	float reset = 0.f;
 
 	// Vehicle Control Parameters
 	float steer_release_speed = 2.5f;			// Higher = Quicker snap back to neutral steering
@@ -105,9 +107,16 @@ public:
 	bool addTrailer = false;
 	bool audioTest = false;
 
-	// GAMEPAD VEHICLE INPUT
+	bool clickR = false;
 
-	void XboxUpdate(XboxInput x, Timer* timer, float vehicleSpeed) {
+	// GAMEPAD VEHICLE INPUT
+	void XboxUpdate(XboxInput x, Timer* timer, float vehicleSpeed, bool gameEnded) {
+		this->gameEnded = gameEnded;
+    
+    // Retrive Delta Time
+		float deltaTime = (float)timer->getDeltaTime();
+
+		// Update input variables
 		if (keys_pressed <= 0) {
 			throttle = x.data.RT / 255.f;
 			brake = x.data.LT / 255.f;
@@ -115,21 +124,28 @@ public:
 			reverse = x.data.LT / 255.f;
 			AirPitch = x.data.LThumb_Y_direction;
 			AirRoll = -x.data.LThumb_X_direction;
-			boosterrrrr = x.data.RB;
-			//std::cout << x.data.LB <<std::endl;
-		}
-		if (abs(x.data.RThumb_magnitude) > 0.01f) {
-			moveCamera = true;
-			xAngle = atan(x.data.RThumb_X_direction / x.data.RThumb_Y_direction);
-			if (x.data.RThumb_Y_direction < 0.f) xAngle = (atan(1)*4.f) + xAngle;
-		}
-		else if (abs(lastX_Controller) > 0.01f) {
-			moveCamera = false;
-		}
-		lastX_Controller = x.data.RThumb_magnitude;
+			boosterrrrr = x.data.B;
 
-		// Retrive Delta Time
-		float deltaTime = (float)timer->getDeltaTime();
+			// Camera look
+			if (abs(x.data.RThumb_magnitude) != 0.f) {
+				moveCamera = true;
+				xAngle = -atan2(x.data.RThumb_X_direction, x.data.RThumb_Y_direction);
+
+			}
+			else {
+				moveCamera = false;
+			}
+
+			// Reset
+			if (x.data.Y) reset = deltaTime;
+			else reset = 0.f;
+		}
+		
+		//lastX_Controller = x.data.RThumb_magnitude;
+		if (clickR) {
+			moveCamera = true;
+			xAngle = 3.1415126;
+		}
 		
 		// If Steer Speed is near-zero and the steering angle isn't 0, unwind the steering input
 		if (abs(steer_target) <= 0.01f) {
@@ -145,6 +161,9 @@ public:
 
 		if (!play && x.data.A) {
 			play = true;
+		}
+		else if (this->gameEnded && x.data.B) {
+			play = false;
 		}
 	}
 };

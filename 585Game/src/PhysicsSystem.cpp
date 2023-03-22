@@ -198,6 +198,7 @@ void PhysicsSystem::processTrailerCollision() {
 	Trailer* trailer = getTrailerObject(trailerBody);
 
 	// Only process if the trailer is not flying (a.k.a being sucked into the portal)
+	if (trailer == nullptr) return;
 	if (!trailer->isFlying) {
 		// Find the colliding vehicle
 		for (int i = 0; i < vehicles.size(); i++) {
@@ -211,7 +212,7 @@ void PhysicsSystem::processTrailerCollision() {
 					return;
 				}
 				// Otherwise if no pulling vehicle exists, simply attach trailer to colliding vehicle
-				else {
+				else if (pullingVehicle != vehicles.at(i)){
 					attachTrailer(trailer, vehicles.at(i));
 					return;
 				}
@@ -278,28 +279,30 @@ void PhysicsSystem::attachTrailer(Trailer* trailer, Vehicle* vehicle) {
 	// Create joint
 	jointTransform = PxTransform(trailer->rigidBody->getGlobalPose().p);
 	joint = PxD6JointCreate(*gPhysics, parentBody, parentBody->getGlobalPose().getInverse().transform(jointTransform), trailer->rigidBody, trailer->rigidBody->getGlobalPose().getInverse().transform(jointTransform));
-	joint->setMotion(PxD6Axis::eTWIST, PxD6Motion::eLIMITED);
-	joint->setMotion(PxD6Axis::eSWING1, PxD6Motion::eLIMITED);
-	joint->setMotion(PxD6Axis::eSWING2, PxD6Motion::eLIMITED);
+	if (joint != nullptr) {
+		joint->setMotion(PxD6Axis::eTWIST, PxD6Motion::eLIMITED);
+		joint->setMotion(PxD6Axis::eSWING1, PxD6Motion::eLIMITED);
+		joint->setMotion(PxD6Axis::eSWING2, PxD6Motion::eLIMITED);
 
-	// Add new trailer to attachedTrailers tracking list, update flags
-	trailer->isTowed = true;
-	trailer->vaccuumTarget = NULL;
-	vehicle->attachedTrailers.push_back(trailer);
-	vehicle->attachedJoints.push_back(joint);
-	updateJointLimits(vehicle);
+		// Add new trailer to attachedTrailers tracking list, update flags
+		trailer->isTowed = true;
+		trailer->vaccuumTarget = NULL;
+		vehicle->attachedTrailers.push_back(trailer);
+		vehicle->attachedJoints.push_back(joint);
+		updateJointLimits(vehicle);
 
-	// Play some audio
-	glm::vec3 vehiclePos = toGLMVec3(trailer->rigidBody->getGlobalPose().p);
-	//glm::vec3 playerPos = gameState->findEntity("vehicle_0")->transform->getPosition();
+		// Play some audio
+		glm::vec3 vehiclePos = toGLMVec3(trailer->rigidBody->getGlobalPose().p);
+		//glm::vec3 playerPos = gameState->findEntity("vehicle_0")->transform->getPosition();
 
-	//vehiclePos = vehiclePos - gameState->listener_position;
+		//vehiclePos = vehiclePos - gameState->listener_position;
 
-	//std::cout << "position: " << vehiclePos.x;
-	//std::cout << ", " << vehiclePos.y;
-	//std::cout << ", " << vehiclePos.z << std::endl;
+		//std::cout << "position: " << vehiclePos.x;
+		//std::cout << ", " << vehiclePos.y;
+		//std::cout << ", " << vehiclePos.z << std::endl;
 
-	gameState->audio_ptr->Latch(vehiclePos);
+		gameState->audio_ptr->Latch(vehiclePos);
+	}
 }
 
 void PhysicsSystem::detachTrailer(Trailer* trailer, Vehicle* vehicle, Vehicle* vaccuumTarget) {
@@ -336,38 +339,61 @@ void PhysicsSystem::detachTrailer(Trailer* trailer, Vehicle* vehicle, Vehicle* v
 }
 
 //PxRaycastHit hitBuffer[10];
-PxRaycastBuffer cameraRayBuffer(0,0);
-glm::vec3 PhysicsSystem::CameraRaycasting(glm::vec3 campos,float distance) {
+
+bool PhysicsSystem::CameraIntercetionRaycasting(glm::vec3 campos) {
+	PxRaycastBuffer cameraRayBuffer(0, 0);
+	PxVec3 cam = PxVec3(campos.x, campos.y, campos.z); //where the ray shoots, the origin 
+	PxVec3 start = vehicles.at(0)->vehicle.mPhysXState.physxActor.rigidBody->getGlobalPose().p;
+	//PxTransform vehicle_trans = vehicles.at(0)->vehicle.mPhysXState.physxActor.rigidBody->getGlobalPose();
+	PxVec3 dir = start - cam; // we need the ray shoot from vehicle to camera, which then can detect the ground mesh. direction should base on global map
+	//PxVec3 moving_vector(0.f);
+	//PxVec3 Normal_ray_dir = cam - start;
+	//PxVec3 Normal_shoot_origin;
+	return (gScene->raycast(cam, dir.getNormalized(), dir.magnitude(), cameraRayBuffer, PxHitFlag::eMESH_BOTH_SIDES) && cameraRayBuffer.block.shape->getSimulationFilterData().word0 == COLLISION_FLAG_GROUND);
+		//moving_vector = dir * (cameraRayBuffer.block.distance / dir.magnitude());
+		//Normal_shoot_origin = cam + dir * ((cameraRayBuffer.block.distance + 0.1f) / dir.magnitude());
+		//moving_vector = vehicle_trans.rotateInv(moving_vector).getNormalized();
+		//if (gScene->raycast(Normal_shoot_origin, Normal_ray_dir.getNormalized(), dir.magnitude(), cameraRayBuffer, PxHitFlag::eNORMAL) &&
+		//	cameraRayBuffer.block.shape->getSimulationFilterData().word0 == COLLISION_FLAG_GROUND)
+		//	moving_vector += cameraRayBuffer.block.normal.getNormalized();
+		//moving_vector = vehicle_trans.rotateInv(moving_vector);
+		//return glm::vec3(moving_vector.x, moving_vector.y, moving_vector.z);
+	//}
+	//return glm::vec3(moving_vector.x, moving_vector.y, moving_vector.z);
+}
+glm::vec3 PhysicsSystem::CameraRaycasting(glm::vec3 campos,float side,float down_back) {
+	PxRaycastBuffer cameraRayBuffer(0, 0);
 	PxVec3 cam = PxVec3(campos.x, campos.y, campos.z); //where the ray shoots, the origin 
 	PxVec3 start = vehicles.at(0)->vehicle.mPhysXState.physxActor.rigidBody->getGlobalPose().p;
 	PxTransform vehicle_trans = vehicles.at(0)->vehicle.mPhysXState.physxActor.rigidBody->getGlobalPose();
 	PxVec3 dir =  start-cam; // we need the ray shoot from vehicle to camera, which then can detect the ground mesh. direction should base on global map
-	PxVec3 Normal_ray_dir = cam - start;
-	PxVec3 Normal_shoot_origin;
+	PxVec3 backward = cam-start;
+	backward.y = 0.f;
+	PxVec3 downward = vehicle_trans.rotate(PxVec3(0.f, -1.f, 0.f));
 	PxVec3 moving_vector(0.f);
+	
 	//prevent touch the ground  // just check different basis direction of the camera, give it no chance to touch the ground 
 	//prevent backward touch  
-	if (gScene->raycast(cam, vehicle_trans.rotate(PxVec3(0.f,0.f,-1.f)), distance, cameraRayBuffer, PxHitFlag::eNORMAL) &&
+	if (gScene->raycast(cam, backward.getNormalized(), down_back, cameraRayBuffer, PxHitFlag::eNORMAL) &&
 		cameraRayBuffer.block.shape->getSimulationFilterData().word0 == COLLISION_FLAG_GROUND) {
 		moving_vector += cameraRayBuffer.block.normal.getNormalized();
 		
 	}
 	//prevent downward touch  
-	if (gScene->raycast(cam, vehicle_trans.rotate(PxVec3(0.f, -1.f, 0.f)), distance, cameraRayBuffer, PxHitFlag::eNORMAL) &&
+	if (gScene->raycast(cam, downward, down_back, cameraRayBuffer, PxHitFlag::eNORMAL) &&
 		cameraRayBuffer.block.shape->getSimulationFilterData().word0 == COLLISION_FLAG_GROUND) {
 		moving_vector += cameraRayBuffer.block.normal.getNormalized();
 		
 	}
 	//prevent side touches  
-	if (gScene->raycast(cam, vehicle_trans.rotate(PxVec3(-1.f, 0.f, 0.f)), distance, cameraRayBuffer, PxHitFlag::eNORMAL) &&
+	if (gScene->raycast(cam, downward.cross(backward).getNormalized(), side, cameraRayBuffer, PxHitFlag::eNORMAL) &&
 		cameraRayBuffer.block.shape->getSimulationFilterData().word0 == COLLISION_FLAG_GROUND) {
 		moving_vector += cameraRayBuffer.block.normal.getNormalized();
 		
 	}
-	if (gScene->raycast(cam, vehicle_trans.rotate(PxVec3(1.f, 0.f, 0.f)), distance, cameraRayBuffer, PxHitFlag::eNORMAL) &&
+	else if (gScene->raycast(cam, backward.cross(downward).getNormalized(), side, cameraRayBuffer, PxHitFlag::eNORMAL) &&
 		cameraRayBuffer.block.shape->getSimulationFilterData().word0 == COLLISION_FLAG_GROUND) {
 		moving_vector += cameraRayBuffer.block.normal.getNormalized();
-		
 	}
 	moving_vector = vehicle_trans.rotateInv(moving_vector);
 	return glm::vec3(moving_vector.x, moving_vector.y, moving_vector.z);
@@ -377,19 +403,7 @@ glm::vec3 PhysicsSystem::CameraRaycasting(glm::vec3 campos,float distance) {
 	//It generally happens while you trying to do a U turn on the map border with high speed, and the camera will be throw out of the ground
 	//And even if you did, camera will reset to where it should be after all...
 	//----------------------------------------------------------------------------//
-	/*if (gScene->raycast(cam, dir.getNormalized(), dir.magnitude(), cameraRayBuffer, PxHitFlag::eMESH_BOTH_SIDES) &&
-		cameraRayBuffer.block.shape->getSimulationFilterData().word0 == COLLISION_FLAG_GROUND) {
-		moving_vector = dir * (cameraRayBuffer.block.distance / dir.magnitude());
-		Normal_shoot_origin = cam + dir* ((cameraRayBuffer.block.distance + 0.1f) / dir.magnitude());
-		moving_vector = vehicle_trans.rotateInv(moving_vector).getNormalized();
-		if (gScene->raycast(Normal_shoot_origin, Normal_ray_dir.getNormalized(), dir.magnitude(),cameraRayBuffer, PxHitFlag::eNORMAL) &&
-			cameraRayBuffer.block.shape->getSimulationFilterData().word0 == COLLISION_FLAG_GROUND)
-			moving_vector += vehicle_trans.rotateInv(cameraRayBuffer.block.normal.getNormalized());
-
-		//moving_vector = vehicle_trans.rotateInv(moving_vector);
-		return glm::vec3(moving_vector.x*0.1f, moving_vector.y * 0.1f, moving_vector.z * 0.1f);
-
-	}*/
+	
 }
 
 void PhysicsSystem::trailerForces(float deltaTime) {
@@ -611,8 +625,6 @@ void PhysicsSystem::initMaterialFrictionTable() {
 }
 
 void PhysicsSystem::initVehicles(int vehicleCount) {
-	// Init AI
-	
 	for (int i = 0; i < vehicleCount; i++) {
 		// Create a new vehicle entity and physics struct
 		gameState->spawnVehicle();
@@ -723,8 +735,9 @@ void PhysicsSystem::initVehicles(int vehicleCount) {
 void PhysicsSystem::initPhysicsSystem(GameState* gameState, AiController* aiController) {
 	this->gameState = gameState;
 	this->aiController = aiController;
+	vehicles.clear();
+	trailers.clear();
 	srand(time(NULL));
-	initPhysX();
 	initPhysXMeshes();
 	initMaterialFrictionTable();
 	initVehicles(gameState->numVehicles);
@@ -854,7 +867,10 @@ void PhysicsSystem::stepPhysics(shared_ptr<CallbackInterface> callback_ptr, Time
 			// In Air
 			else { 
 				// Set Rotation based on air controls
-				vehicles.at(i)->vehicle.mPhysXState.physxActor.rigidBody->addTorque(vehicle_transform.rotate(PxVec3(player->playerProperties->AirPitch * 2.5f, player->playerProperties->AirRoll * 1.0f, player->playerProperties->AirRoll * -3.0f) * timestep), PxForceMode().eVELOCITY_CHANGE);
+				if(gScene->raycast(vehicle_transform.p+ vehicle_transform.rotate(PxVec3(0.f, 2.f, 0.f)), vehicle_transform.rotate(PxVec3(0.f, -1.f, 0.f)), 1.f, AircontrolBuffer,PxHitFlag::eMESH_BOTH_SIDES) && AircontrolBuffer.block.shape->getSimulationFilterData().word0 == COLLISION_FLAG_GROUND) //if totally upside down
+					vehicles.at(i)->vehicle.mPhysXState.physxActor.rigidBody->addTorque(vehicle_transform.rotate(PxVec3(0, 0, -player->playerProperties->AirRoll)), PxForceMode().eVELOCITY_CHANGE);
+				else
+					vehicles.at(i)->vehicle.mPhysXState.physxActor.rigidBody->addTorque(vehicle_transform.rotate(PxVec3(player->playerProperties->AirPitch * 2.5f, player->playerProperties->AirRoll * 1.0f, player->playerProperties->AirRoll * -3.0f) * timestep), PxForceMode().eVELOCITY_CHANGE);
 				
 				// Audio Flag for ground contact
 				gameState->audio_ptr->contact = false;
@@ -864,6 +880,22 @@ void PhysicsSystem::stepPhysics(shared_ptr<CallbackInterface> callback_ptr, Time
 			if (vehicles.at(i)->vehicle.mPhysXState.physxActor.rigidBody->getLinearVelocity().magnitude() < player->playerProperties->boost_max_velocity) {
 				vehicles.at(i)->vehicle.mPhysXState.physxActor.rigidBody->addForce(vehicle_transform.rotate(PxVec3(0.f, 0.f, player->playerProperties->boost) * timestep), PxForceMode().eVELOCITY_CHANGE);
 				
+			}
+
+			// Reset
+			if (length(player->transform->getLinearVelocity()) < 5.0f) {
+				if (player->playerProperties->reset > player->playerProperties->reset_max) {
+					if (vehicles.at(i)->attachedTrailers.size() > 0) {
+						detachTrailer(vehicles.at(i)->attachedTrailers.at(0), vehicles.at(i), NULL);
+					}
+					PxVec3 oldPos = vehicles.at(i)->vehicle.mPhysXState.physxActor.rigidBody->getGlobalPose().p;
+					PxQuat oldRot = vehicles.at(i)->vehicle.mPhysXState.physxActor.rigidBody->getGlobalPose().q;
+					vehicles.at(i)->vehicle.mPhysXState.physxActor.rigidBody->setGlobalPose(PxTransform(PxVec3(oldPos.x, 10.f, oldPos.z)));
+					player->playerProperties->reset = 0.f;
+				}
+			}
+			else {
+				player->playerProperties->reset = 0.f;
 			}
 		}
 
@@ -959,9 +991,11 @@ void PhysicsSystem::stepPhysics(shared_ptr<CallbackInterface> callback_ptr, Time
 		if (i == 0) {
 			//std::cout << "Listener updated" << std::endl;
 			gameState->audio_ptr->Update3DListener(gameState->listener_position, audio_velocity, audio_forward, audio_up);
+			gameState->audio_ptr->setVolume(vehicleName + "_tire", 1.f);
 			gameState->audio_ptr->UpdateTire(vehicleName, audio_position, audio_velocity, audio_forward, audio_up, distance, gameState->audio_ptr->contact);
 		}
 		else {
+			gameState->audio_ptr->setVolume(vehicleName + "_tire", 1.f);
 			gameState->audio_ptr->UpdateTire(vehicleName, audio_position, audio_velocity, audio_forward, audio_up, distance, true);
 			//gameState->audio_ptr->UpdateTire(vehicleName, audio_position, audio_velocity, audio_forward, audio_up, distance, gameState->audio_ptr->contact);
 		}
