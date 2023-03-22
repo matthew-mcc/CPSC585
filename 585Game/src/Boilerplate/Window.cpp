@@ -202,8 +202,6 @@ public:
 			}
 		}
 	}
-			
-	}
 	
 	// MOUSE BUTTON CALLBACK
 	virtual void mouseButtonCallback(int button, int action, int mods) {
