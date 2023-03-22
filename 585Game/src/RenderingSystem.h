@@ -62,6 +62,14 @@ private:
 	unsigned int boostOn;
 	unsigned int boostOff;
 
+	std::vector<unsigned int> ui_player_tracker;
+	unsigned int ui_p1;
+	unsigned int ui_p2;
+	unsigned int ui_p3;
+	unsigned int ui_p4;
+	unsigned int ui_p5;
+	unsigned int ui_p6;
+
 
 	// Shaders
 	Shader textShader;
