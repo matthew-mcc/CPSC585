@@ -150,12 +150,13 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> cbp, Gam
 		camera_position_forward = -cosf(callback_ptr->xAngle) * camera_radius;
 		//glm::vec3 intercetion = PhysicsSystem::CameraIntercetionRaycasting(camera_previous_position);
 		//if(intercetion == vec3(0.f))
-		Camera_collision = PhysicsSystem::CameraRaycasting(camera_previous_position, 3.f,2.f); //perhaps should use the radius?
+		Camera_collision = PhysicsSystem::CameraRaycasting(camera_previous_position,camera_radius,1.f); //perhaps should use the radius?
 		//Reset_collision = PhysicsSystem::CameraRaycasting(camera_previous_position, 2.f);
 	}
 	else {
-		Camera_collision = PhysicsSystem::CameraRaycasting(camera_previous_position,1.f,1.f);
-		Reset_collision = PhysicsSystem::CameraIntercetionRaycasting(player_pos+ResetVec);
+
+		Camera_collision = PhysicsSystem::CameraRaycasting(camera_previous_position,camera_radius,1.f);
+		Reset_collision = PhysicsSystem::CameraRaycasting(player_pos+ResetVec, camera_radius, 1.f);
 	}
 	view = lookAt(camera_previous_position + camOffset, target_offset, world_up);
 	// For audio - probably need to change later
@@ -169,12 +170,12 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> cbp, Gam
 		//timeTorset = 0.f;
 	}
 	else {
-		if (Reset_collision.x == 0.f && Reset_collision.y == 0 && Reset_collision.z == 0) { //lag to reset the camera
+		if (Reset_collision.x == 0.f && Reset_collision.y == 0 && Reset_collision.z == 0 && !PhysicsSystem::CameraIntercetionRaycasting(player_pos + ResetVec)) { //lag to reset the camera
 			float reset_speed = 50.f; // the speed to rset the camera
 			float step_time = (float)timer->getDeltaTime();
 			float step_range = step_time * reset_speed;
-			resetValue(camera_position_forward,step_range,-7.5f*camera_zoom_forward,reset_speed, step_time);
-			resetValue(camera_position_up, step_range, 3.5f*camera_zoom_up, reset_speed, step_time);
+			resetValue(camera_position_forward,step_range,-7.5f,reset_speed, step_time);
+			resetValue(camera_position_up, step_range, 3.5f, reset_speed, step_time);
 			resetValue(camera_position_right, step_range, 0.f, reset_speed, step_time);
 			resetValue(rad_base, step_range, 7.5f, reset_speed, step_time);
 		}

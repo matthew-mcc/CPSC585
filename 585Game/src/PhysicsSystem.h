@@ -83,7 +83,7 @@ public:
 	void stepPhysics(std::shared_ptr<CallbackInterface> callback_ptr, Timer* timer);
 	
 	static glm::vec3 CameraRaycasting( glm::vec3 camposd,float side,float down_back );
-	static glm::vec3 CameraIntercetionRaycasting(glm::vec3 campos);
+	static bool CameraIntercetionRaycasting(glm::vec3 campos);
 
 private:
 	void initPhysX();

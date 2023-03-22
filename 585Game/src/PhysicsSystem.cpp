@@ -336,29 +336,30 @@ void PhysicsSystem::detachTrailer(Trailer* trailer, Vehicle* vehicle, Vehicle* v
 }
 
 //PxRaycastHit hitBuffer[10];
-PxRaycastBuffer cameraRayBuffer(0,0);
-glm::vec3 PhysicsSystem::CameraIntercetionRaycasting(glm::vec3 campos) {
+
+bool PhysicsSystem::CameraIntercetionRaycasting(glm::vec3 campos) {
+	PxRaycastBuffer cameraRayBuffer(0, 0);
 	PxVec3 cam = PxVec3(campos.x, campos.y, campos.z); //where the ray shoots, the origin 
 	PxVec3 start = vehicles.at(0)->vehicle.mPhysXState.physxActor.rigidBody->getGlobalPose().p;
-	PxTransform vehicle_trans = vehicles.at(0)->vehicle.mPhysXState.physxActor.rigidBody->getGlobalPose();
+	//PxTransform vehicle_trans = vehicles.at(0)->vehicle.mPhysXState.physxActor.rigidBody->getGlobalPose();
 	PxVec3 dir = start - cam; // we need the ray shoot from vehicle to camera, which then can detect the ground mesh. direction should base on global map
-	PxVec3 moving_vector(0.f);
-	PxVec3 Normal_ray_dir = cam - start;
-	PxVec3 Normal_shoot_origin;
-	if (gScene->raycast(cam, dir.getNormalized(), dir.magnitude(), cameraRayBuffer, PxHitFlag::eMESH_BOTH_SIDES) &&
-		cameraRayBuffer.block.shape->getSimulationFilterData().word0 == COLLISION_FLAG_GROUND) {
-		moving_vector = dir * (cameraRayBuffer.block.distance / dir.magnitude());
-		Normal_shoot_origin = cam + dir * ((cameraRayBuffer.block.distance + 0.1f) / dir.magnitude());
+	//PxVec3 moving_vector(0.f);
+	//PxVec3 Normal_ray_dir = cam - start;
+	//PxVec3 Normal_shoot_origin;
+	return (gScene->raycast(cam, dir.getNormalized(), dir.magnitude(), cameraRayBuffer, PxHitFlag::eMESH_BOTH_SIDES) && cameraRayBuffer.block.shape->getSimulationFilterData().word0 == COLLISION_FLAG_GROUND);
+		//moving_vector = dir * (cameraRayBuffer.block.distance / dir.magnitude());
+		//Normal_shoot_origin = cam + dir * ((cameraRayBuffer.block.distance + 0.1f) / dir.magnitude());
 		//moving_vector = vehicle_trans.rotateInv(moving_vector).getNormalized();
-		if (gScene->raycast(Normal_shoot_origin, Normal_ray_dir.getNormalized(), dir.magnitude(), cameraRayBuffer, PxHitFlag::eNORMAL) &&
-			cameraRayBuffer.block.shape->getSimulationFilterData().word0 == COLLISION_FLAG_GROUND)
-			moving_vector += cameraRayBuffer.block.normal.getNormalized();
-		moving_vector = vehicle_trans.rotateInv(moving_vector);
-		return glm::vec3(moving_vector.x, moving_vector.y, moving_vector.z);
-	}
-	return glm::vec3(moving_vector.x, moving_vector.y, moving_vector.z);
+		//if (gScene->raycast(Normal_shoot_origin, Normal_ray_dir.getNormalized(), dir.magnitude(), cameraRayBuffer, PxHitFlag::eNORMAL) &&
+		//	cameraRayBuffer.block.shape->getSimulationFilterData().word0 == COLLISION_FLAG_GROUND)
+		//	moving_vector += cameraRayBuffer.block.normal.getNormalized();
+		//moving_vector = vehicle_trans.rotateInv(moving_vector);
+		//return glm::vec3(moving_vector.x, moving_vector.y, moving_vector.z);
+	//}
+	//return glm::vec3(moving_vector.x, moving_vector.y, moving_vector.z);
 }
 glm::vec3 PhysicsSystem::CameraRaycasting(glm::vec3 campos,float side,float down_back) {
+	PxRaycastBuffer cameraRayBuffer(0, 0);
 	PxVec3 cam = PxVec3(campos.x, campos.y, campos.z); //where the ray shoots, the origin 
 	PxVec3 start = vehicles.at(0)->vehicle.mPhysXState.physxActor.rigidBody->getGlobalPose().p;
 	PxTransform vehicle_trans = vehicles.at(0)->vehicle.mPhysXState.physxActor.rigidBody->getGlobalPose();
@@ -863,7 +864,7 @@ void PhysicsSystem::stepPhysics(shared_ptr<CallbackInterface> callback_ptr, Time
 			else { 
 				// Set Rotation based on air controls
 				if(gScene->raycast(vehicle_transform.p+ vehicle_transform.rotate(PxVec3(0.f, 2.f, 0.f)), vehicle_transform.rotate(PxVec3(0.f, -1.f, 0.f)), 1.f, AircontrolBuffer,PxHitFlag::eMESH_BOTH_SIDES) && AircontrolBuffer.block.shape->getSimulationFilterData().word0 == COLLISION_FLAG_GROUND) //if totally upside down
-					vehicles.at(i)->vehicle.mPhysXState.physxActor.rigidBody->addTorque(vehicle_transform.rotate(PxVec3(0, 0, player->playerProperties->AirRoll)), PxForceMode().eVELOCITY_CHANGE);
+					vehicles.at(i)->vehicle.mPhysXState.physxActor.rigidBody->addTorque(vehicle_transform.rotate(PxVec3(0, 0, -player->playerProperties->AirRoll)), PxForceMode().eVELOCITY_CHANGE);
 				else
 					vehicles.at(i)->vehicle.mPhysXState.physxActor.rigidBody->addTorque(vehicle_transform.rotate(PxVec3(player->playerProperties->AirPitch * 2.5f, player->playerProperties->AirRoll * 1.0f, player->playerProperties->AirRoll * -3.0f) * timestep), PxForceMode().eVELOCITY_CHANGE);
 				
