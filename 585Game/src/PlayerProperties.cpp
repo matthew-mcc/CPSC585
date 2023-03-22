@@ -1,7 +1,6 @@
 #include <PlayerProperties.h>
 #include <Boilerplate/Timer.h>
 
-
 void PlayerProperties::setPlayerControlled() {
 	playerControlled = true;
 }
@@ -32,6 +31,13 @@ void PlayerProperties::updateCallbacks(std::shared_ptr<CallbackInterface> callba
 	addTrailer = callback_ptr->addTrailer;
 
 	boost_status_cb = callback_ptr->boosterrrrr;
+
+	if (callback_ptr->reset == 0.f) {
+		reset = 0.f;
+	}
+	else {
+		reset += callback_ptr->reset;
+	}
 	updateBoost();
 }
 

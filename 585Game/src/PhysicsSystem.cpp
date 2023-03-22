@@ -211,7 +211,7 @@ void PhysicsSystem::processTrailerCollision() {
 					return;
 				}
 				// Otherwise if no pulling vehicle exists, simply attach trailer to colliding vehicle
-				else {
+				else if (pullingVehicle != vehicles.at(i)){
 					attachTrailer(trailer, vehicles.at(i));
 					return;
 				}
@@ -278,28 +278,30 @@ void PhysicsSystem::attachTrailer(Trailer* trailer, Vehicle* vehicle) {
 	// Create joint
 	jointTransform = PxTransform(trailer->rigidBody->getGlobalPose().p);
 	joint = PxD6JointCreate(*gPhysics, parentBody, parentBody->getGlobalPose().getInverse().transform(jointTransform), trailer->rigidBody, trailer->rigidBody->getGlobalPose().getInverse().transform(jointTransform));
-	joint->setMotion(PxD6Axis::eTWIST, PxD6Motion::eLIMITED);
-	joint->setMotion(PxD6Axis::eSWING1, PxD6Motion::eLIMITED);
-	joint->setMotion(PxD6Axis::eSWING2, PxD6Motion::eLIMITED);
+	if (joint != nullptr) {
+		joint->setMotion(PxD6Axis::eTWIST, PxD6Motion::eLIMITED);
+		joint->setMotion(PxD6Axis::eSWING1, PxD6Motion::eLIMITED);
+		joint->setMotion(PxD6Axis::eSWING2, PxD6Motion::eLIMITED);
 
-	// Add new trailer to attachedTrailers tracking list, update flags
-	trailer->isTowed = true;
-	trailer->vaccuumTarget = NULL;
-	vehicle->attachedTrailers.push_back(trailer);
-	vehicle->attachedJoints.push_back(joint);
-	updateJointLimits(vehicle);
+		// Add new trailer to attachedTrailers tracking list, update flags
+		trailer->isTowed = true;
+		trailer->vaccuumTarget = NULL;
+		vehicle->attachedTrailers.push_back(trailer);
+		vehicle->attachedJoints.push_back(joint);
+		updateJointLimits(vehicle);
 
-	// Play some audio
-	glm::vec3 vehiclePos = toGLMVec3(trailer->rigidBody->getGlobalPose().p);
-	//glm::vec3 playerPos = gameState->findEntity("vehicle_0")->transform->getPosition();
+		// Play some audio
+		glm::vec3 vehiclePos = toGLMVec3(trailer->rigidBody->getGlobalPose().p);
+		//glm::vec3 playerPos = gameState->findEntity("vehicle_0")->transform->getPosition();
 
-	//vehiclePos = vehiclePos - gameState->listener_position;
+		//vehiclePos = vehiclePos - gameState->listener_position;
 
-	//std::cout << "position: " << vehiclePos.x;
-	//std::cout << ", " << vehiclePos.y;
-	//std::cout << ", " << vehiclePos.z << std::endl;
+		//std::cout << "position: " << vehiclePos.x;
+		//std::cout << ", " << vehiclePos.y;
+		//std::cout << ", " << vehiclePos.z << std::endl;
 
-	gameState->audio_ptr->Latch(vehiclePos);
+		gameState->audio_ptr->Latch(vehiclePos);
+	}
 }
 
 void PhysicsSystem::detachTrailer(Trailer* trailer, Vehicle* vehicle, Vehicle* vaccuumTarget) {
@@ -875,6 +877,19 @@ void PhysicsSystem::stepPhysics(shared_ptr<CallbackInterface> callback_ptr, Time
 			// Boost
 			if (vehicles.at(i)->vehicle.mPhysXState.physxActor.rigidBody->getLinearVelocity().magnitude() < player->playerProperties->boost_max_velocity) {
 				vehicles.at(i)->vehicle.mPhysXState.physxActor.rigidBody->addForce(vehicle_transform.rotate(PxVec3(0.f, 0.f, player->playerProperties->boost) * timestep), PxForceMode().eVELOCITY_CHANGE);
+			}
+
+			// Reset
+			if (length(player->transform->getLinearVelocity()) < 5.0f) {
+				if (player->playerProperties->reset > player->playerProperties->reset_max) {
+					PxVec3 oldPos = vehicles.at(i)->vehicle.mPhysXState.physxActor.rigidBody->getGlobalPose().p;
+					PxQuat oldRot = vehicles.at(i)->vehicle.mPhysXState.physxActor.rigidBody->getGlobalPose().q;
+					vehicles.at(i)->vehicle.mPhysXState.physxActor.rigidBody->setGlobalPose(PxTransform(PxVec3(oldPos.x, 10.f, oldPos.z)));
+					player->playerProperties->reset = 0.f;
+				}
+			}
+			else {
+				player->playerProperties->reset = 0.f;
 			}
 		}
 

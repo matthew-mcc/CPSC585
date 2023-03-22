@@ -84,6 +84,7 @@ public:
 	float reverse = 0.f;
 	float AirPitch = 0.f;
 	float AirRoll = 0.f;
+	float reset = 0.f;
 
 	// Vehicle Control Parameters
 	float steer_release_speed = 2.5f;			// Higher = Quicker snap back to neutral steering
@@ -107,6 +108,10 @@ public:
 	// GAMEPAD VEHICLE INPUT
 
 	void XboxUpdate(XboxInput x, Timer* timer, float vehicleSpeed) {
+		// Retrive Delta Time
+		float deltaTime = (float)timer->getDeltaTime();
+
+		// Update input variables
 		if (keys_pressed <= 0) {
 			throttle = x.data.RT / 255.f;
 			brake = x.data.LT / 255.f;
@@ -114,8 +119,9 @@ public:
 			reverse = x.data.LT / 255.f;
 			AirPitch = x.data.LThumb_Y_direction;
 			AirRoll = -x.data.LThumb_X_direction;
-			boosterrrrr = x.data.RB;
-			//std::cout << x.data.LB <<std::endl;
+			boosterrrrr = x.data.B;
+
+			// Camera look
 			if (abs(x.data.RThumb_magnitude) != 0.f) {
 				moveCamera = true;
 				if (x.data.RThumb_X_direction > 0)
@@ -131,6 +137,10 @@ public:
 			else if(!x.data.R3 && abs(x.data.RThumb_magnitude) == 0.f){
 				moveCamera = false;
 			}
+
+			// Reset
+			if (x.data.Y) reset = deltaTime;
+			else reset = 0.f;
 		}
 		
 		//lastX_Controller = x.data.RThumb_magnitude;
@@ -138,8 +148,6 @@ public:
 			moveCamera = true;
 			xAngle = 3.1415126;
 		}
-		// Retrive Delta Time
-		float deltaTime = (float)timer->getDeltaTime();
 		
 		// If Steer Speed is near-zero and the steering angle isn't 0, unwind the steering input
 		if (abs(steer_target) <= 0.01f) {

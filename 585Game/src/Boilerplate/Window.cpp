@@ -127,6 +127,7 @@ public:
 			}
 		}
 
+		// AIR CONTROL PICH DOWN
 		if (key == GLFW_KEY_LEFT_SHIFT) {
 			if (action == GLFW_PRESS) {
 				shift = true;
@@ -143,6 +144,8 @@ public:
 			}
 		
 		}
+
+		// AIR CONTROL PITCH UP
 		if (key == GLFW_KEY_LEFT_CONTROL) {
 			if (action == GLFW_PRESS) {
 				control = true;
@@ -158,11 +161,26 @@ public:
 				keys_pressed--;
 			}
 		}
+
+		// BOOST
 		if (key == GLFW_KEY_SPACE) {
 			if (action == GLFW_PRESS)
 				boosterrrrr = true;
 			if (action == GLFW_RELEASE)
 				boosterrrrr = false;
+		}
+
+		// RESET
+		if (key == GLFW_KEY_R) {
+			if (action == GLFW_PRESS) {
+				Timer* timer = &Timer::Instance();
+				reset = timer->getDeltaTime();
+				keys_pressed++;
+			}
+			if (action == GLFW_RELEASE) {
+				reset = 0.f;
+				keys_pressed--;
+			}
 		}
 
 		// DEBUG - ADD TRAILER

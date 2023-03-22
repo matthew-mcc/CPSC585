@@ -1,7 +1,6 @@
 #pragma once
 #include <Boilerplate/Window.h>
 
-
 class PlayerProperties {
 public:
 	void setPlayerControlled();
@@ -21,10 +20,13 @@ public:
 	float AirRoll = 0.f;
 
 	// Boost
-	
 	float boost = 0.f;
 	float boost_meter = 100.0f;
 	float boost_max_velocity = 60.f;
+
+	// Reset
+	float reset = 0.f;
+	float reset_max = 3.0f;
 
 	// debug 
 	bool addTrailer = false;
