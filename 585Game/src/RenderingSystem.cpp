@@ -104,6 +104,33 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> cbp, Gam
 	glClearColor(skyColor.r, skyColor.g, skyColor.b, 1.0f);	// Set Background (Sky) Color
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+	// MAIN MENU
+	if (gameState->inMenu) {
+		// Use Text Shader
+		textShader.use();
+		mat4 textProjection = ortho(0.0f, static_cast<float>(callback_ptr->xres), 0.0f, static_cast<float>(callback_ptr->yres));
+		textShader.setMat4("projection", textProjection);
+
+		// Load Screen
+		if (callback_ptr->play) {
+			RenderText(textShader, textVAO, textVBO, "Loading...",
+				500,
+				500,
+				1.5f,
+				vec3(0.2, 0.2f, 0.2f),
+				textChars);
+			gameState->inMenu = false;
+		}
+
+		// Menu Screen
+		else {
+			drawUI(testTexture, callback_ptr->xres - 300.f, 30.f, callback_ptr->xres - 30.f, 300.f, 0);
+		}
+
+		glfwSwapBuffers(window);
+		glfwPollEvents();
+		return;
+	}
 
 	// IMGUI INITIALIZATION
 	ImGui_ImplOpenGL3_NewFrame();
@@ -310,7 +337,7 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> cbp, Gam
 	celMap.debugShader.use();
 	celMap.debugShader.setFloat("outlineTransparency", outlineTransparency);
 	celMap.debugShader.setFloat("outlineBlur", outlineBlur);
-	celMap.renderToScreen(intermediateBuffer.fbTextures[0], 0.1f);
+	celMap.renderToScreen(intermediateBuffer.fbTextures[0], 0.99f);
 	//blurMap.renderToScreen();
 	//outlineMap.renderToScreen();
 
@@ -343,7 +370,7 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> cbp, Gam
 	// Normal Gameplay Screen
 	else {
 		// Ayyylien
-		drawUI(testTexture, callback_ptr->xres - 300.f, 30.f, callback_ptr->xres - 30.f, 300.f);
+		drawUI(testTexture, callback_ptr->xres - 300.f, 30.f, callback_ptr->xres - 30.f, 300.f, 0);
 
 		// Boost Meter
 		/*for (int i = 0; i < 10; i++) {
@@ -352,13 +379,13 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> cbp, Gam
 			int boostoffset = 10 * i;
 
 			if (boost_meter > boostoffset && i < 7) {
-				drawUI(boostBlue, 50.0f + offset, 50.f, 100.0f + offset, 100.f);
+				drawUI(boostBlue, 50.0f + offset, 50.f, 100.0f + offset, 100.f, 0);
 			}
 			else if (boost_meter > boostoffset) {
-				drawUI(boostOrange, 50.0f + offset, 50.f, 100.0f + offset, 100.f);
+				drawUI(boostOrange, 50.0f + offset, 50.f, 100.0f + offset, 100.f, 0);
 			}
 			else {
-				drawUI(boostGrey, 50.0f + offset, 50.f, 100.0f + offset, 100.f);
+				drawUI(boostGrey, 50.0f + offset, 50.f, 100.0f + offset, 100.f, 0);
 			}
 		}
 		*/
@@ -412,14 +439,14 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> cbp, Gam
 			int boostoffset = 10 * i;
 
 			if (pod_count > i) {
-				drawUI(podcounterOn, 50.0f + offset, 130.f, 100.0f + offset, 180.f);
+				drawUI(podcounterOn, 50.0f + offset, 130.f, 100.0f + offset, 180.f, 0);
 			}
 			else {
-				drawUI(podcounterOff, 50.0f + offset, 130.f, 100.0f + offset, 180.f);
+				drawUI(podcounterOff, 50.0f + offset, 130.f, 100.0f + offset, 180.f, 0);
 			}
 		}
 
-		//drawUI(boostBlue, callback_ptr->xres - 1800.f, 30.f, callback_ptr->xres - 1730.f, 100.f);
+		//drawUI(boostBlue, callback_ptr->xres - 1800.f, 30.f, callback_ptr->xres - 1730.f, 100.f, 0);
 
 
 		// Display game timer / countdown
@@ -559,7 +586,8 @@ void RenderingSystem::bindTexture(int location, unsigned int texture) {
 	glActiveTexture(GL_TEXTURE0);
 }
 
-void RenderingSystem::drawUI(unsigned int texture, float x0, float y0, float x1, float y1) {
+void RenderingSystem::drawUI(unsigned int texture, float x0, float y0, float x1, float y1, int l) {
+	float layer = 0.05f + ((float)l / 10.f);
 	x0 /= callback_ptr->xres; x0 *= 2.f; x0 -= 1.f;
 	y0 /= callback_ptr->yres; y0 *= 2.f; y0 -= 1.f;
 	x1 /= callback_ptr->xres; x1 *= 2.f; x1 -= 1.f;
@@ -567,5 +595,5 @@ void RenderingSystem::drawUI(unsigned int texture, float x0, float y0, float x1,
 	celMap.debugShader.use();
 	celMap.debugShader.setBool("UI", true);
 	bindTexture(1, texture);
-	celMap.renderQuad(texture, 0.05f, x0, y0, x1, y1);
+	celMap.renderQuad(texture, layer, x0, y0, x1, y1);
 }

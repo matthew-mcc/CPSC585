@@ -75,6 +75,9 @@ public:
 	int xres = 1920;
 	int yres = 1080;
 
+	// Main Menu
+	bool play = false;
+
 	// Vehicle Control Inputs
 	int keys_pressed = 0;
 	float throttle = 0.f;
@@ -138,6 +141,10 @@ public:
 		else {
 			float maxSteer = glm::clamp(1.0f - vehicleSpeed / steer_speed_sensitivity, min_speed_sensitivity, 1.0f);
 			steer = glm::clamp(steer + steer_target * steer_activate_speed * deltaTime, -maxSteer, maxSteer);
+		}
+
+		if (!play && x.data.A) {
+			play = true;
 		}
 	}
 };

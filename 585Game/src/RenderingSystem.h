@@ -34,7 +34,7 @@ public:
 private:
 	void setCelShaderUniforms(Shader* shader);
 	void bindTexture(int location, unsigned int texture);
-	void drawUI(unsigned int texture, float x0, float y0, float x1, float y1);
+	void drawUI(unsigned int texture, float x0, float y0, float x1, float y1, int l = 0);
 
 	std::shared_ptr<CallbackInterface> callback_ptr;
 
@@ -89,7 +89,7 @@ private:
 	float fogDepth = 0.00125f;
 
 	float outlineSensitivity = 20.f;
-	float outlineTransparency = 0.6f;
+	float outlineTransparency = 0.4f;
 	float outlineBlur = 0.1f;
 
 	// Text

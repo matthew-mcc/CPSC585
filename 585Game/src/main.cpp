@@ -27,22 +27,15 @@ int main() {
 
 	// Initialize Systems
 	xInput.run();
-	// Remember to change this if we ever find a better way to keep track of vehicle count
-	audio.Init(6);
+	audio.Init(6);	// Remember to change this if we ever find a better way to keep track of vehicle count
 	gameState->initGameState(audio_ptr);
-	physics.initPhysicsSystem(gameState, aiController);
-	aiController->initAiSystem(gameState);
-
-	//aiController.initAiSystem(gameState, gameState->findEntity("vehicle_1"));
 	std::shared_ptr<CallbackInterface> callback_ptr = processInput(renderer.window);
 	renderer.SetupImgui();
 
-
 	// PRIMARY GAME LOOP
 	while (!glfwWindowShouldClose(renderer.window)) {
-
-		// Post-Load
-		if (isLoaded) {
+		// Loaded and not in menu (regular gameplay)
+		if (isLoaded && !gameState->inMenu) {
 			// Update Timer
 			timer->update();
 
@@ -55,20 +48,22 @@ int main() {
 			physics.stepPhysics(callback_ptr, timer);
 			aiController->StateController();
 
+			// Update Audio Manager
+			audio.Update();
 		}
 
 		// Update Input Drivers
 		xInput.update();
-		callback_ptr->XboxUpdate(xInput, timer, length(gameState->findEntity("vehicle_0")->transform->getLinearVelocity()));
-
-		// Update Audio Manager
-		audio.Update();
+		if (gameState->findEntity("vehicle_0") != nullptr) callback_ptr->XboxUpdate(xInput, timer, length(gameState->findEntity("vehicle_0")->transform->getLinearVelocity()));
+		else callback_ptr->XboxUpdate(xInput, timer, 0.0f);
 
 		// Update Rendering System
 		renderer.updateRenderer(callback_ptr, gameState, timer);
 
-		// Post-Load Initialization
-		if (!isLoaded) {
+		// Menu to Game Loading
+		if (!isLoaded && !gameState->inMenu) {
+			physics.initPhysicsSystem(gameState, aiController);
+			aiController->initAiSystem(gameState);
 			timer->init();
 			isLoaded = true;
 		}
