@@ -37,8 +37,10 @@ public:
 private:
 	void setCelShaderUniforms(Shader* shader);
 	void bindTexture(int location, unsigned int texture);
-	void drawUI(unsigned int texture, float x0, float y0, float x1, float y1, int l = 0);
 
+	void drawUI(unsigned int texture, float x0, float y0, float x1, float y1, int l = 0);
+	void updateRadius(float base,float zoom);
+  
 	std::shared_ptr<CallbackInterface> callback_ptr;
 
 	// Particle Generators
@@ -108,6 +110,8 @@ private:
 	float camera_target_right = 0.0f;
 	vec3 world_up = vec3(0.0f, 1.0f, 0.0f);
 	vec3 camera_previous_position = vec3(0.0f, 8.0f, -270.0f);
+	float camera_radius = 7.5f;
+	float rad_base = 7.5f;
 
 
 	// Camera Parameters
