@@ -882,6 +882,9 @@ void PhysicsSystem::stepPhysics(shared_ptr<CallbackInterface> callback_ptr, Time
 			// Reset
 			if (length(player->transform->getLinearVelocity()) < 5.0f) {
 				if (player->playerProperties->reset > player->playerProperties->reset_max) {
+					if (vehicles.at(i)->attachedTrailers.size() > 0) {
+						detachTrailer(vehicles.at(i)->attachedTrailers.at(0), vehicles.at(i), NULL);
+					}
 					PxVec3 oldPos = vehicles.at(i)->vehicle.mPhysXState.physxActor.rigidBody->getGlobalPose().p;
 					PxQuat oldRot = vehicles.at(i)->vehicle.mPhysXState.physxActor.rigidBody->getGlobalPose().q;
 					vehicles.at(i)->vehicle.mPhysXState.physxActor.rigidBody->setGlobalPose(PxTransform(PxVec3(oldPos.x, 10.f, oldPos.z)));
