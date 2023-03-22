@@ -198,6 +198,7 @@ void PhysicsSystem::processTrailerCollision() {
 	Trailer* trailer = getTrailerObject(trailerBody);
 
 	// Only process if the trailer is not flying (a.k.a being sucked into the portal)
+	if (trailer == nullptr) return;
 	if (!trailer->isFlying) {
 		// Find the colliding vehicle
 		for (int i = 0; i < vehicles.size(); i++) {
@@ -611,8 +612,6 @@ void PhysicsSystem::initMaterialFrictionTable() {
 }
 
 void PhysicsSystem::initVehicles(int vehicleCount) {
-	// Init AI
-	
 	for (int i = 0; i < vehicleCount; i++) {
 		// Create a new vehicle entity and physics struct
 		gameState->spawnVehicle();
@@ -723,8 +722,9 @@ void PhysicsSystem::initVehicles(int vehicleCount) {
 void PhysicsSystem::initPhysicsSystem(GameState* gameState, AiController* aiController) {
 	this->gameState = gameState;
 	this->aiController = aiController;
+	vehicles.clear();
+	trailers.clear();
 	srand(time(NULL));
-	initPhysX();
 	initPhysXMeshes();
 	initMaterialFrictionTable();
 	initVehicles(gameState->numVehicles);
@@ -959,9 +959,11 @@ void PhysicsSystem::stepPhysics(shared_ptr<CallbackInterface> callback_ptr, Time
 		if (i == 0) {
 			//std::cout << "Listener updated" << std::endl;
 			gameState->audio_ptr->Update3DListener(gameState->listener_position, audio_velocity, audio_forward, audio_up);
+			gameState->audio_ptr->setVolume(vehicleName + "_tire", 1.f);
 			gameState->audio_ptr->UpdateTire(vehicleName, audio_position, audio_velocity, audio_forward, audio_up, distance, gameState->audio_ptr->contact);
 		}
 		else {
+			gameState->audio_ptr->setVolume(vehicleName + "_tire", 1.f);
 			gameState->audio_ptr->UpdateTire(vehicleName, audio_position, audio_velocity, audio_forward, audio_up, distance, true);
 			//gameState->audio_ptr->UpdateTire(vehicleName, audio_position, audio_velocity, audio_forward, audio_up, distance, gameState->audio_ptr->contact);
 		}

@@ -75,7 +75,8 @@ class PhysicsSystem {
 public:
 	// Constructor
 	PhysicsSystem(){};
-	// Initializer
+	// Initializers
+	void initPhysX();
 	void initPhysicsSystem(GameState* gameState, AiController* aiController);
 	// Physics Update
 	// Changed to PlayerProperties
@@ -86,7 +87,6 @@ public:
 	
 
 private:
-	void initPhysX();
 	void cleanupPhysX();
 	void initPhysXMeshes();
 	void initMaterialFrictionTable();

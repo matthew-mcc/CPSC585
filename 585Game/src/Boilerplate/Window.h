@@ -77,6 +77,7 @@ public:
 
 	// Main Menu
 	bool play = false;
+	bool gameEnded = false;
 
 	// Vehicle Control Inputs
 	int keys_pressed = 0;
@@ -107,7 +108,8 @@ public:
 
 	// GAMEPAD VEHICLE INPUT
 
-	void XboxUpdate(XboxInput x, Timer* timer, float vehicleSpeed) {
+	void XboxUpdate(XboxInput x, Timer* timer, float vehicleSpeed, bool gameEnded) {
+		this->gameEnded = gameEnded;
 		if (keys_pressed <= 0) {
 			throttle = x.data.RT / 255.f;
 			brake = x.data.LT / 255.f;
@@ -145,6 +147,9 @@ public:
 
 		if (!play && x.data.A) {
 			play = true;
+		}
+		else if (this->gameEnded && x.data.B) {
+			play = false;
 		}
 	}
 };

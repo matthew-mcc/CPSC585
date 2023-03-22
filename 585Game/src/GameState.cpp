@@ -8,8 +8,7 @@ using namespace std;
 int vehiclesSpawned = 0;
 int trailersSpawned = 0;
 
-void GameState::initGameState(AudioManager* audio) {
-	audio_ptr = audio;
+void GameState::initGameState() {
 	Entity* e;
 
 	// Landscape
@@ -179,4 +178,14 @@ void GameState::endGame() {
 	}
 	winner = winningVehicle;
 	gameEnded = true;
+}
+
+void GameState::resetGameState(AudioManager* audio) {
+	audio_ptr = audio;
+	entityList.clear();
+	winner = NULL;
+	vehiclesSpawned = 0;
+	trailersSpawned = 0;
+	initGameState();
+
 }

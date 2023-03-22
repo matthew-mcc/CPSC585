@@ -28,6 +28,9 @@ public:
 	// Shutdown IMGUI Instance
 	void shutdownImgui();
 
+	// Reset any state-sensitive variables
+	void resetRenderer();
+
 	// Window Pointer
 	GLFWwindow* window;
 

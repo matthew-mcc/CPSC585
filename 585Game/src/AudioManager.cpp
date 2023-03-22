@@ -62,7 +62,13 @@ void AudioManager::Init(int vehicleCount) {
 
 
 
-void AudioManager::Update() {
+void AudioManager::Update(int numVehicles, bool inMenu) {
+	for (int i = 0; i < numVehicles; i++) {
+		string vehicleName = "vehicle_";
+		vehicleName += to_string(i);
+		if(inMenu) setVolume(vehicleName + "_tire", 0.f);
+		else setVolume(vehicleName + "_tire", 1.f);
+	}
 	audioEngine.Update();
 }
 

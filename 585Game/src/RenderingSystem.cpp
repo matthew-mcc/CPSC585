@@ -20,6 +20,10 @@ RenderingSystem::RenderingSystem() {
 	initRenderer();
 }
 
+void RenderingSystem::resetRenderer() {
+	camera_previous_position = vec3(0.0f, 8.0f, -270.0f);
+}
+
 void RenderingSystem::SetupImgui() {
 	// IMGUI INITIALIZATION
 	IMGUI_CHECKVERSION();
@@ -100,6 +104,11 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> cbp, Gam
 	// BACKGROUND
 	glClearColor(skyColor.r, skyColor.g, skyColor.b, 1.0f);	// Set Background (Sky) Color
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+	if (gameState->gameEnded && !callback_ptr->play) {
+		gameState->inMenu = true;
+		gameState->gameEnded = false;
+	}
 
 	// MAIN MENU
 	if (gameState->inMenu) {
