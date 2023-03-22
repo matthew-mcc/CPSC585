@@ -101,6 +101,33 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> cbp, Gam
 	glClearColor(skyColor.r, skyColor.g, skyColor.b, 1.0f);	// Set Background (Sky) Color
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+	// MAIN MENU
+	if (gameState->inMenu) {
+		// Use Text Shader
+		textShader.use();
+		mat4 textProjection = ortho(0.0f, static_cast<float>(callback_ptr->xres), 0.0f, static_cast<float>(callback_ptr->yres));
+		textShader.setMat4("projection", textProjection);
+
+		// Load Screen
+		if (callback_ptr->play) {
+			RenderText(textShader, textVAO, textVBO, "Loading...",
+				500,
+				500,
+				1.5f,
+				vec3(0.2, 0.2f, 0.2f),
+				textChars);
+			gameState->inMenu = false;
+		}
+
+		// Menu Screen
+		else {
+			drawUI(testTexture, callback_ptr->xres - 300.f, 30.f, callback_ptr->xres - 30.f, 300.f, 0);
+		}
+
+		glfwSwapBuffers(window);
+		glfwPollEvents();
+		return;
+	}
 
 	// IMGUI INITIALIZATION
 	ImGui_ImplOpenGL3_NewFrame();

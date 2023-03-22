@@ -21,6 +21,7 @@ public:
 	Entity* winner;
 
 	// Flags
+	bool inMenu = true;
 	bool gameEnded = false;
 
 	// Game Parameters

@@ -169,6 +169,11 @@ public:
 			addTrailer = true;
 			audioTest = true;
 		}
+
+		// MAIN MENU - PLAY
+		if (key == GLFW_KEY_SPACE && action == GLFW_PRESS) {
+			play = true;
+		}
 	}
 
 	// MOUSE BUTTON CALLBACK
