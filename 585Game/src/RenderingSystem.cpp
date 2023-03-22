@@ -58,21 +58,15 @@ void RenderingSystem::initRenderer() {
 	boostOn = generateTexture("assets/textures/UI/dotsOn.png", false);
 	boostOff = generateTexture("assets/textures/UI/dotsOff.png", false);
 
+	podcounterOn = generateTexture("assets/textures/UI/podcounterOn.png", false);
+	podcounterOff = generateTexture("assets/textures/UI/podCounterOff.png", false);
 
 	for (int i = 1; i <= 6; i++) {
-		std::string path = "assets/textures/UI/" + to_string(i) + ".png";
-		ui_player_tracker.push_back(generateTexture(path, false);
+		const std::string path = "assets/textures/UI/" + to_string(i) + ".png";
+		ui_player_tracker.push_back(generateTexture(path.c_str(), false));
 	}
-	//ui_p1 = generateTexture("assets/textures/UI/1.png", false);
-	//ui_p2 = generateTexture("assets/textures/UI/2.png", false);
-	//ui_p3 = generateTexture("assets/textures/UI/3.png", false);
-	//ui_p4 = generateTexture("assets/textures/UI/4.png", false);
-	//ui_p5 = generateTexture("assets/textures/UI/5.png", false);
-	//ui_p6 = generateTexture("assets/textures/UI/6.png", false);
 
 
-	podcounterOn = generateTexture("assets/textures/podcounterOn.png", false);
-	podcounterOff = generateTexture("assets/textures/podCounterOff.png", false);
 
 
 
@@ -409,10 +403,8 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> cbp, Gam
 		}
 		*/
 
-
-
 		// Dot Boost Meter
-		for (int i = 0; i < 50; i++) {
+		for (int i = 0; i < 49; i++) {
 			int boost_meter = (int)gameState->findEntity("vehicle_0")->playerProperties->boost_meter;
 			int offset = 12 * i;
 			float onMeter = (float)i / 65.0f;
@@ -444,7 +436,7 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> cbp, Gam
 			cx = s[0] / s[3] * callback_ptr->xres / 2 + callback_ptr->xres / 2;
 			cy = s[1] / s[3] * callback_ptr->yres / 2 + callback_ptr->yres / 2;
 
-			drawUI(ui_player_tracker[i], cx - 30.0f, cy + 40.0f, cx + 30.0f, cy + 80.0f, i);
+			drawUI(ui_player_tracker[i], cx - 20.0f, cy + 40.0f, cx + 20.0f, cy + 80.0f, i);
 		}
 		
 
