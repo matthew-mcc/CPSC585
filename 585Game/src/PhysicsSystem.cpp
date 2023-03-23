@@ -832,8 +832,11 @@ void PhysicsSystem::stepPhysics(shared_ptr<CallbackInterface> callback_ptr, Time
 		// PLAYER VEHICLE INPUT
 		if (i == 0) {
 			// On Ground
-			if (gScene->raycast(vehicle_transform.p, vehicle_transform.rotate(PxVec3(0.f, -1.f, 0.f)), 0.7f, AircontrolBuffer) // raycasting! just like that??? 
+			if (gScene->raycast(vehicle_transform.p, vehicle_transform.rotate(PxVec3(0.f, -1.f, 0.f)), 0.7f, AircontrolBuffer) 
 				&& AircontrolBuffer.block.shape->getSimulationFilterData().word0 == COLLISION_FLAG_GROUND){
+				
+				// Update ground flag
+				vehicles.at(i)->onGround = true;
 
 				// Forward Drive
 				if ((forwardSpeed > -1.0f && player->playerProperties->throttle > player->playerProperties->brake) || 
@@ -859,22 +862,22 @@ void PhysicsSystem::stepPhysics(shared_ptr<CallbackInterface> callback_ptr, Time
 
 				// Steering Input
 				vehicles.at(i)->vehicle.mCommandState.steer = player->playerProperties->steer;
-
-				// Audio Flag for ground contact
-				gameState->audio_ptr->contact = true;
 			}
 
 			// In Air
 			else { 
+				// Update ground flag
+				vehicles.at(i)->onGround = false;
+
 				// Set Rotation based on air controls
 				if(gScene->raycast(vehicle_transform.p+ vehicle_transform.rotate(PxVec3(0.f, 2.f, 0.f)), vehicle_transform.rotate(PxVec3(0.f, -1.f, 0.f)), 1.f, AircontrolBuffer,PxHitFlag::eMESH_BOTH_SIDES) && AircontrolBuffer.block.shape->getSimulationFilterData().word0 == COLLISION_FLAG_GROUND) //if totally upside down
 					vehicles.at(i)->vehicle.mPhysXState.physxActor.rigidBody->addTorque(vehicle_transform.rotate(PxVec3(0, 0, -player->playerProperties->AirRoll)), PxForceMode().eVELOCITY_CHANGE);
 				else
 					vehicles.at(i)->vehicle.mPhysXState.physxActor.rigidBody->addTorque(vehicle_transform.rotate(PxVec3(player->playerProperties->AirPitch * 2.5f, player->playerProperties->AirRoll * 1.0f, player->playerProperties->AirRoll * -3.0f) * timestep), PxForceMode().eVELOCITY_CHANGE);
-				
-				// Audio Flag for ground contact
-				gameState->audio_ptr->contact = false;
 			}
+
+			// Audio Flag for ground contact
+			gameState->audio_ptr->contact = vehicles.at(i)->onGround;
 
 			// Boost
 			if (vehicles.at(i)->vehicle.mPhysXState.physxActor.rigidBody->getLinearVelocity().magnitude() < player->playerProperties->boost_max_velocity) {
@@ -901,6 +904,16 @@ void PhysicsSystem::stepPhysics(shared_ptr<CallbackInterface> callback_ptr, Time
 
 		// AI VEHICLE INPUT
 		else {
+			// Update ground flag
+			if (gScene->raycast(vehicle_transform.p, vehicle_transform.rotate(PxVec3(0.f, -1.f, 0.f)), 0.7f, AircontrolBuffer)
+				&& AircontrolBuffer.block.shape->getSimulationFilterData().word0 == COLLISION_FLAG_GROUND) {
+				vehicles.at(i)->onGround = true;
+			}
+			else {
+				vehicles.at(i)->onGround = false;
+			}
+
+			// AI State Control
 			AI_StateController(vehicles.at(i), timestep);
 		}
 	}
@@ -970,6 +983,9 @@ void PhysicsSystem::stepPhysics(shared_ptr<CallbackInterface> callback_ptr, Time
 			// Fan Rotation
 			vec3 rot(0.0f, 0.0f, 6.0f * timer->getDeltaTime());
 			entityList.at(i).localTransforms.at(1)->setRotation(normalize(entityList.at(i).localTransforms.at(1)->getRotation() * quat(rot)));
+
+			// Ground flag
+			entityList.at(i).onGround = vehicles.at(vehicleIndex)->onGround;
 
 			vehicleIndex++;
 		}

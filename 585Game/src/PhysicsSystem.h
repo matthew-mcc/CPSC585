@@ -48,6 +48,7 @@ struct Vehicle {
 	EngineDriveVehicle vehicle;
 	vector<Trailer*> attachedTrailers;
 	vector<PxD6Joint*> attachedJoints;
+	bool onGround = false;
 	int AI_State;
 	int AI_CurrTrailerIndex;
 	
