@@ -9,6 +9,8 @@
 #include <GLFW/glfw3.h>
 #include <glm.hpp>				// include is here twice?
 #include <Boilerplate/Timer.h>
+#define _USE_MATH_DEFINES
+#include <math.h>
 
 GLFWwindow* initWindow();
 
@@ -100,7 +102,7 @@ public:
 
 	// Camera Control
 	bool moveCamera = false;
-	float xAngle = 0.f;
+	float xAngle = M_PI;
 	glm::vec2 clickPos = glm::vec2(0.f, 0.f);
 
 	// Debug - Add Trailer
@@ -129,13 +131,19 @@ public:
 			// Camera look
 			if (abs(x.data.RThumb_magnitude) != 0.f) {
 				moveCamera = true;
-				xAngle = atan2(x.data.RThumb_X_direction, x.data.RThumb_Y_direction);
+				float stickAngle = atan2(x.data.RThumb_X_direction, x.data.RThumb_Y_direction) + M_PI;
+				if (stickAngle > xAngle + 0.01f) {
+					xAngle = glm::clamp(xAngle + 6.0f * deltaTime, 0.f, stickAngle);
+				}
+				else if (stickAngle < xAngle - 0.01f) {
+					xAngle = glm::clamp(xAngle - 6.0f * deltaTime, stickAngle, 1000.f);
+				}
 			}
 			else {
-				if (xAngle > 0.01f) xAngle = xAngle - 6.0f * deltaTime;
-				else if (xAngle < -0.01f) xAngle = xAngle + 6.0f * deltaTime;
+				if (xAngle > M_PI + 0.01f) xAngle = glm::clamp(xAngle - 6.0f * deltaTime, (float)M_PI, (float)(2*M_PI));
+				else if (xAngle < M_PI - 0.01f) xAngle = glm::clamp(xAngle + 6.0f * deltaTime, 0.f, (float)M_PI);
 				else {
-					xAngle = 0.f;
+					xAngle = M_PI;
 					moveCamera = false;
 				}
 			}

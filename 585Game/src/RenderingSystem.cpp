@@ -179,29 +179,29 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> cbp, Gam
 	glm::vec3 Camera_collision(0.f);
 	glm::vec3 Reset_collision(1.f);
 
-	// Camera Look: Orbit camera around vehicle
-	vec3 lookOffset = player_pos + eye_offset;
-	float lag_amount = camera_lag;
-	if (callback_ptr->moveCamera) {
-		lookOffset = vec4(eye_offset, 0.f) * glm::rotate(glm::mat4(1.f), callback_ptr->xAngle, world_up);
-		lookOffset += player_pos;
-		lag_amount = camera_lag * 4.f;
-		Camera_collision = PhysicsSystem::CameraRaycasting(camera_previous_position,camera_radius,1.f);
-	}
-	else {
-		Camera_collision = PhysicsSystem::CameraRaycasting(camera_previous_position,camera_radius,1.f);
-		Reset_collision = PhysicsSystem::CameraRaycasting(player_pos+ResetVec, camera_radius, 1.f);
-	}
-
 	// Camera lag: Generate target_position - prev_position creating a vector. Scale by constant factor, then add to prev and update
-	vec3 camera_target_position = lookOffset;
+	vec3 camera_target_position = player_pos + eye_offset;
 	camera_target_position.y = player_pos.y + camera_position_up + (float)playerEntity->nbChildEntities * 0.4f;
 	vec3 camera_track_vector = camera_target_position - camera_previous_position;
-	camera_track_vector = camera_track_vector * lag_amount * (float)timer->getDeltaTime();
+	camera_track_vector = camera_track_vector * camera_lag * (float)timer->getDeltaTime();
 	camera_previous_position = vec3(translate(mat4(1.0f), camera_track_vector) * vec4(camera_previous_position, 1.0f));
 
+	// Camera Look: Orbit camera around vehicle
+	if (callback_ptr->moveCamera) {
+		vec3 lookOffset = camera_previous_position - player_pos;
+		lookOffset = vec4(lookOffset, 0.f) * glm::rotate(glm::mat4(1.f), callback_ptr->xAngle - 3.1415126f, world_up);
+		lookOffset += player_pos;
+		Camera_collision = PhysicsSystem::CameraRaycasting(camera_previous_position, camera_radius, 1.f);
+		view = lookAt(lookOffset, target_offset, world_up);
+	}
+	else {
+		Camera_collision = PhysicsSystem::CameraRaycasting(camera_previous_position, camera_radius, 1.f);
+		Reset_collision = PhysicsSystem::CameraRaycasting(player_pos + ResetVec, camera_radius, 1.f);
+		view = lookAt(camera_previous_position, target_offset, world_up);
+	}
+
 	// Set view matrix
-	view = lookAt(camera_previous_position, target_offset, world_up);
+	//view = lookAt(camera_previous_position, target_offset, world_up);
 
 	// For audio - probably need to change later
 	gameState->listener_position = camera_previous_position;
