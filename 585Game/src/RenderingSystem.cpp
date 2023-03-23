@@ -386,7 +386,7 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> cbp, Gam
 		drawUI(testTexture, callback_ptr->xres - 300.f, 30.f, callback_ptr->xres - 30.f, 300.f, 0);
 
 		// Boost Meter
-		/*for (int i = 0; i < 10; i++) {
+		for (int i = 0; i < 10; i++) {
 			int boost_meter = (int)gameState->findEntity("vehicle_0")->playerProperties->boost_meter;
 			int offset = 50 * i;
 			int boostoffset = 10 * i;
@@ -401,9 +401,10 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> cbp, Gam
 				drawUI(boostGrey, 50.0f + offset, 50.f, 100.0f + offset, 100.f, 0);
 			}
 		}
-		*/
+		
 
 		// Dot Boost Meter
+		/*
 		for (int i = 0; i < 49; i++) {
 			int boost_meter = (int)gameState->findEntity("vehicle_0")->playerProperties->boost_meter;
 			int offset = 12 * i;
@@ -418,39 +419,14 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> cbp, Gam
 				drawUI(boostOff, 50.0f + offset, 50.f, 62.0f + offset, 100.f, 1);
 			}
 		}
-
-		// Player Tracker UI
-		for (int i = 0; i < 6; i++) {
-			float cx;
-			float cy;
-			float s[4];
-			std::string playerString = "ui_p";
-			glm::vec3 targetPos = gameState->findEntity("vehicle_" + to_string(i))->transform->getPosition();
-			glm::mat4 MVP = projection * view * model;
-
-			s[0] = (targetPos.x * MVP[0][0]) + (targetPos.y * MVP[1][0]) + (targetPos.z * MVP[2][0]) + MVP[3][0];
-			s[1] = (targetPos.x * MVP[0][1]) + (targetPos.y * MVP[1][1]) + (targetPos.z * MVP[2][1]) + MVP[3][1];
-			s[2] = (targetPos.x * MVP[0][2]) + (targetPos.y * MVP[1][2]) + (targetPos.z * MVP[2][2]) + MVP[3][2];
-			s[3] = (targetPos.x * MVP[0][3]) + (targetPos.y * MVP[1][3]) + (targetPos.z * MVP[2][3]) + MVP[3][3];
-
-			cx = s[0] / s[3] * callback_ptr->xres / 2 + callback_ptr->xres / 2;
-			cy = s[1] / s[3] * callback_ptr->yres / 2 + callback_ptr->yres / 2;
-
-			drawUI(ui_player_tracker[i], cx - 20.0f, cy + 40.0f, cx + 20.0f, cy + 80.0f, i);
-		}
-		
-
-
-
-
+		*/
 
 		// Pod Counter
 		for (int i = 0; i < 10; i++) {
-			int pod_count = gameState->findEntity("vehicle_0")->nbChildEntities;
+			int podCount = gameState->findEntity("vehicle_0")->nbChildEntities;
 			int offset = 60 * i;
-			int boostoffset = 10 * i;
 
-			if (pod_count > i) {
+			if (podCount > i) {
 				drawUI(podcounterOn, 50.0f + offset, 130.f, 100.0f + offset, 180.f, 0);
 			}
 			else {
@@ -458,7 +434,70 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> cbp, Gam
 			}
 		}
 
-		//drawUI(boostBlue, callback_ptr->xres - 1800.f, 30.f, callback_ptr->xres - 1730.f, 100.f, 0);
+
+		// Truck Tracker UI
+		for (int i = 0; i < 6; i++) {
+			std::string playerString = "ui_p";
+			glm::vec3 targetPos = gameState->findEntity("vehicle_" + to_string(i))->transform->getPosition();
+			glm::mat4 MVP = projection * view * model;
+
+			// Check if the target truck is within viewing frustum
+			vec4 Pclip = MVP * glm::vec4(targetPos, 1.0f);
+			if (abs(Pclip.x) < Pclip.w &&
+				abs(Pclip.y) < Pclip.w &&
+				0 < Pclip.z &&
+				Pclip.z < Pclip.w
+				) {
+				
+
+				float cx;
+				float cy;
+				float cz;
+				float leftBound = -21.0f;
+				float rightBound = 21.0f;
+				float lower = 40.0f;
+				float upper = 80.0f;
+				float leeway = 2.0f;
+				float innerOffset = rightBound * 2 / 3;
+
+				int podCount = gameState->findEntity("vehicle_" + to_string(i))->nbChildEntities;
+
+				float s[4];
+
+				s[0] = (targetPos.x * MVP[0][0]) + (targetPos.y * MVP[1][0]) + (targetPos.z * MVP[2][0]) + MVP[3][0];
+				s[1] = (targetPos.x * MVP[0][1]) + (targetPos.y * MVP[1][1]) + (targetPos.z * MVP[2][1]) + MVP[3][1];
+				s[2] = (targetPos.x * MVP[0][2]) + (targetPos.y * MVP[1][2]) + (targetPos.z * MVP[2][2]) + MVP[3][2];
+				s[3] = (targetPos.x * MVP[0][3]) + (targetPos.y * MVP[1][3]) + (targetPos.z * MVP[2][3]) + MVP[3][3];
+
+				cx = s[0] / s[3] * callback_ptr->xres / 2 + callback_ptr->xres / 2;
+				cy = s[1] / s[3] * callback_ptr->yres / 2 + callback_ptr->yres / 2;
+				cz = s[2] / s[3];
+
+				drawUI(ui_player_tracker[i], cx + leftBound, cy + lower, cx + rightBound, cy + upper, i);
+
+
+				// For drawing pod counter over truck tracker
+				for (int pod = 0; pod < podCount; pod++) {
+					float lx;
+					float ly;
+					float rx;
+					float ry;
+
+					lx = ((pod % 3) * innerOffset) + leftBound;
+					rx = lx + innerOffset;
+					ly = ((pod / 3) * innerOffset) + upper;
+					ry = ly + innerOffset;
+
+					drawUI(podcounterOn, cx + lx + leeway, cy + ly + leeway, cx + rx - leeway, cy + ry - leeway, i);
+
+				}
+			}
+
+
+		}
+		
+
+
 
 
 		// Display game timer / countdown
