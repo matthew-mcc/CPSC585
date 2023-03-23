@@ -123,7 +123,7 @@ void ParticleSystem::respawnParticle(Particle& particle, glm::vec3 spawnPoint, g
 		pos3 = ((rand() % 2500 - 1250) / 100.0f);
 	} while (sqrt(pow(pos1,2.f)+pow(pos3,2.f)) > 2500.f);
 	particle.position = spawnPoint + glm::vec3(pos1, pos2, pos3) + offset;
-	particle.color = glm::vec4(0.5f, 0.f, 0.5f, 1.0f);
+	particle.color = glm::vec4(0.5f, 0.6f, 0.9f, 1.0f);
 	particle.life = 4.0f;
 	particle.velocity = glm::vec3(pos3, pos2, -pos1) * 0.2f;
 }
