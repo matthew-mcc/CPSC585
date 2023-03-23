@@ -143,9 +143,9 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> cbp, Gam
 
 		// Menu Screen
 		else {
-			drawUI(menuBackground, 0, 0, callback_ptr->xres, callback_ptr->yres, 0);
 		}
 
+		drawUI(menuBackground, 0, 0, callback_ptr->xres, callback_ptr->yres, 1);
 		glfwSwapBuffers(window);
 		glfwPollEvents();
 		return;
