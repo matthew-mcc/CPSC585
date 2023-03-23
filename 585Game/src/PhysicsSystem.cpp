@@ -985,7 +985,7 @@ void PhysicsSystem::stepPhysics(shared_ptr<CallbackInterface> callback_ptr, Time
 			entityList.at(i).localTransforms.at(1)->setRotation(normalize(entityList.at(i).localTransforms.at(1)->getRotation() * quat(rot)));
 
 			// Ground flag
-			entityList.at(i).onGround = vehicles.at(vehicleIndex)->onGround;
+			entityList.at(i).transform->setOnGround(vehicles.at(vehicleIndex)->onGround);
 
 			vehicleIndex++;
 		}
