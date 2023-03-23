@@ -20,6 +20,10 @@ RenderingSystem::RenderingSystem() {
 	initRenderer();
 }
 
+void RenderingSystem::resetRenderer() {
+	camera_previous_position = vec3(0.0f, 8.0f, -270.0f);
+}
+
 void RenderingSystem::SetupImgui() {
 	// IMGUI INITIALIZATION
 	IMGUI_CHECKVERSION();
@@ -43,16 +47,29 @@ void RenderingSystem::initRenderer() {
 	orbTexture = generateTexture("assets/textures/orb.png", false);
 	rockTexture = generateTexture("assets/textures/rock.png", false);
 	// Choose one, top = squares, bottom = chevrons
-	boostBlue = generateTexture("assets/textures/boostBlue.png", false);
-	boostGrey = generateTexture("assets/textures/boostGrey.png", false);
-	boostOrange = generateTexture("assets/textures/boostOrange.png", false);
+	boostBlue = generateTexture("assets/textures/UI/boostBlue.png", false);
+	boostGrey = generateTexture("assets/textures/UI/boostGrey.png", false);
+	boostOrange = generateTexture("assets/textures/UI/boostOrange.png", false);
 	// Will default to chevrons if not commented out
-	boostBlue = generateTexture("assets/textures/boostChevBlue.png", false);
-	boostGrey = generateTexture("assets/textures/boostChevGrey.png", false);
-	boostOrange = generateTexture("assets/textures/boostChevOrange.png", false);
+	boostBlue = generateTexture("assets/textures/UI/boostChevBlue.png", false);
+	boostGrey = generateTexture("assets/textures/UI/boostChevGrey.png", false);
+	boostOrange = generateTexture("assets/textures/UI/boostChevOrange.png", false);
 
-	podcounterOn = generateTexture("assets/textures/podcounterOn.png", false);
-	podcounterOff = generateTexture("assets/textures/podCounterOff.png", false);
+	boostOn = generateTexture("assets/textures/UI/dotsOn.png", false);
+	boostOff = generateTexture("assets/textures/UI/dotsOff.png", false);
+
+	podcounterOn = generateTexture("assets/textures/UI/podcounterOn.png", false);
+	podcounterOff = generateTexture("assets/textures/UI/podCounterOff.png", false);
+
+	menuBackground = generateTexture("assets/textures/UI/menuBackground.png", false);
+	menuLoading = generateTexture("assets/textures/UI/menuLoading.png", false);
+
+	for (int i = 1; i <= 6; i++) {
+		const std::string path = "assets/textures/UI/" + to_string(i) + ".png";
+		ui_player_tracker.push_back(generateTexture(path.c_str(), false));
+	}
+
+
 
 
 
@@ -94,15 +111,46 @@ void resetValue(float &target, float range, float desireValue,float speed,float 
 	if (target > (desireValue - range) && target < (desireValue + range))
 		target = desireValue;
 }
+void RenderingSystem::updateRadius(float base, float zoom) {
+	camera_radius = base + zoom;
+}
 
-//float timeTorset = 0.f;
 // Update Renderer
 void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> cbp, GameState* gameState, Timer* timer) {
+	// CALLBACK POINTER
 	callback_ptr = cbp;
+
 	// BACKGROUND
 	glClearColor(skyColor.r, skyColor.g, skyColor.b, 1.0f);	// Set Background (Sky) Color
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+	if (gameState->gameEnded && !callback_ptr->play) {
+		gameState->inMenu = true;
+		gameState->gameEnded = false;
+	}
+
+	// MAIN MENU
+	if (gameState->inMenu) {
+		// Use Text Shader
+		textShader.use();
+		mat4 textProjection = ortho(0.0f, static_cast<float>(callback_ptr->xres), 0.0f, static_cast<float>(callback_ptr->yres));
+		textShader.setMat4("projection", textProjection);
+
+		// Load Screen
+		if (callback_ptr->play) {
+			drawUI(menuLoading, 0, 0, callback_ptr->xres, callback_ptr->yres, 0);
+			gameState->inMenu = false;
+		}
+
+		// Menu Screen
+		else {
+		}
+
+		drawUI(menuBackground, 0, 0, callback_ptr->xres, callback_ptr->yres, 1);
+		glfwSwapBuffers(window);
+		glfwPollEvents();
+		return;
+	}
 
 	// IMGUI INITIALIZATION
 	ImGui_ImplOpenGL3_NewFrame();
@@ -110,15 +158,14 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> cbp, Gam
 	ImGui::NewFrame();
 
 	// CAMERA POSITION / LAG
-	// Find player entity
-	Entity* playerEntity = gameState->findEntity("vehicle_0");
-
 	// Retrieve player direction vectors
-	//camera_position_forward = camera_position_forward - (callback_ptr->camera_acceleration) / 15.f;
+	Entity* playerEntity = gameState->findEntity("vehicle_0");
 	vec3 player_forward = playerEntity->transform->getForwardVector();
 	vec3 player_right = playerEntity->transform->getRightVector();
 	vec3 player_up = playerEntity->transform->getUpVector();
+	vec3 player_pos = playerEntity->transform->getPosition();
 
+	// Camera Zoom: Pull view back with increasing number of towed trailers
 	float camera_zoom_forward = clamp(1.0f + (float)playerEntity->nbChildEntities * 0.5f, 1.0f, 11.0f);
 	float camera_zoom_up = clamp(1.0f + (float)playerEntity->nbChildEntities * 0.4f, 1.0f, 11.0f);
 
@@ -129,63 +176,61 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> cbp, Gam
 	// Chase Camera: Compute eye and target offsets
 		// Eye Offset: Camera position (world space)
 		// Target Offset: Camera focus point (world space)
-	vec3 eye_offset = (camera_position_forward * player_forward * camera_zoom_forward) + (camera_position_right * player_right) + (camera_position_up * vec3(0.0f, 1.0f, 0.0f) * camera_zoom_up);
-	vec3 target_offset = (camera_target_forward * player_forward) + (camera_target_right * player_right) + (camera_target_up * player_up);
-
-
-
-	// Camera lag: Generate target_position - prev_position creating a vector. Scale by constant factor, then add to prev and update
-	vec3 camera_target_position = playerEntity->transform->getPosition() + eye_offset;
-	float y = playerEntity->transform->getPosition().y + camera_position_up + (float)playerEntity->nbChildEntities * 0.4f;
-	camera_target_position.y = y;
-
-
-	vec3 camera_track_vector = camera_target_position - camera_previous_position;
-
-	camera_track_vector = camera_track_vector * camera_lag * (float)timer->getDeltaTime();
-
-	camera_previous_position = vec3(translate(mat4(1.0f), camera_track_vector) * vec4(camera_previous_position, 1.0f));
-
+	vec3 eye_offset = (camera_position_forward * player_forward * camera_zoom_forward) + (camera_position_right * player_right) + (camera_position_up * player_up * camera_zoom_up);
+	vec3 target_offset = player_pos + (camera_target_forward * player_forward) + (camera_target_right * player_right) + (camera_target_up * player_up);
 
 	// If user is controlling camera, set view accordingly
-	vec3 camOffset = vec3(0.f);
-	glm::vec3 Camera_collision;
-	glm::vec3 Reset_collision;
+	vec3 ResetVec = playerEntity->transform->getRotation()*vec3(0.f,3.5f*camera_zoom_up,-7.5f*camera_zoom_forward);
+	glm::vec3 Camera_collision(0.f);
+	glm::vec3 Reset_collision(1.f);
+
+	// Camera lag: Generate target_position - prev_position creating a vector. Scale by constant factor, then add to prev and update
+	vec3 camera_target_position = player_pos + eye_offset;
+	camera_target_position.y = player_pos.y + camera_position_up + (float)playerEntity->nbChildEntities * 0.4f;
+	vec3 camera_track_vector = camera_target_position - camera_previous_position;
+	camera_track_vector = camera_track_vector * camera_lag * (float)timer->getDeltaTime();
+	camera_previous_position = vec3(translate(mat4(1.0f), camera_track_vector) * vec4(camera_previous_position, 1.0f));
+
+	// Camera Look: Orbit camera around vehicle
 	if (callback_ptr->moveCamera) {
-		camOffset = camera_previous_position - playerEntity->transform->getPosition();
-		camOffset = vec4(camOffset, 0.f) * glm::rotate(glm::mat4(1.f), callback_ptr->xAngle, world_up);
-		camOffset += playerEntity->transform->getPosition();
-		view = lookAt(camOffset, playerEntity->transform->getPosition() + target_offset, world_up);
-		Camera_collision = PhysicsSystem::CameraRaycasting(camOffset, 1.f); // works but may need to wait for later changes
-		Reset_collision = PhysicsSystem::CameraRaycasting(camOffset, 2.f);
+		vec3 lookOffset = camera_previous_position - player_pos;
+		lookOffset = vec4(lookOffset, 0.f) * glm::rotate(glm::mat4(1.f), callback_ptr->xAngle - 3.1415126f, world_up);
+		lookOffset += player_pos;
+		Camera_collision = PhysicsSystem::CameraRaycasting(camera_previous_position, camera_radius, 1.f);
+		view = lookAt(lookOffset, target_offset, world_up);
 	}
 	else {
-		view = lookAt(camera_previous_position + camOffset, playerEntity->transform->getPosition() + target_offset, world_up);
-		Camera_collision = PhysicsSystem::CameraRaycasting(camera_previous_position, 1.f);
-		Reset_collision = PhysicsSystem::CameraRaycasting(camera_previous_position, 2.f);
+		Camera_collision = PhysicsSystem::CameraRaycasting(camera_previous_position, camera_radius, 1.f);
+		Reset_collision = PhysicsSystem::CameraRaycasting(player_pos + ResetVec, camera_radius, 1.f);
+		view = lookAt(camera_previous_position, target_offset, world_up);
 	}
+
+	// Set view matrix
+	//view = lookAt(camera_previous_position, target_offset, world_up);
 
 	// For audio - probably need to change later
 	gameState->listener_position = camera_previous_position;
 
 	if (Camera_collision.x != 0.f && Camera_collision.y != 0 && Camera_collision.z != 0) {//not sure which one to use XD
 		camera_position_forward += Camera_collision.z;//* (float)timer->getDeltaTime();//camera_previous_position.z += 1.f; //* (float)timer->getDeltaTime();//cout << "???" << endl;
-		camera_position_up += Camera_collision.y;
+		camera_position_up = clamp(camera_position_up+Camera_collision.y,3.5f,100.f);
 		camera_position_right -= Camera_collision.x;
+		rad_base = clamp(rad_base - sqrtf(Camera_collision.z * Camera_collision.z + Camera_collision.x * Camera_collision.x),0.5f,7.5f);
 		//timeTorset = 0.f;
 	}
 	else {
-		if (Reset_collision.x == 0.f && Reset_collision.y == 0 && Reset_collision.z == 0) { //lag to reset the camera
+		if (Reset_collision.x == 0.f && Reset_collision.y == 0 && Reset_collision.z == 0 && !PhysicsSystem::CameraIntercetionRaycasting(player_pos + ResetVec)) { //lag to reset the camera
 			float reset_speed = 50.f; // the speed to rset the camera
 			float step_time = (float)timer->getDeltaTime();
 			float step_range = step_time * reset_speed;
 			resetValue(camera_position_forward, step_range, -7.5f, reset_speed, step_time);
 			resetValue(camera_position_up, step_range, 3.5f, reset_speed, step_time);
 			resetValue(camera_position_right, step_range, 0.f, reset_speed, step_time);
+			resetValue(rad_base, step_range, 7.5f, reset_speed, step_time);
 		}
 		//timeTorset += (float)timer->getDeltaTime();
 	}
-
+	updateRadius(rad_base,camera_zoom_forward);
 	// Set projection and view matrices
 	projection = perspective(radians(fov), (float)callback_ptr->xres / (float)callback_ptr->yres, 0.1f, 10000.0f);
 
@@ -204,7 +249,7 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> cbp, Gam
 
 	// NEAR SHADOWMAP RENDER
 	lightPos = vec3(sin(lightRotation) * cos(lightAngle), sin(lightAngle), cos(lightRotation) * cos(lightAngle)) * 40.f;
-	nearShadowMap.update(lightPos, playerEntity->transform->getPosition());
+	nearShadowMap.update(lightPos, player_pos);
 	nearShadowMap.render(gameState, "s", lightPos, callback_ptr);
 
 	// TOON OUTLINE (Landscape)
@@ -357,7 +402,7 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> cbp, Gam
 		drawUI(testTexture, callback_ptr->xres - 300.f, 30.f, callback_ptr->xres - 30.f, 300.f, 0);
 
 		// Boost Meter
-		for (int i = 0; i < 10; i++) {
+		/*for (int i = 0; i < 10; i++) {
 			int boost_meter = (int)gameState->findEntity("vehicle_0")->playerProperties->boost_meter;
 			int offset = 50 * i;
 			int boostoffset = 10 * i;
@@ -372,6 +417,48 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> cbp, Gam
 				drawUI(boostGrey, 50.0f + offset, 50.f, 100.0f + offset, 100.f, 0);
 			}
 		}
+		*/
+
+		// Dot Boost Meter
+		for (int i = 0; i < 49; i++) {
+			int boost_meter = (int)gameState->findEntity("vehicle_0")->playerProperties->boost_meter;
+			int offset = 12 * i;
+			float onMeter = (float)i / 65.0f;
+			float actualMeter = (float)boost_meter / 100.0f;
+			//int boostoffset = 10 * i;
+
+			if (actualMeter > onMeter) {
+				drawUI(boostOn, 50.0f + offset, 50.f, 62.0f + offset, 100.f, 1);
+			}
+			else {
+				drawUI(boostOff, 50.0f + offset, 50.f, 62.0f + offset, 100.f, 1);
+			}
+		}
+
+		// Player Tracker UI
+		for (int i = 0; i < 6; i++) {
+			float cx;
+			float cy;
+			float s[4];
+			std::string playerString = "ui_p";
+			glm::vec3 targetPos = gameState->findEntity("vehicle_" + to_string(i))->transform->getPosition();
+			glm::mat4 MVP = projection * view * model;
+
+			s[0] = (targetPos.x * MVP[0][0]) + (targetPos.y * MVP[1][0]) + (targetPos.z * MVP[2][0]) + MVP[3][0];
+			s[1] = (targetPos.x * MVP[0][1]) + (targetPos.y * MVP[1][1]) + (targetPos.z * MVP[2][1]) + MVP[3][1];
+			s[2] = (targetPos.x * MVP[0][2]) + (targetPos.y * MVP[1][2]) + (targetPos.z * MVP[2][2]) + MVP[3][2];
+			s[3] = (targetPos.x * MVP[0][3]) + (targetPos.y * MVP[1][3]) + (targetPos.z * MVP[2][3]) + MVP[3][3];
+
+			cx = s[0] / s[3] * callback_ptr->xres / 2 + callback_ptr->xres / 2;
+			cy = s[1] / s[3] * callback_ptr->yres / 2 + callback_ptr->yres / 2;
+
+			drawUI(ui_player_tracker[i], cx - 20.0f, cy + 40.0f, cx + 20.0f, cy + 80.0f, i);
+		}
+		
+
+
+
+
 
 		// Pod Counter
 		for (int i = 0; i < 10; i++) {

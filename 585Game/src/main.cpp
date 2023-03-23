@@ -16,9 +16,9 @@ int main() {
 	Timer* timer = &Timer::Instance();
 	GameState* gameState = new GameState();
 	RenderingSystem renderer = RenderingSystem();
-	PhysicsSystem physics = PhysicsSystem();
+	PhysicsSystem physics;
 	XboxInput xInput;
-	AiController* aiController =  new AiController();
+	AiController* aiController = new AiController();
 	AudioManager audio;
 	AudioManager* audio_ptr = &audio;
 
@@ -27,22 +27,15 @@ int main() {
 
 	// Initialize Systems
 	xInput.run();
-	// Remember to change this if we ever find a better way to keep track of vehicle count
-	audio.Init(6);
-	gameState->initGameState(audio_ptr);
-	physics.initPhysicsSystem(gameState, aiController);
-	aiController->initAiSystem(gameState);
-
-	//aiController.initAiSystem(gameState, gameState->findEntity("vehicle_1"));
+	audio.Init(6);	// Remember to change this if we ever find a better way to keep track of vehicle count
 	std::shared_ptr<CallbackInterface> callback_ptr = processInput(renderer.window);
 	renderer.SetupImgui();
-
+	physics.initPhysX();
 
 	// PRIMARY GAME LOOP
 	while (!glfwWindowShouldClose(renderer.window)) {
-
-		// Post-Load
-		if (isLoaded) {
+		// Loaded and not in menu (regular gameplay)
+		if (isLoaded && !gameState->inMenu) {
 			// Update Timer
 			timer->update();
 
@@ -54,22 +47,32 @@ int main() {
 			// Update Physics System
 			physics.stepPhysics(callback_ptr, timer);
 			aiController->StateController();
-
 		}
 
 		// Update Input Drivers
 		xInput.update();
-		callback_ptr->XboxUpdate(xInput, timer, length(gameState->findEntity("vehicle_0")->transform->getLinearVelocity()));
+		if (gameState->inMenu) {
+			isLoaded = false;
+			callback_ptr->XboxUpdate(xInput, timer, 0.0f, gameState->gameEnded);
+		}
+		else {
+			callback_ptr->XboxUpdate(xInput, timer, length(gameState->findEntity("vehicle_0")->transform->getLinearVelocity()), gameState->gameEnded);
+		}
 
 		// Update Audio Manager
-		audio.Update();
+		audio.Update(gameState->numVehicles, gameState->inMenu);
 
 		// Update Rendering System
 		renderer.updateRenderer(callback_ptr, gameState, timer);
 
-		// Post-Load Initialization
-		if (!isLoaded) {
+		// Menu to Game Loading
+		if (!isLoaded && !gameState->inMenu) {
+			gameState->resetGameState(audio_ptr);
+			aiController = new AiController();
+			aiController->initAiSystem(gameState);
+			physics.initPhysicsSystem(gameState, aiController);
 			timer->init();
+			renderer.resetRenderer();
 			isLoaded = true;
 		}
 

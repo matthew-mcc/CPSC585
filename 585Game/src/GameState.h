@@ -9,18 +9,19 @@ class GameState {
 public:
 	// Public Functions
 	GameState() {}
-	void initGameState(AudioManager* audio);
 	Entity* addEntity(string name, PhysType physType, DrawType drawType, Transform* transform, vector<string> modelPaths);
 	Entity* findEntity(string name);
 	Entity* spawnTrailer();
 	Entity* spawnVehicle();
 	void endGame();
+	void resetGameState(AudioManager* audio);
 
 	// Entity Tracking
 	vector<Entity> entityList;
 	Entity* winner;
 
 	// Flags
+	bool inMenu = true;
 	bool gameEnded = false;
 
 	// Game Parameters
@@ -30,4 +31,7 @@ public:
 	// Audio 
 	AudioManager* audio_ptr = nullptr;
 	glm::vec3 listener_position;
+
+private:
+	void initGameState();
 };

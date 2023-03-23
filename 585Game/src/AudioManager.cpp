@@ -54,15 +54,21 @@ void AudioManager::Init(int vehicleCount) {
 
 	audioEngine.LoadSound("assets/audio/ping_placeholder.flac");
 	audioEngine.LoadSound("assets/audio/Latch1.wav");
-	audioEngine.LoadSound("assets/audio/SpaceMusic1.wav", false, true, false);
-	audioEngine.PlaySound("assets/audio/SpaceMusic1.wav", glm::vec3(0.0f), 1.0f);
+	audioEngine.LoadSound("assets/audio/SpaceMusic2.wav", false, true, false);
+	audioEngine.PlaySound("assets/audio/SpaceMusic2.wav", glm::vec3(0.0f), 1.0f);
 
 	audioEngine.SetEventVolume("vehicle_0", 0.5f);
 }
 
 
 
-void AudioManager::Update() {
+void AudioManager::Update(int numVehicles, bool inMenu) {
+	for (int i = 0; i < numVehicles; i++) {
+		string vehicleName = "vehicle_";
+		vehicleName += to_string(i);
+		if(inMenu) setVolume(vehicleName + "_tire", 0.f);
+		else setVolume(vehicleName + "_tire", 1.f);
+	}
 	audioEngine.Update();
 }
 

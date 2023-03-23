@@ -23,7 +23,7 @@
 class AudioManager {
 public:
 	void Init(int vehicleCount);
-	void Update();
+	void Update(int numVehicles, bool inMenu);
 	void Update3DListener(const glm::vec3& pos, const glm::vec3& velocity, const glm::vec3& forward, const glm::vec3& up);
 	void Shutdown();
 

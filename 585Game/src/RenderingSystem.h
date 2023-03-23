@@ -28,14 +28,19 @@ public:
 	// Shutdown IMGUI Instance
 	void shutdownImgui();
 
+	// Reset any state-sensitive variables
+	void resetRenderer();
+
 	// Window Pointer
 	GLFWwindow* window;
 
 private:
 	void setCelShaderUniforms(Shader* shader);
 	void bindTexture(int location, unsigned int texture);
-	void drawUI(unsigned int texture, float x0, float y0, float x1, float y1, int l = 0);
 
+	void drawUI(unsigned int texture, float x0, float y0, float x1, float y1, int l = 0);
+	void updateRadius(float base,float zoom);
+  
 	std::shared_ptr<CallbackInterface> callback_ptr;
 
 	// Particle Generators
@@ -61,6 +66,18 @@ private:
 	unsigned int boostGrey;
 	unsigned int podcounterOn;
 	unsigned int podcounterOff;
+	unsigned int boostOn;
+	unsigned int boostOff;
+	unsigned int menuBackground;
+	unsigned int menuLoading;
+
+	std::vector<unsigned int> ui_player_tracker;
+	unsigned int ui_p1;
+	unsigned int ui_p2;
+	unsigned int ui_p3;
+	unsigned int ui_p4;
+	unsigned int ui_p5;
+	unsigned int ui_p6;
 
 
 	// Shaders
@@ -107,6 +124,8 @@ private:
 	float camera_target_right = 0.0f;
 	vec3 world_up = vec3(0.0f, 1.0f, 0.0f);
 	vec3 camera_previous_position = vec3(0.0f, 8.0f, -270.0f);
+	float camera_radius = 7.5f;
+	float rad_base = 7.5f;
 
 	// Camera Parameters
 	float camera_lag = 5.0f;
@@ -117,6 +136,6 @@ private:
 	float npcVolume = 1.0f;
 
 	vec3 dirtOffset = vec3(1.2f, -0.3f, -0.9f);
-	vec3 portalColor;
+	vec3 portalColor = vec3(0.78f, 0.f, 0.23f);
 	vec3 dirtColor = vec3(0.37f, 0.16f, 0.16f);
 };

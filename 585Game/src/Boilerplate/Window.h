@@ -9,6 +9,8 @@
 #include <GLFW/glfw3.h>
 #include <glm.hpp>				// include is here twice?
 #include <Boilerplate/Timer.h>
+#define _USE_MATH_DEFINES
+#include <math.h>
 
 GLFWwindow* initWindow();
 
@@ -75,6 +77,10 @@ public:
 	int xres = 1920;
 	int yres = 1080;
 
+	// Main Menu
+	bool play = false;
+	bool gameEnded = false;
+
 	// Vehicle Control Inputs
 	int keys_pressed = 0;
 	float throttle = 0.f;
@@ -84,6 +90,7 @@ public:
 	float reverse = 0.f;
 	float AirPitch = 0.f;
 	float AirRoll = 0.f;
+	float reset = 0.f;
 
 	// Vehicle Control Parameters
 	float steer_release_speed = 2.5f;			// Higher = Quicker snap back to neutral steering
@@ -95,16 +102,23 @@ public:
 
 	// Camera Control
 	bool moveCamera = false;
-	float xAngle = 0.f;
+	float xAngle = M_PI;
 	glm::vec2 clickPos = glm::vec2(0.f, 0.f);
 
 	// Debug - Add Trailer
 	bool addTrailer = false;
 	bool audioTest = false;
 
-	// GAMEPAD VEHICLE INPUT
+	bool clickR = false;
 
-	void XboxUpdate(XboxInput x, Timer* timer, float vehicleSpeed) {
+	// GAMEPAD VEHICLE INPUT
+	void XboxUpdate(XboxInput x, Timer* timer, float vehicleSpeed, bool gameEnded) {
+		this->gameEnded = gameEnded;
+    
+    // Retrive Delta Time
+		float deltaTime = (float)timer->getDeltaTime();
+
+		// Update input variables
 		if (keys_pressed <= 0) {
 			throttle = x.data.RT / 255.f;
 			brake = x.data.LT / 255.f;
@@ -112,21 +126,38 @@ public:
 			reverse = x.data.LT / 255.f;
 			AirPitch = x.data.LThumb_Y_direction;
 			AirRoll = -x.data.LThumb_X_direction;
-			boosterrrrr = x.data.RB;
-			//std::cout << x.data.LB <<std::endl;
-		}
-		if (abs(x.data.RThumb_magnitude) > 0.01f) {
-			moveCamera = true;
-			xAngle = atan(x.data.RThumb_X_direction / x.data.RThumb_Y_direction);
-			if (x.data.RThumb_Y_direction < 0.f) xAngle = (atan(1)*4.f) + xAngle;
-		}
-		else if (abs(lastX_Controller) > 0.01f) {
-			moveCamera = false;
-		}
-		lastX_Controller = x.data.RThumb_magnitude;
+			boosterrrrr = x.data.B;
 
-		// Retrive Delta Time
-		float deltaTime = (float)timer->getDeltaTime();
+			// Camera look
+			if (abs(x.data.RThumb_magnitude) != 0.f) {
+				moveCamera = true;
+				float stickAngle = atan2(x.data.RThumb_X_direction, x.data.RThumb_Y_direction) + M_PI;
+				if (stickAngle > xAngle + 0.01f) {
+					xAngle = glm::clamp(xAngle + 6.0f * deltaTime, 0.f, stickAngle);
+				}
+				else if (stickAngle < xAngle - 0.01f) {
+					xAngle = glm::clamp(xAngle - 6.0f * deltaTime, stickAngle, 1000.f);
+				}
+			}
+			else {
+				if (xAngle > M_PI + 0.01f) xAngle = glm::clamp(xAngle - 6.0f * deltaTime, (float)M_PI, (float)(2*M_PI));
+				else if (xAngle < M_PI - 0.01f) xAngle = glm::clamp(xAngle + 6.0f * deltaTime, 0.f, (float)M_PI);
+				else {
+					xAngle = M_PI;
+					moveCamera = false;
+				}
+			}
+
+			// Reset
+			if (x.data.Y) reset = deltaTime;
+			else reset = 0.f;
+		}
+		
+		//lastX_Controller = x.data.RThumb_magnitude;
+		if (clickR) {
+			moveCamera = true;
+			xAngle = 3.1415126;
+		}
 		
 		// If Steer Speed is near-zero and the steering angle isn't 0, unwind the steering input
 		if (abs(steer_target) <= 0.01f) {
@@ -138,6 +169,13 @@ public:
 		else {
 			float maxSteer = glm::clamp(1.0f - vehicleSpeed / steer_speed_sensitivity, min_speed_sensitivity, 1.0f);
 			steer = glm::clamp(steer + steer_target * steer_activate_speed * deltaTime, -maxSteer, maxSteer);
+		}
+
+		if (!play && x.data.A) {
+			play = true;
+		}
+		else if (this->gameEnded && x.data.B) {
+			play = false;
 		}
 	}
 };

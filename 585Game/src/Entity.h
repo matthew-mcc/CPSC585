@@ -32,4 +32,5 @@ public:
 	Model* model;
 	PlayerProperties* playerProperties;
 	int nbChildEntities;
+	bool onGround = false;
 };
