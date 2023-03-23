@@ -68,6 +68,17 @@ public:
 	virtual void scrollCallback(double xoffset, double yoffset) {}
 	virtual void windowSizeCallback(int width, int height) { glViewport(0, 0, width, height); }
 	
+	float smallestSignedAngleBetween(float x, float y) {
+		float a = (x - y);
+		if (a > float(2 * M_PI)) a = a - float(2 * M_PI);
+		else if (a < 0.f) a = a + float(2 * M_PI);
+		float b = (y - x);
+		if (b > float(2 * M_PI)) b = b - float(2 * M_PI);
+		else if (b < 0.f) b = b + float(2 * M_PI);
+		if (a < b) return -a;
+		else return b;
+	}
+
 	// Mouse
 	float lastX = 0.f;
 	float lastY = 0.f;
@@ -128,20 +139,33 @@ public:
 			AirRoll = -x.data.LThumb_X_direction;
 			boosterrrrr = x.data.B;
 
-			// Camera look
+			// Camera Look
 			if (abs(x.data.RThumb_magnitude) != 0.f) {
 				moveCamera = true;
 				float stickAngle = atan2(x.data.RThumb_X_direction, x.data.RThumb_Y_direction) + M_PI;
-				if (stickAngle > xAngle + 0.01f) {
-					xAngle = glm::clamp(xAngle + 6.0f * deltaTime, 0.f, stickAngle);
+
+				float smallest = smallestSignedAngleBetween(stickAngle, xAngle);
+				if (abs(stickAngle - xAngle) > 0.1f) {
+					if (smallest > 0.01f) {
+						xAngle = xAngle - abs(smallest) * 6.0f * deltaTime;
+					}
+					else if (smallest < -0.01f) {
+						xAngle = xAngle + abs(smallest) * 6.0f * deltaTime;
+					}
 				}
-				else if (stickAngle < xAngle - 0.01f) {
-					xAngle = glm::clamp(xAngle - 6.0f * deltaTime, stickAngle, 1000.f);
-				}
+
 			}
+			// Camera Un-Look
 			else {
-				if (xAngle > M_PI + 0.01f) xAngle = glm::clamp(xAngle - 6.0f * deltaTime, (float)M_PI, (float)(2*M_PI));
-				else if (xAngle < M_PI - 0.01f) xAngle = glm::clamp(xAngle + 6.0f * deltaTime, 0.f, (float)M_PI);
+				float smallest = smallestSignedAngleBetween(M_PI, xAngle);
+				if (abs(M_PI - xAngle) > 0.01f) {
+					if (smallest > 0.01f) {
+						xAngle = xAngle - abs(smallest) * 6.0f * deltaTime;
+					}
+					else if (smallest < -0.01f) {
+						xAngle = xAngle + abs(smallest) * 6.0f * deltaTime;
+					}
+				}
 				else {
 					xAngle = M_PI;
 					moveCamera = false;
@@ -151,12 +175,6 @@ public:
 			// Reset
 			if (x.data.Y) reset = deltaTime;
 			else reset = 0.f;
-		}
-		
-		//lastX_Controller = x.data.RThumb_magnitude;
-		if (clickR) {
-			moveCamera = true;
-			xAngle = 3.1415126;
 		}
 		
 		// If Steer Speed is near-zero and the steering angle isn't 0, unwind the steering input
