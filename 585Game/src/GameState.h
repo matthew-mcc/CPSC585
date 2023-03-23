@@ -13,6 +13,7 @@ public:
 	Entity* findEntity(string name);
 	Entity* spawnTrailer();
 	Entity* spawnVehicle();
+	int calculatePoints(string name);
 	void endGame();
 	void resetGameState(AudioManager* audio);
 

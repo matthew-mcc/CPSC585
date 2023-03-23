@@ -465,10 +465,8 @@ void PhysicsSystem::dropOffTrailer(Vehicle* vehicle) {
 	// Find entity of vehicle that triggered the dropoff
 	// Add score to this entity
 	Entity* vehicleEntity = gameState->findEntity("vehicle_" + to_string(getVehicleIndex(vehicle)));
-	int scoreToAdd = 0;
-	for (int i = nbTrailers; i > 0; i--) {
-		scoreToAdd += i;
-	}
+	int scoreToAdd = gameState->calculatePoints("vehicle_" + to_string(getVehicleIndex(vehicle)));
+
 	vehicleEntity->playerProperties->addScore(scoreToAdd);
 	cout << vehicleEntity->name << "'s new score: " << vehicleEntity->playerProperties->getScore() << "\n";		// For debugging
 }
