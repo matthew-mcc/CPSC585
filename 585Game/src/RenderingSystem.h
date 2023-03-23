@@ -66,6 +66,8 @@ private:
 	unsigned int podcounterOff;
 	unsigned int boostOn;
 	unsigned int boostOff;
+	unsigned int menuBackground;
+	unsigned int menuLoading;
 
 	std::vector<unsigned int> ui_player_tracker;
 	unsigned int ui_p1;

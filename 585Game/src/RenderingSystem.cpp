@@ -61,6 +61,9 @@ void RenderingSystem::initRenderer() {
 	podcounterOn = generateTexture("assets/textures/UI/podcounterOn.png", false);
 	podcounterOff = generateTexture("assets/textures/UI/podCounterOff.png", false);
 
+	menuBackground = generateTexture("assets/textures/UI/menuBackground.png", false);
+	menuLoading = generateTexture("assets/textures/UI/menuLoading.png", false);
+
 	for (int i = 1; i <= 6; i++) {
 		const std::string path = "assets/textures/UI/" + to_string(i) + ".png";
 		ui_player_tracker.push_back(generateTexture(path.c_str(), false));
@@ -134,20 +137,15 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> cbp, Gam
 
 		// Load Screen
 		if (callback_ptr->play) {
-			RenderText(textShader, textVAO, textVBO, "Loading...",
-				500,
-				500,
-				1.5f,
-				vec3(0.2, 0.2f, 0.2f),
-				textChars);
+			drawUI(menuLoading, 0, 0, callback_ptr->xres, callback_ptr->yres, 0);
 			gameState->inMenu = false;
 		}
 
 		// Menu Screen
 		else {
-			drawUI(testTexture, callback_ptr->xres - 300.f, 30.f, callback_ptr->xres - 30.f, 300.f, 0);
 		}
 
+		drawUI(menuBackground, 0, 0, callback_ptr->xres, callback_ptr->yres, 1);
 		glfwSwapBuffers(window);
 		glfwPollEvents();
 		return;
