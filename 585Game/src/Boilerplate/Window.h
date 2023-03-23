@@ -113,6 +113,7 @@ public:
 
 	// Camera Control
 	bool moveCamera = false;
+	float mouseX = M_PI;
 	float xAngle = M_PI;
 	glm::vec2 clickPos = glm::vec2(0.f, 0.f);
 
@@ -121,6 +122,7 @@ public:
 	bool audioTest = false;
 
 	bool clickR = false;
+	bool clickL = false;
 
 	// GAMEPAD VEHICLE INPUT
 	void XboxUpdate(XboxInput x, Timer* timer, float vehicleSpeed, bool gameEnded) {
@@ -139,42 +141,48 @@ public:
 			AirRoll = -x.data.LThumb_X_direction;
 			boosterrrrr = x.data.B;
 
-			// Camera Look
-			if (abs(x.data.RThumb_magnitude) != 0.f) {
-				moveCamera = true;
-				float stickAngle = atan2(x.data.RThumb_X_direction, x.data.RThumb_Y_direction) + M_PI;
-
-				float smallest = smallestSignedAngleBetween(stickAngle, xAngle);
-				if (abs(stickAngle - xAngle) > 0.1f) {
-					if (smallest > 0.01f) {
-						xAngle = xAngle - abs(smallest) * 6.0f * deltaTime;
-					}
-					else if (smallest < -0.01f) {
-						xAngle = xAngle + abs(smallest) * 6.0f * deltaTime;
-					}
-				}
-
-			}
-			// Camera Un-Look
-			else {
-				float smallest = smallestSignedAngleBetween(M_PI, xAngle);
-				if (abs(M_PI - xAngle) > 0.01f) {
-					if (smallest > 0.01f) {
-						xAngle = xAngle - abs(smallest) * 6.0f * deltaTime;
-					}
-					else if (smallest < -0.01f) {
-						xAngle = xAngle + abs(smallest) * 6.0f * deltaTime;
-					}
-				}
-				else {
-					xAngle = M_PI;
-					moveCamera = false;
-				}
-			}
-
 			// Reset
 			if (x.data.Y) reset = deltaTime;
 			else reset = 0.f;
+		}
+
+		// Camera Look
+		if (abs(x.data.RThumb_magnitude != 0.f) || clickL) {
+			moveCamera = true;
+			float stickAngle;
+			if (clickL) {
+				stickAngle = ((lastX + 1.0f) / 2.0f) * float(2*M_PI);
+			}
+			else {
+				stickAngle = atan2(x.data.RThumb_X_direction, x.data.RThumb_Y_direction) + M_PI;
+			}
+
+			float smallest = smallestSignedAngleBetween(stickAngle, xAngle);
+			if (abs(stickAngle - xAngle) > 0.1f) {
+				if (smallest > 0.01f) {
+					xAngle = xAngle - abs(smallest) * 6.0f * deltaTime;
+				}
+				else if (smallest < -0.01f) {
+					xAngle = xAngle + abs(smallest) * 6.0f * deltaTime;
+				}
+			}
+
+		}
+		// Camera Un-Look
+		else {
+			float smallest = smallestSignedAngleBetween(M_PI, xAngle);
+			if (abs(M_PI - xAngle) > 0.01f) {
+				if (smallest > 0.01f) {
+					xAngle = xAngle - abs(smallest) * 6.0f * deltaTime;
+				}
+				else if (smallest < -0.01f) {
+					xAngle = xAngle + abs(smallest) * 6.0f * deltaTime;
+				}
+			}
+			else {
+				xAngle = M_PI;
+				moveCamera = false;
+			}
 		}
 		
 		// If Steer Speed is near-zero and the steering angle isn't 0, unwind the steering input
