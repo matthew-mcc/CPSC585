@@ -180,10 +180,11 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> cbp, Gam
 	glm::vec3 Reset_collision(1.f);
 
 	// Camera Look: Orbit camera around vehicle
+	vec3 lookOffset = player_pos + eye_offset;
 	float lag_amount = camera_lag;
 	if (callback_ptr->moveCamera) {
-		camera_position_right = sinf(callback_ptr->xAngle) * camera_radius;
-		camera_position_forward = -cosf(callback_ptr->xAngle) * camera_radius;
+		lookOffset = vec4(eye_offset, 0.f) * glm::rotate(glm::mat4(1.f), callback_ptr->xAngle, world_up);
+		lookOffset += player_pos;
 		lag_amount = camera_lag * 4.f;
 		Camera_collision = PhysicsSystem::CameraRaycasting(camera_previous_position,camera_radius,1.f);
 	}
@@ -193,7 +194,7 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> cbp, Gam
 	}
 
 	// Camera lag: Generate target_position - prev_position creating a vector. Scale by constant factor, then add to prev and update
-	vec3 camera_target_position = player_pos + eye_offset;
+	vec3 camera_target_position = lookOffset;
 	camera_target_position.y = player_pos.y + camera_position_up + (float)playerEntity->nbChildEntities * 0.4f;
 	vec3 camera_track_vector = camera_target_position - camera_previous_position;
 	camera_track_vector = camera_track_vector * lag_amount * (float)timer->getDeltaTime();

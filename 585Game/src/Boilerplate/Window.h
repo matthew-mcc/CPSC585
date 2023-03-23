@@ -129,11 +129,15 @@ public:
 			// Camera look
 			if (abs(x.data.RThumb_magnitude) != 0.f) {
 				moveCamera = true;
-				xAngle = -atan2(x.data.RThumb_X_direction, x.data.RThumb_Y_direction);
-
+				xAngle = atan2(x.data.RThumb_X_direction, x.data.RThumb_Y_direction);
 			}
 			else {
-				moveCamera = false;
+				if (xAngle > 0.01f) xAngle = xAngle - 6.0f * deltaTime;
+				else if (xAngle < -0.01f) xAngle = xAngle + 6.0f * deltaTime;
+				else {
+					xAngle = 0.f;
+					moveCamera = false;
+				}
 			}
 
 			// Reset
