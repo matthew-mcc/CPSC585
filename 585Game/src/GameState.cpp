@@ -52,8 +52,8 @@ void GameState::initGameState() {
 		"assets/models/platform1/platform1.obj"});
 
 	// Portal Effect
-	e = addEntity("effect_portal", PhysType::None, DrawType::Decal, new Transform(), vector<string>{
-		"assets/models/effects/effect_portal1.obj"});
+	//e = addEntity("effect_portal", PhysType::None, DrawType::Decal, new Transform(), vector<string>{
+		//"assets/models/effects/effect_portal1.obj"});
 
 	// Decals
 	e = addEntity("decal_tracks", PhysType::None, DrawType::Decal, new Transform(), vector<string>{
