@@ -14,9 +14,11 @@ uniform vec3 particleCenter;
 uniform vec3 camRight;
 uniform vec3 camUp;
 
+uniform float scale;
+
 void main()
 {
-    vec3 vertPosWorldSpace = particleCenter + camRight*aPos.x*0.2 + camUp*aPos.y*0.2;
+    vec3 vertPosWorldSpace = particleCenter + camRight*aPos.x*scale + camUp*aPos.y*scale;
     TexCoords = aTexCoords;
     ParticleColor = color;
     gl_Position = projection * view * model * vec4(vertPosWorldSpace, 1.0);
