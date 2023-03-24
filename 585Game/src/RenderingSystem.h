@@ -75,6 +75,7 @@ private:
 	unsigned int menuLoading;
 	unsigned int menuPlay;
 	unsigned int menuQuit;
+	unsigned int backToMenu;
 
 	std::vector<unsigned int> ui_player_tracker;
 	std::vector<unsigned int> ui_score_tracker;
