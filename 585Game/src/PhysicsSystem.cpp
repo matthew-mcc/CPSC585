@@ -1309,9 +1309,6 @@ void PhysicsSystem::AI_ApplyBoost(Vehicle* vehicle) {
 		vehicle->vehicle.mPhysXState.physxActor.rigidBody->addForce(vehicle->vehicle.mPhysXState.physxActor.rigidBody->getGlobalPose().q.rotate(PxVec3(0, 0, 1)), PxForceMode().eVELOCITY_CHANGE);
 		vehicle->aiBoost = 20.0f;
 	}
-	else {
-		vehicle->aiBoost = 0.0f;
-	}
 }
 
 void PhysicsSystem::AI_DefensiveManeuvers(Vehicle* self, Vehicle* attacker, PxReal timestep) {
@@ -1350,9 +1347,11 @@ void PhysicsSystem::AI_DefensiveManeuvers(Vehicle* self, Vehicle* attacker, PxRe
 			else if (dotProduct < 0) {
 				self->vehicle.mCommandState.steer = 1.f;
 			}
+			self->aiBoost = 0.0f;
 		}
-	
-		
+	}
+	else {
+		self->aiBoost = 0.0f;
 	}
 	
 }
@@ -1473,8 +1472,12 @@ void PhysicsSystem::AI_BumpPlayer(Vehicle* vehicle) {
 			if (distanceSq < 500.f) {
 				AI_ApplyBoost(vehicle);
 			}
+			else {
+				vehicle->aiBoost = 0.0f;
+			}
 		}
 		else {
+			vehicle->aiBoost = 0.0f;
 			PxVec3 cross = vanHeadingPx.cross(target);
 			cross.normalize();
 			if (cross.y < 0) {
