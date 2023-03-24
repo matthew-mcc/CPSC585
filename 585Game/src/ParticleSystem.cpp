@@ -50,8 +50,15 @@ void ParticleSystem::Update(float dt, glm::vec3 spawnPoint, glm::vec3 spawnVeloc
 				else respawnParticle(particles[unusedParticle], spawnPoint, spawnVelocity + vec3(rand() % 300 / 100.f - 1.5f, rand() % 300 / 100.f - 1.5f, rand() % 300 / 100.f - 1.5f), offset);
 			}
 			else if (mode.compare("b") == 0) {
-				if (rand() % 2) respawnParticle(particles[unusedParticle], spawnPoint + vec3(rand() % 200 / 1000.f - 0.1f, rand() % 200 / 1000.f - 0.1f, rand() % 200 / 1000.f - 0.1f), (spawnVelocity + vec3(rand() % 200 / 100.f - 1.f, rand() % 200 / 100.f - 1.f, rand() % 200 / 100.f - 1.f)), offset2);
-				else			respawnParticle(particles[unusedParticle], spawnPoint + vec3(rand() % 200 / 1000.f - 0.1f, rand() % 200 / 1000.f - 0.1f, rand() % 200 / 1000.f - 0.1f), (spawnVelocity + vec3(rand() % 200 / 100.f - 1.f, rand() % 200 / 100.f - 1.f, rand() % 200 / 100.f - 1.f)), offset);
+				vec3 randPos, randVel;
+				do {
+					randPos = vec3(rand() % 200 / 1000.f - 0.1f, rand() % 200 / 1000.f - 0.1f, rand() % 200 / 1000.f - 0.1f);
+				} while (length(randPos) > 0.1f);
+				do {
+					randVel = vec3(rand() % 200 / 100.f - 1.f, rand() % 200 / 100.f - 1.f, rand() % 200 / 100.f - 1.f);
+				} while (length(randVel) > 1.f);
+				if (rand() % 2) respawnParticle(particles[unusedParticle], spawnPoint + randPos, spawnVelocity + randVel, offset2);
+				else			respawnParticle(particles[unusedParticle], spawnPoint + randPos, spawnVelocity + randVel, offset);
 			}
 			else respawnParticle(particles[unusedParticle], spawnPoint, spawnVelocity, offset);
 		}

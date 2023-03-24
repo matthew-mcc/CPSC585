@@ -334,7 +334,7 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> cbp, Gam
 
 	dirtParticles.Update(timer->getDeltaTime(),
 		playerEntity->transform->getPosition() + vec3(rand() % 50 / 100.f - 0.25f, rand() % 50 / 100.f - 0.25f, rand() % 50 / 100.f - 0.25f),
-		(float)playerEntity->transform->getOnGround() * (float)(length(playerEntity->transform->getLinearVelocity()) > 5.0f) * ((glm::vec3(0.f, 3.f, 0.f) * (float)playerEntity->transform->getLinearVelocity().length()) + -2.f * playerEntity->transform->getForwardVector() + 0.5f * playerEntity->transform->getLinearVelocity()),
+		(float)playerEntity->transform->getOnGround() * (float)(length(playerEntity->transform->getLinearVelocity()) > 5.0f) * ((glm::vec3(0.f, 0.2f, 0.f) * length(playerEntity->transform->getLinearVelocity())) + -2.f * playerEntity->transform->getForwardVector() + 0.5f * playerEntity->transform->getLinearVelocity()),
 		vec3(toMat4(playerEntity->transform->getRotation())*vec4(dirtOffset, 0.f)),
 		vec3(toMat4(playerEntity->transform->getRotation())*vec4(-dirtOffset.x, dirtOffset.y, dirtOffset.z, 0.f)));
 	dirtParticles.Draw(view, projection, camera_previous_position);
