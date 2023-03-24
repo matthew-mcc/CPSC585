@@ -82,7 +82,7 @@ void RenderingSystem::initRenderer() {
 	particleShader.setInt("sprite", 1);
 	portalParticles = ParticleSystem(particleShader, orbTexture, 500, 4.0f, 0.2f, portalColor, "p");
 	dirtParticles = ParticleSystem(particleShader, rockTexture, 500, 1.0f, 0.2f, dirtColor, "d");
-	boostParticles = ParticleSystem(particleShader, orbTexture, 500, 1.5f, 0.12f, boostColor, "b");
+	boostParticles = ParticleSystem(particleShader, orbTexture, 2000, 0.5f, 0.15f, boostColor, "b");
 
 	for (int i = 0; i < 6; i++) {
 		indicators.push_back(ParticleSystem(particleShader, ui_player_tracker[i], 1.f, 300.f, 0.f, vec3(1.f), "i"));
@@ -332,14 +332,14 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> cbp, Gam
 
 	dirtParticles.Update(timer->getDeltaTime(),
 		playerEntity->transform->getPosition() + vec3(rand() % 50 / 100.f - 0.25f, rand() % 50 / 100.f - 0.25f, rand() % 50 / 100.f - 0.25f),
-		(float)playerEntity->transform->getOnGround() * (float)(length(playerEntity->transform->getLinearVelocity()) > 5.0f) * (glm::vec3(0.f, 10.f, 0.f) + -2.f * playerEntity->transform->getForwardVector() + 0.5f * playerEntity->transform->getLinearVelocity() + vec3(rand()%300/100.f-1.5f, rand() % 300 / 100.f - 1.5f, rand() % 300 / 100.f - 1.5f)),
+		(float)playerEntity->transform->getOnGround() * (float)(length(playerEntity->transform->getLinearVelocity()) > 5.0f) * ((glm::vec3(0.f, 3.f, 0.f) * (float)playerEntity->transform->getLinearVelocity().length()) + -2.f * playerEntity->transform->getForwardVector() + 0.5f * playerEntity->transform->getLinearVelocity()),
 		vec3(toMat4(playerEntity->transform->getRotation())*vec4(dirtOffset, 0.f)),
 		vec3(toMat4(playerEntity->transform->getRotation())*vec4(-dirtOffset.x, dirtOffset.y, dirtOffset.z, 0.f)));
 	dirtParticles.Draw(view, projection, camera_previous_position);
 
 	boostParticles.Update(timer->getDeltaTime(),
 		playerEntity->transform->getPosition() + vec3(0.f, 0.f, 0.f),
-		-playerEntity->transform->getForwardVector() * 5.0f * (float)(rand() / (float)RAND_MAX) * float(playerEntity->playerProperties->boost != 0.f),
+		(playerEntity->transform->getLinearVelocity() - (playerEntity->transform->getForwardVector() * 30.0f)) * float(playerEntity->playerProperties->boost != 0.f),
 		vec3(toMat4(playerEntity->transform->getRotation())* vec4(boostOffset, 0.f)),
 		vec3(toMat4(playerEntity->transform->getRotation())* vec4(-boostOffset.x, boostOffset.y, boostOffset.z, 0.f)));
 	boostParticles.Draw(view, projection, camera_previous_position);

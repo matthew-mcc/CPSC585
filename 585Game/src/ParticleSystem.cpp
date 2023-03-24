@@ -45,7 +45,14 @@ void ParticleSystem::Update(float dt, glm::vec3 spawnPoint, glm::vec3 spawnVeloc
 	for (unsigned int i = 0; i < newParticles; ++i) {
 		int unusedParticle = firstUnusedParticle();
 		if (spawnVelocity != glm::vec3(0.f, 0.f, 0.f)) {
-			if (rand() % 2 == 0 && (mode.compare("d") == 0 || mode.compare("b") == 0)) respawnParticle(particles[unusedParticle], spawnPoint, spawnVelocity, offset2);
+			if (mode.compare("d") == 0) {
+				if (rand() % 2) respawnParticle(particles[unusedParticle], spawnPoint, spawnVelocity + vec3(rand() % 300 / 100.f - 1.5f, rand() % 300 / 100.f - 1.5f, rand() % 300 / 100.f - 1.5f), offset2);
+				else respawnParticle(particles[unusedParticle], spawnPoint, spawnVelocity + vec3(rand() % 300 / 100.f - 1.5f, rand() % 300 / 100.f - 1.5f, rand() % 300 / 100.f - 1.5f), offset);
+			}
+			else if (mode.compare("b") == 0) {
+				if (rand() % 2) respawnParticle(particles[unusedParticle], spawnPoint + vec3(rand() % 200 / 1000.f - 0.1f, rand() % 200 / 1000.f - 0.1f, rand() % 200 / 1000.f - 0.1f), (spawnVelocity + vec3(rand() % 200 / 100.f - 1.f, rand() % 200 / 100.f - 1.f, rand() % 200 / 100.f - 1.f)), offset2);
+				else			respawnParticle(particles[unusedParticle], spawnPoint + vec3(rand() % 200 / 1000.f - 0.1f, rand() % 200 / 1000.f - 0.1f, rand() % 200 / 1000.f - 0.1f), (spawnVelocity + vec3(rand() % 200 / 100.f - 1.f, rand() % 200 / 100.f - 1.f, rand() % 200 / 100.f - 1.f)), offset);
+			}
 			else respawnParticle(particles[unusedParticle], spawnPoint, spawnVelocity, offset);
 		}
 	}
@@ -60,9 +67,26 @@ void ParticleSystem::Update(float dt, glm::vec3 spawnPoint, glm::vec3 spawnVeloc
 		if (p.life > 0.0f)
 		{	// particle is alive, thus update
 			p.position += p.velocity * dt;
-			if (p.life <= 1.f && mode.compare("b") != 0) p.color.a = p.life;
-			else if (p.life >= startingLife - 1.f) p.color.a = startingLife - p.life;
-			else p.color.a = 1.f;
+			if (mode.compare("b") != 0) {
+				if (p.life <= 1.f && mode.compare("b") != 0) p.color.a = p.life;
+				else if (p.life >= startingLife - 1.f) p.color.a = startingLife - p.life;
+				else p.color.a = 1.f;
+			}
+			else {
+				float lifetime = p.life / startingLife;
+				if (lifetime > 0.6f) {
+					float u = (lifetime - 0.6f) * 2.5f;
+					p.color = u * vec4(1.f, 1.f, 1.f, 1.f) + (1.f - u) * vec4(1.f, 1.f, 0.f, 1.f);
+				}
+				else if (lifetime > 0.3f) {
+					float u = (lifetime - 0.3f) * 3.f;
+					p.color = u * vec4(1.f, 1.f, 0.f, 1.f) + (1.f - u) * vec4(1.f, 0.f, 0.f, 1.f);
+				}
+				else if (lifetime > 0.f) {
+					float u = lifetime * 3.f;
+					p.color = u * vec4(1.f, 0.f, 0.f, 1.f) + (1.f - u) * vec4(0.f, 0.f, 0.f, 1.f);
+				}
+			}
 			if (mode.compare("p") == 0) p.velocity += ((spawnPoint + offset + vec3(0.f, 30.f, 0.f)) - p.position) * 0.002f;
 			else if (mode.compare("d") == 0) p.velocity += glm::vec3(0.f, -0.5f, 0.f);
 		}
