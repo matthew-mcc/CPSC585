@@ -66,6 +66,8 @@ void RenderingSystem::initRenderer() {
 	menuPlay = generateTexture("assets/textures/UI/menuPlay.png", false);
 	menuQuit = generateTexture("assets/textures/UI/menuQuit.png", false);
 
+	backToMenu = generateTexture("assets/textures/UI/backToMenu.png", false);
+
 	for (int i = 1; i <= 12; i++) {
 		if (i <= 6) ui_player_tracker.push_back(generateTexture(("assets/textures/UI/" + to_string(i) + ".png").c_str(), false));
 		ui_score_tracker.push_back(generateTexture(("assets/textures/UI/cargo_indicators/" + to_string(i) + ".png").c_str(), false));
@@ -424,7 +426,7 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> cbp, Gam
 	// Fetch and display FPS
 	int fpsTest = timer->getFPS(0.5);				// Get fps (WARNING: can be NULL!)
 	if (fpsTest != NULL) fps = fpsTest;				// Set fps if fpsTest isn't null
-	RenderText(textShader, textVAO, textVBO, "FPS: " + std::to_string(fps), 8.f, callback_ptr->yres - 32.f, 0.6f, vec3(0.2, 0.2f, 0.2f), textChars);
+	RenderText(textShader, textVAO, textVBO, "FPS: " + std::to_string(fps), 10.f, callback_ptr->yres - 26.f, 0.45f, vec3(0.2, 0.2f, 0.2f), textChars);
 
 	// Game Ended Screen
 	if (gameState->gameEnded) {
@@ -434,18 +436,19 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> cbp, Gam
 			winnerNum = to_string(stoi(winnerNum) + 1);
 			winnerText = "Salvager #" + winnerNum + " Wins!";
 		}
+		drawUI(backToMenu, callback_ptr->xres / 2 - 387, callback_ptr->yres / 2 + 158, callback_ptr->xres / 2 + 387, callback_ptr->yres / 2 + 415, 1);
 		RenderText(textShader, textVAO, textVBO, winnerText,
-			callback_ptr->xres / 2 - (18 * winnerText.length()),
-			callback_ptr->yres / 2 + 150,
-			1.5f,
-			vec3(0.2, 0.2f, 0.2f),
+			callback_ptr->xres / 2 - (16 * winnerText.length()),
+			callback_ptr->yres / 2 + 328,
+			1.25f,
+			vec3(0.94, 0.94f, 0.94f),
 			textChars);
 	}
 
 	// Normal Gameplay Screen
 	else {
 		// Ayyylien
-		drawUI(testTexture, callback_ptr->xres - 300.f, 30.f, callback_ptr->xres - 30.f, 300.f, 0);
+		//drawUI(testTexture, callback_ptr->xres - 300.f, 30.f, callback_ptr->xres - 30.f, 300.f, 0);
 
 		// Boost Meter
 		for (int i = 0; i < 10; i++) {
