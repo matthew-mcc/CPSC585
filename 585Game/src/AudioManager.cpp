@@ -49,8 +49,8 @@ void AudioManager::Init(int vehicleCount) {
 	*/
 
 	// Someday, we will change this
-	//audioEngine.LoadEvent(e_boost);
-	//audioEngine.PlayEvent(e_boost);
+	audioEngine.LoadEvent(e_boost);
+	audioEngine.PlayEvent(e_boost);
 
 	audioEngine.LoadSound("assets/audio/ping_placeholder.flac");
 	audioEngine.LoadSound("assets/audio/Latch1.wav");

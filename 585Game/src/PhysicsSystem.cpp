@@ -1007,13 +1007,14 @@ void PhysicsSystem::stepPhysics(shared_ptr<CallbackInterface> callback_ptr, Time
 			gameState->audio_ptr->Update3DListener(gameState->listener_position, audio_velocity, audio_forward, audio_up);
 			gameState->audio_ptr->setVolume(vehicleName + "_tire", 1.f);
 			gameState->audio_ptr->UpdateTire(vehicleName, audio_position, audio_velocity, audio_forward, audio_up, distance, gameState->audio_ptr->contact);
+			gameState->audio_ptr->UpdateBoostPlaceholder(audio_position, audio_velocity, audio_forward, audio_up, distance, gameState->findEntity("vehicle_0")->playerProperties->boost);
 		}
 		else {
 			gameState->audio_ptr->setVolume(vehicleName + "_tire", 1.f);
 			gameState->audio_ptr->UpdateTire(vehicleName, audio_position, audio_velocity, audio_forward, audio_up, distance, true);
 			//gameState->audio_ptr->UpdateTire(vehicleName, audio_position, audio_velocity, audio_forward, audio_up, distance, gameState->audio_ptr->contact);
 		}
-		gameState->audio_ptr->UpdateBoostPlaceholder(audio_position, audio_velocity, audio_forward, audio_up, distance, gameState->findEntity("vehicle_0")->playerProperties->boost);
+		
 		//std::cout << vehicleName << ": " << audio_position.x;
 		//std::cout << ", " << audio_position.y;
 		//std::cout << ", " << audio_position.z << std::endl;
