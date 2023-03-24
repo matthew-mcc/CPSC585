@@ -836,6 +836,7 @@ void PhysicsSystem::stepPhysics(shared_ptr<CallbackInterface> callback_ptr, Time
 				&& AircontrolBuffer.block.shape->getSimulationFilterData().word0 == COLLISION_FLAG_GROUND){
 				
 				// Update ground flag
+				if (vehicles.at(i)->onGround == false) vehicles.at(i)->landed = true;
 				vehicles.at(i)->onGround = true;
 
 				// Forward Drive
@@ -877,7 +878,7 @@ void PhysicsSystem::stepPhysics(shared_ptr<CallbackInterface> callback_ptr, Time
 			}
 
 			// Audio Flag for ground contact
-			gameState->audio_ptr->contact = vehicles.at(i)->onGround;
+			// gameState->audio_ptr->contact = vehicles.at(i)->onGround;
 
 			// Boost
 			if (vehicles.at(i)->vehicle.mPhysXState.physxActor.rigidBody->getLinearVelocity().magnitude() < player->playerProperties->boost_max_velocity) {
@@ -906,6 +907,7 @@ void PhysicsSystem::stepPhysics(shared_ptr<CallbackInterface> callback_ptr, Time
 			// Update ground flag
 			if (gScene->raycast(vehicle_transform.p, vehicle_transform.rotate(PxVec3(0.f, -1.f, 0.f)), 0.7f, AircontrolBuffer)
 				&& AircontrolBuffer.block.shape->getSimulationFilterData().word0 == COLLISION_FLAG_GROUND) {
+				if (vehicles.at(i)->onGround == false) vehicles.at(i)->landed = true;
 				vehicles.at(i)->onGround = true;
 			}
 			else {
@@ -996,11 +998,12 @@ void PhysicsSystem::stepPhysics(shared_ptr<CallbackInterface> callback_ptr, Time
 		vehicleName += std::to_string(i);
 		float distance;
 
-		glm::vec3 audio_position = gameState->findEntity(vehicleName)->transform->getPosition();
+		glm::vec3 audio_position = toGLMVec3(vehicles.at(i)->vehicle.mPhysXState.physxActor.rigidBody->getGlobalPose().p);
 		glm::vec3 audio_velocity = gameState->findEntity(vehicleName)->transform->getLinearVelocity();
 		glm::vec3 audio_forward = gameState->findEntity(vehicleName)->transform->getForwardVector();
 		glm::vec3 audio_up = gameState->findEntity(vehicleName)->transform->getUpVector();
 		distance = glm::length(glm::distance(gameState->listener_position, audio_position));
+
 		if (i == 0) {
 			//std::cout << "Listener updated" << std::endl;
 			gameState->audio_ptr->Update3DListener(gameState->listener_position, audio_velocity, audio_forward, audio_up);
@@ -1013,6 +1016,12 @@ void PhysicsSystem::stepPhysics(shared_ptr<CallbackInterface> callback_ptr, Time
 			gameState->audio_ptr->UpdateTire(vehicleName, audio_position, audio_velocity, audio_forward, audio_up, distance, vehicles.at(i)->onGround);
 			gameState->audio_ptr->UpdateBoostPlaceholder(vehicleName, audio_position, audio_velocity, audio_forward, audio_up, distance, vehicles.at(i)->aiBoost);
 		}
+
+		if (vehicles.at(i)->landed) {
+			gameState->audio_ptr->Landing(audio_position);
+			vehicles.at(i)->landed = false;
+		}
+
 		
 		//std::cout << vehicleName << ": " << audio_position.x;
 		//std::cout << ", " << audio_position.y;

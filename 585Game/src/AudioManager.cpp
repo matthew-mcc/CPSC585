@@ -57,6 +57,7 @@ void AudioManager::Init(int vehicleCount) {
 
 	audioEngine.LoadSound("assets/audio/ping_placeholder.flac");
 	audioEngine.LoadSound("assets/audio/Latch1.wav");
+	audioEngine.LoadSound("assets/audio/Landing1.wav");
 	audioEngine.LoadSound("assets/audio/SpaceMusic2.wav", false, true, false);
 	audioEngine.PlaySound("assets/audio/SpaceMusic2.wav", glm::vec3(0.0f), 1.0f);
 
@@ -105,6 +106,10 @@ void AudioManager::LatchEvent(glm::vec3 pos) {
 void AudioManager::Dropoff() {
 	glm::vec3 dropoffPos = glm::vec3(1.0f, 0.5f, 33.0f);
 	audioEngine.PlaySound("assets/audio/ping_placeholder.flac", dropoffPos, 10.0f);
+}
+
+void AudioManager::Landing(glm::vec3 pos) {
+	audioEngine.PlaySound("assets/audio/Landing1.wav", pos, 15.0f);
 }
 
 
