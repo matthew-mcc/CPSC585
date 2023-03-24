@@ -83,8 +83,8 @@ void RenderingSystem::initRenderer() {
 	dirtParticles = ParticleSystem(particleShader, rockTexture, 500, 1.0f, 0.2f, dirtColor, "d");
 	
 	for (int i = 0; i < gameState->numVehicles; i++) {
-		if(i == 0) boostParticles.push_back(ParticleSystem(particleShader, orbTexture, 2000, 0.5f, 0.15f, boostColor, "b"));
-		else boostParticles.push_back(ParticleSystem(particleShader, orbTexture, 1000, 0.5f, 0.15f, boostColor, "b"));	// Optimization: Less particles for non-player vehicles
+		if(i == 0) boostParticles.push_back(ParticleSystem(particleShader, orbTexture, 2000, 0.5f, 0.15f, boostColor1, boostColor2, boostColor3, "b"));
+		else boostParticles.push_back(ParticleSystem(particleShader, orbTexture, 1000, 0.5f, 0.15f, boostColor1, boostColor2, boostColor3, "b"));	// Optimization: Less particles for non-player vehicles
 	}
 
 	for (int i = 0; i < 6; i++) {
@@ -351,6 +351,9 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> cbp, Gam
 	dirtParticles.Draw(view, projection, camera_previous_position);
 
 	for (int i = 0; i < boostParticles.size(); i++) {
+		boostParticles.at(i).color = boostColor1;
+		boostParticles.at(i).color2 = boostColor2;
+		boostParticles.at(i).color3 = boostColor3;
 		Entity* vehicleEntity = gameState->findEntity("vehicle_" + to_string(i));
 		boostParticles.at(i).Update(timer->getDeltaTime(),
 			vehicleEntity->transform->getPosition() + vec3(0.f, 0.f, 0.f),
@@ -594,6 +597,9 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> cbp, Gam
 	ImGui::SliderFloat("Boost offset z", (float*)&boostOffset.z, -2.f, 2.f);
 	ImGui::ColorEdit3("Portal Color", (float*)&portalColor);
 	ImGui::ColorEdit3("Dirt Color", (float*)&dirtColor);
+	ImGui::ColorEdit3("Boost Color 1", (float*)&boostColor1);
+	ImGui::ColorEdit3("Boost Color 2", (float*)&boostColor2);
+	ImGui::ColorEdit3("Boost Color 3", (float*)&boostColor3);
 	
 
 	ImGui::Text("Audio");

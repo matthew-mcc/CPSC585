@@ -145,6 +145,8 @@ private:
 	vec3 dirtOffset = vec3(1.2f, -0.3f, -0.9f);
 	vec3 boostOffset = vec3(0.684f, 0.773f, -0.900f);
 	vec3 portalColor = vec3(0.26f, 0.58f, 0.89f);
-	vec3 boostColor = vec3(0.81f, 0.49f, 0.26f);
+	vec3 boostColor1 = vec3(1.f, 1.f, 1.f);
+	vec3 boostColor2 = vec3(1.f, 1.f, 0.f);
+	vec3 boostColor3 = vec3(1.f, 0.f, 0.f);
 	vec3 dirtColor = vec3(0.38f, 0.20f, 0.17f);
 };
