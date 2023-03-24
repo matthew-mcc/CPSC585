@@ -251,7 +251,18 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> cbp, Gam
 	}
 	updateRadius(rad_base,camera_zoom_forward);
 	// Set projection and view matrices
-	projection = perspective(radians(fov), (float)callback_ptr->xres / (float)callback_ptr->yres, 0.1f, 10000.0f);
+	if (playerEntity->playerProperties->boost != 0) {
+		if (fov < fov_boost) {
+			fov = fov + ((fov_boost - fov) / fov_boost) * fov_change_speed * (float)timer->getDeltaTime();
+		}
+		projection = perspective(radians(fov), (float)callback_ptr->xres / (float)callback_ptr->yres, 0.1f, 10000.0f);
+	}
+	else {
+		if (fov > fov_rest) {
+			fov = fov - ((fov - fov_rest) / fov) * (fov_change_speed / 2.f) * (float)timer->getDeltaTime();
+		}
+		projection = perspective(radians(fov), (float)callback_ptr->xres / (float)callback_ptr->yres, 0.1f, 10000.0f);
+	}
 
 
 	// MESH ANIMATIONS

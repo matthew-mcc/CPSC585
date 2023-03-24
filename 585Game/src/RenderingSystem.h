@@ -133,7 +133,10 @@ private:
 
 	// Camera Parameters
 	float camera_lag = 5.0f;
-	float fov = 45.f;
+	float fov_rest = 45.f;
+	float fov_boost = 57.f;
+	float fov_change_speed = 400.0f;
+	float fov = fov_rest;
 
 	// Audio Parameters
 	float playerVolume = 0.5f;
