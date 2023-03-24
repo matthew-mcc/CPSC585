@@ -46,6 +46,7 @@ private:
 	// Particle Generators
 	ParticleSystem portalParticles;
 	ParticleSystem dirtParticles;
+	ParticleSystem boostParticles;
 	std::vector<ParticleSystem> indicators;
 	std::vector<ParticleSystem> indicatorCounters;
 
@@ -135,6 +136,8 @@ private:
 	float npcVolume = 1.0f;
 
 	vec3 dirtOffset = vec3(1.2f, -0.3f, -0.9f);
-	vec3 portalColor = vec3(0.78f, 0.f, 0.23f);
-	vec3 dirtColor = vec3(0.37f, 0.16f, 0.16f);
+	vec3 boostOffset = vec3(0.684f, 0.773f, -0.900f);
+	vec3 portalColor = vec3(0.26f, 0.58f, 0.89f);
+	vec3 boostColor = vec3(0.81f, 0.49f, 0.26f);
+	vec3 dirtColor = vec3(0.38f, 0.20f, 0.17f);
 };

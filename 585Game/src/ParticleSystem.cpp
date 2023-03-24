@@ -45,7 +45,7 @@ void ParticleSystem::Update(float dt, glm::vec3 spawnPoint, glm::vec3 spawnVeloc
 	for (unsigned int i = 0; i < newParticles; ++i) {
 		int unusedParticle = firstUnusedParticle();
 		if (spawnVelocity != glm::vec3(0.f, 0.f, 0.f)) {
-			if (rand() % 2 == 0 && mode.compare("d") == 0) respawnParticle(particles[unusedParticle], spawnPoint, spawnVelocity, offset2);
+			if (rand() % 2 == 0 && (mode.compare("d") == 0 || mode.compare("b") == 0)) respawnParticle(particles[unusedParticle], spawnPoint, spawnVelocity, offset2);
 			else respawnParticle(particles[unusedParticle], spawnPoint, spawnVelocity, offset);
 		}
 	}
@@ -60,7 +60,7 @@ void ParticleSystem::Update(float dt, glm::vec3 spawnPoint, glm::vec3 spawnVeloc
 		if (p.life > 0.0f)
 		{	// particle is alive, thus update
 			p.position += p.velocity * dt;
-			if (p.life <= 1.f) p.color.a = p.life;
+			if (p.life <= 1.f && mode.compare("b") != 0) p.color.a = p.life;
 			else if (p.life >= startingLife - 1.f) p.color.a = startingLife - p.life;
 			else p.color.a = 1.f;
 			if (mode.compare("p") == 0) p.velocity += ((spawnPoint + offset + vec3(0.f, 30.f, 0.f)) - p.position) * 0.002f;
@@ -71,7 +71,7 @@ void ParticleSystem::Update(float dt, glm::vec3 spawnPoint, glm::vec3 spawnVeloc
 
 void ParticleSystem::Draw(glm::mat4 view, glm::mat4 proj, glm::vec3 cameraPosition) {
 	// use additive blending to give it a 'glow' effect
-	if (mode.compare("p") == 0) glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+	if (mode.compare("p") == 0 || mode.compare("b") == 0) glBlendFunc(GL_SRC_ALPHA, GL_ONE);
 	shader.use();
 	for (int i = 0; i < amount; i++)
 	{
@@ -142,6 +142,10 @@ void ParticleSystem::respawnParticle(Particle& particle, glm::vec3 spawnPoint, g
 	else if (mode.compare("i") == 0) {
 		particle.position = spawnPoint + offset;
 		particle.velocity = vec3(0.f);
+	}
+	else if (mode.compare("b") == 0) {
+		particle.position = spawnPoint + offset;
+		particle.velocity = spawnVelocity;
 	}
 }
 

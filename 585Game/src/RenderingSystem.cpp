@@ -82,6 +82,7 @@ void RenderingSystem::initRenderer() {
 	particleShader.setInt("sprite", 1);
 	portalParticles = ParticleSystem(particleShader, orbTexture, 500, 4.0f, 0.2f, portalColor, "p");
 	dirtParticles = ParticleSystem(particleShader, rockTexture, 500, 1.0f, 0.2f, dirtColor, "d");
+	boostParticles = ParticleSystem(particleShader, orbTexture, 500, 1.5f, 0.12f, boostColor, "b");
 
 	for (int i = 0; i < 6; i++) {
 		indicators.push_back(ParticleSystem(particleShader, ui_player_tracker[i], 1.f, 300.f, 0.f, vec3(1.f), "i"));
@@ -314,11 +315,15 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> cbp, Gam
 	bindTexture(6, farShadowMap.fbTextures[1]);
 	setCelShaderUniforms(&celMap.shader);
 	celMap.render(gameState, "c", lightPos, callback_ptr);
+	
 	portalParticles.color = portalColor;
+	boostParticles.color = boostColor;
 	dirtParticles.color = dirtColor;
+
 	glBindFramebuffer(GL_FRAMEBUFFER, celMap.FBO[0]);
 	glDepthMask(GL_FALSE);
 	glViewport(0, 0, 1920, 1080);
+
 	portalParticles.Update(timer->getDeltaTime(),
 		gameState->findEntity("platform_center")->transform->getPosition(),
 		glm::vec3(1.f),
@@ -327,10 +332,17 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> cbp, Gam
 
 	dirtParticles.Update(timer->getDeltaTime(),
 		playerEntity->transform->getPosition() + vec3(rand() % 50 / 100.f - 0.25f, rand() % 50 / 100.f - 0.25f, rand() % 50 / 100.f - 0.25f),
-		playerEntity->transform->getOnGround() * playerEntity->playerProperties->throttle * (glm::vec3(0.f, 10.f, 0.f) + -2.f * playerEntity->transform->getForwardVector() + 0.5f * playerEntity->transform->getLinearVelocity() + vec3(rand()%300/100.f-1.5f, rand() % 300 / 100.f - 1.5f, rand() % 300 / 100.f - 1.5f)),
+		(float)playerEntity->transform->getOnGround() * (float)(length(playerEntity->transform->getLinearVelocity()) > 5.0f) * (glm::vec3(0.f, 10.f, 0.f) + -2.f * playerEntity->transform->getForwardVector() + 0.5f * playerEntity->transform->getLinearVelocity() + vec3(rand()%300/100.f-1.5f, rand() % 300 / 100.f - 1.5f, rand() % 300 / 100.f - 1.5f)),
 		vec3(toMat4(playerEntity->transform->getRotation())*vec4(dirtOffset, 0.f)),
 		vec3(toMat4(playerEntity->transform->getRotation())*vec4(-dirtOffset.x, dirtOffset.y, dirtOffset.z, 0.f)));
 	dirtParticles.Draw(view, projection, camera_previous_position);
+
+	boostParticles.Update(timer->getDeltaTime(),
+		playerEntity->transform->getPosition() + vec3(0.f, 0.f, 0.f),
+		-playerEntity->transform->getForwardVector() * 5.0f * (float)(rand() / (float)RAND_MAX) * float(playerEntity->playerProperties->boost != 0.f),
+		vec3(toMat4(playerEntity->transform->getRotation())* vec4(boostOffset, 0.f)),
+		vec3(toMat4(playerEntity->transform->getRotation())* vec4(-boostOffset.x, boostOffset.y, boostOffset.z, 0.f)));
+	boostParticles.Draw(view, projection, camera_previous_position);
 
 	for (int i = 0; i < indicators.size(); i++) {
 		indicators[i].Update(timer->getDeltaTime(), 
@@ -560,8 +572,12 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> cbp, Gam
 	ImGui::SliderFloat("Dirt offset x", (float*)&dirtOffset.x, -2.f, 2.f);
 	ImGui::SliderFloat("Dirt offset y", (float*)&dirtOffset.y, -2.f, 2.f);
 	ImGui::SliderFloat("Dirt offset z", (float*)&dirtOffset.z, -2.f, 2.f);
+	ImGui::SliderFloat("Boost offset x", (float*)&boostOffset.x, -2.f, 2.f);
+	ImGui::SliderFloat("Boost offset y", (float*)&boostOffset.y, -2.f, 2.f);
+	ImGui::SliderFloat("Boost offset z", (float*)&boostOffset.z, -2.f, 2.f);
 	ImGui::ColorEdit3("Portal Color", (float*)&portalColor);
 	ImGui::ColorEdit3("Dirt Color", (float*)&dirtColor);
+	ImGui::ColorEdit3("Boost Color", (float*)&boostColor);
 	
 
 	ImGui::Text("Audio");
