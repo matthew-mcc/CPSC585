@@ -188,6 +188,24 @@ public:
 			addTrailer = true;
 			audioTest = true;
 		}
+		if (key == GLFW_KEY_1 && action == GLFW_PRESS) {
+			horn1 = true;
+		}
+		if (key == GLFW_KEY_2 && action == GLFW_PRESS) {
+			horn2 = true;
+		}
+		if (key == GLFW_KEY_3 && action == GLFW_PRESS) {
+			horn3 = true;
+		}
+		if (key == GLFW_KEY_4 && action == GLFW_PRESS) {
+			horn4 = true;
+		}
+		if (key == GLFW_KEY_5 && action == GLFW_PRESS) {
+			horn5 = true;
+		}
+		if (key == GLFW_KEY_6 && action == GLFW_PRESS) {
+			horn6 = true;
+		}
 
 		// MAIN MENU - PLAY
 		if (key == GLFW_KEY_SPACE && action == GLFW_PRESS) {

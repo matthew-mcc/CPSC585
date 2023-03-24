@@ -36,6 +36,7 @@ public:
 
 	void UpdateTire(const std::string& strEventName, const glm::vec3 &pos, const glm::vec3 &velocity, const glm::vec3 &forward, const glm::vec3 &up, float distance, bool contact);
 	void UpdateBoostPlaceholder(const std::string& strEventName, const glm::vec3& pos, const glm::vec3& velocity, const glm::vec3& forward, const glm::vec3& up, float distance, float boost);
+	void hornhonk(const glm::vec3& pos, const glm::vec3& velocity, const glm::vec3& forward, const glm::vec3& up);
 
 	void setVolume(const std::string& strEventName, float db);
 
@@ -56,6 +57,8 @@ private:
 	std::string e_tire_roll = "{7320c7ca-8c24-42ad-9aee-e1ffbe708167}";
 	std::string e_engine = "{ad086051-df49-493c-b0c8-c8b603ef2eee}";
 	std::string e_boost = "{800dca3e-ea68-4f91-90f7-1c88dbb487b0}";
+	std::string a_hornhonk = "{1b293558-9d84-4647-a62a-0b35aee3b9a3}";
+
 
 	std::string p_distance = "{a535cf27-0d8c-4dc4-8a7d-386ac746bd99}";
 

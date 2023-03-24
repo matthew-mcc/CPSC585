@@ -8,6 +8,7 @@ void AudioManager::Init(int vehicleCount) {
 	audioEngine.LoadBank(bank_path_actions, FMOD_STUDIO_LOAD_BANK_NORMAL);
 	audioEngine.LoadEvent(e_pod_pickup);
 	audioEngine.LoadEvent(e_dropoff);
+	audioEngine.LoadEvent(a_hornhonk);
 
 	//audioEngine.LoadEvent(e_tire_roll);
 	for (int i = 0; i < vehicleCount; i++) {
@@ -58,6 +59,7 @@ void AudioManager::Init(int vehicleCount) {
 	audioEngine.LoadSound("assets/audio/Latch1.wav");
 	audioEngine.LoadSound("assets/audio/SpaceMusic2.wav", false, true, false);
 	audioEngine.PlaySound("assets/audio/SpaceMusic2.wav", glm::vec3(0.0f), 1.0f);
+
 
 	audioEngine.SetEventVolume("vehicle_0", 0.5f);
 }
@@ -153,14 +155,14 @@ void AudioManager::UpdateBoostPlaceholder(const std::string& strEventName, const
 }
 
 
-
-
-
 void AudioManager::setVolume(const std::string& strEventName, float db) {
 	audioEngine.SetEventVolume(strEventName, db);
 }
 
-
+void AudioManager::hornhonk(const glm::vec3& pos, const glm::vec3& velocity, const glm::vec3& forward, const glm::vec3& up) {
+	audioEngine.SetEvent3dAttributes(a_hornhonk, pos, velocity, forward, up);
+	audioEngine.PlayEvent(a_hornhonk);
+}
 
 
 
