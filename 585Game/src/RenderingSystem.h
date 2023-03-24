@@ -72,6 +72,8 @@ private:
 	unsigned int boostOff;
 	unsigned int menuBackground;
 	unsigned int menuLoading;
+	unsigned int menuPlay;
+	unsigned int menuQuit;
 
 	std::vector<unsigned int> ui_player_tracker;
 	std::vector<unsigned int> ui_score_tracker;

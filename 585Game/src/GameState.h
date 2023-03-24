@@ -16,6 +16,7 @@ public:
 	int calculatePoints(string name);
 	void endGame();
 	void resetGameState(AudioManager* audio);
+	void menuEventHandler(std::shared_ptr<CallbackInterface> cbp);
 
 	// Entity Tracking
 	vector<Entity> entityList;
@@ -23,7 +24,11 @@ public:
 
 	// Flags
 	bool inMenu = true;
+	bool loading = false;
 	bool gameEnded = false;
+	bool quit = false;
+	int menuOptionIndex = 0;
+	int nbMenuOptions = 2;
 
 	// Game Parameters
 	int numVehicles = 6;

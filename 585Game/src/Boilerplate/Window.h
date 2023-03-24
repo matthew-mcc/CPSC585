@@ -89,7 +89,12 @@ public:
 	int yres = 1080;
 
 	// Main Menu
-	bool play = false;
+	bool menuConfirm = false;
+	bool navigateR = false;
+	bool navigateRHold = false;
+	bool navigateL = false;
+	bool navigateLHold = false;
+	bool backToMenu = false;
 	bool gameEnded = false;
 
 	// Vehicle Control Inputs
@@ -133,8 +138,8 @@ public:
 	// GAMEPAD VEHICLE INPUT
 	void XboxUpdate(XboxInput x, Timer* timer, float vehicleSpeed, bool gameEnded) {
 		this->gameEnded = gameEnded;
-    
-    // Retrive Delta Time
+
+		// Retrive Delta Time
 		float deltaTime = (float)timer->getDeltaTime();
 
 		// Update input variables
@@ -157,7 +162,7 @@ public:
 			moveCamera = true;
 			float stickAngle;
 			if (clickL) {
-				stickAngle = ((lastX + 1.0f) / 2.0f) * float(2*M_PI);
+				stickAngle = ((lastX + 1.0f) / 2.0f) * float(2 * M_PI);
 			}
 			else {
 				stickAngle = atan2(x.data.RThumb_X_direction, x.data.RThumb_Y_direction) + M_PI;
@@ -190,7 +195,7 @@ public:
 				moveCamera = false;
 			}
 		}
-		
+
 		// If Steer Speed is near-zero and the steering angle isn't 0, unwind the steering input
 		if (abs(steer_target) <= 0.01f) {
 			if (steer < -0.01f) steer = steer + steer_release_speed * deltaTime;
@@ -203,11 +208,56 @@ public:
 			steer = glm::clamp(steer + steer_target * steer_activate_speed * deltaTime, -maxSteer, maxSteer);
 		}
 
-		if (!play && x.data.A) {
-			play = true;
-		}
-		else if (this->gameEnded && x.data.B) {
-			play = false;
+		// Main Menu
+		if (keys_pressed <= 0) {
+
+			// Menu Confirm
+			if (x.data.A) {
+				menuConfirm = true;
+			}
+			else {
+				menuConfirm = false;
+			}
+
+			// Back to Menu
+			if (x.data.BACK) {
+				if (gameEnded) {
+					backToMenu = true;
+				}
+			}
+			else {
+				backToMenu = false;
+			}
+
+			// Menu Navigate Left
+			if (x.data.LEFT) {
+				if (navigateLHold) {
+					navigateL = false;
+				}
+				else {
+					navigateL = true;
+					navigateLHold = true;
+				}
+			}
+			else {
+				navigateL = false;
+				navigateLHold = false;
+			}
+
+			// Menu Navigate Right
+			if (x.data.RIGHT) {
+				if (navigateRHold) {
+					navigateR = false;
+				}
+				else {
+					navigateR = true;
+					navigateRHold = true;
+				}
+			}
+			else {
+				navigateR = false;
+				navigateRHold = false;
+			}
 		}
 	}
 };

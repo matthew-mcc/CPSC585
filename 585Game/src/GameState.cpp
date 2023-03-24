@@ -198,5 +198,36 @@ void GameState::resetGameState(AudioManager* audio) {
 	vehiclesSpawned = 0;
 	trailersSpawned = 0;
 	initGameState();
+}
 
+void GameState::menuEventHandler(std::shared_ptr<CallbackInterface> cbp) {
+	// Only handle events when in menu
+	if (inMenu) {
+		// Navigate Right
+		if (cbp->navigateR) {
+			menuOptionIndex = (menuOptionIndex + 1) % nbMenuOptions;
+			cbp->navigateR = false;
+		}
+		// Navigate Left
+		else if (cbp->navigateL) {
+			menuOptionIndex = (menuOptionIndex - 1) % nbMenuOptions;
+			cbp->navigateL = false;
+		}
+		// Navigation Wrap-Around
+		if (menuOptionIndex < 0) {
+			menuOptionIndex = nbMenuOptions - 1;
+		}
+
+		// Buttons
+		if (cbp->menuConfirm) {
+			// Play
+			if (menuOptionIndex == 0) {
+				loading = true;
+			}
+			// Quit
+			if (menuOptionIndex == 1) {
+				quit = true;
+			}
+		}
+	}
 }

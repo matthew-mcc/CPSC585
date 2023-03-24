@@ -54,46 +54,45 @@ public:
 	bool control = false;
 	// KEYBOARD VEHICLE INPUT
 	virtual void keyCallback(int key, int scancode, int action, int mods) {
+
 		// THROTTLE (W)
 		if (key == GLFW_KEY_W) {
 			if (action == GLFW_PRESS) {
 				throttle = 1.f;
-				//AirPitch = 0.2f;
 				keys_pressed++;
 			}
 			if (action == GLFW_RELEASE) {
 				throttle = 0.f;
-				//AirPitch = 0.0f;
 				keys_pressed--;
 			}
 		}
+
 		// BRAKE (S)
 		if (key == GLFW_KEY_S) {
 			if (action == GLFW_PRESS) {
 				reverse = 1.f;
 				brake = 1.f;
-				//AirPitch = -0.2f;
 				keys_pressed++;
 			}
 			if (action == GLFW_RELEASE) {
 				reverse = 0.f;
 				brake = 0.f;
-				//AirPitch = 0.0f;
 				keys_pressed--;
 			}
 		}
 
-	
 		// STEER LEFT (A)
 		if (key == GLFW_KEY_A) {
 			if (action == GLFW_PRESS ) {
 				A = true;
+				navigateL = true;
 				steer_target = 1.f;
 				AirRoll = 1.f;
 				keys_pressed++;
 			}
 			if (action == GLFW_RELEASE) {
 				A = false;
+				navigateL = false;
 				if (D == true) {
 					steer_target = -1.f;
 					AirRoll = -1.f;
@@ -105,16 +104,19 @@ public:
 				keys_pressed--;
 			}
 		}
+
 		// STEER RIGHT (D)
 		if (key == GLFW_KEY_D) {
 			if (action == GLFW_PRESS ) {
 				D = true;
+				navigateR = true;
 				steer_target = -1.f;
 				AirRoll = -1.f;
 				keys_pressed++;
 			}
 			if (action == GLFW_RELEASE) {
 				D = false;
+				navigateR = false;
 				if (A == true) {
 					steer_target = 1.f;
 					AirRoll = 1.f;
@@ -207,16 +209,29 @@ public:
 			horn6 = true;
 		}
 
-		// MAIN MENU - PLAY
-		if (key == GLFW_KEY_SPACE && action == GLFW_PRESS) {
-			if (!play) {
-				play = true;
+		// MAIN MENU CONFIRM
+		if (key == GLFW_KEY_ENTER) {
+			if (action == GLFW_PRESS) {
+				menuConfirm = true;
+				keys_pressed++;
+			}
+			if (action == GLFW_RELEASE) {
+				menuConfirm = false;
+				keys_pressed--;
 			}
 		}
 		
-		if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
-			if (gameEnded) {
-				play = false;
+		// BACK TO MENU
+		if (key == GLFW_KEY_ESCAPE) {
+			if (action == GLFW_PRESS) {
+				if (gameEnded) {
+					backToMenu = true;
+				}
+				keys_pressed++;
+			}
+			if (action == GLFW_RELEASE){
+				backToMenu = false;
+				keys_pressed--;
 			}
 		}
 	}

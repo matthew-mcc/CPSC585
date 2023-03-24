@@ -63,6 +63,8 @@ void RenderingSystem::initRenderer() {
 
 	menuBackground = generateTexture("assets/textures/UI/menuBackground.png", false);
 	menuLoading = generateTexture("assets/textures/UI/menuLoading.png", false);
+	menuPlay = generateTexture("assets/textures/UI/menuPlay.png", false);
+	menuQuit = generateTexture("assets/textures/UI/menuQuit.png", false);
 
 	for (int i = 1; i <= 12; i++) {
 		if (i <= 6) ui_player_tracker.push_back(generateTexture(("assets/textures/UI/" + to_string(i) + ".png").c_str(), false));
@@ -129,7 +131,8 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> cbp, Gam
 	glClearColor(skyColor.r, skyColor.g, skyColor.b, 1.0f);	// Set Background (Sky) Color
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	if (gameState->gameEnded && !callback_ptr->play) {
+	// RETURN TO MENU
+	if (gameState->gameEnded && callback_ptr->backToMenu) {
 		gameState->inMenu = true;
 		gameState->gameEnded = false;
 	}
@@ -141,17 +144,28 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> cbp, Gam
 		mat4 textProjection = ortho(0.0f, static_cast<float>(callback_ptr->xres), 0.0f, static_cast<float>(callback_ptr->yres));
 		textShader.setMat4("projection", textProjection);
 
+		// Draw Background
+		drawUI(menuBackground, 0, 0, callback_ptr->xres, callback_ptr->yres, 1);
+
 		// Load Screen
-		if (callback_ptr->play) {
+		if (gameState->loading) {
 			drawUI(menuLoading, 0, 0, callback_ptr->xres, callback_ptr->yres, 0);
 			gameState->inMenu = false;
+			gameState->loading = false;
 		}
 
 		// Menu Screen
 		else {
+			// Highlight Play
+			if (gameState->menuOptionIndex == 0) {
+				drawUI(menuPlay, 0, 0, callback_ptr->xres, callback_ptr->yres, 0);
+			}
+			// Highlight Quit
+			else if (gameState->menuOptionIndex == 1) {
+				drawUI(menuQuit, 0, 0, callback_ptr->xres, callback_ptr->yres, 0);
+			}
 		}
 
-		drawUI(menuBackground, 0, 0, callback_ptr->xres, callback_ptr->yres, 1);
 		glfwSwapBuffers(window);
 		glfwPollEvents();
 		return;
