@@ -59,6 +59,8 @@ void RenderingSystem::initRenderer() {
 	boostOn = generateTexture("assets/textures/UI/dotsOn.png", false);
 	boostOff = generateTexture("assets/textures/UI/dotsOff.png", false);
 
+	boostBox = generateTexture("assets/textures/UI/boostBox.png", false);
+
 	podcounterOn = generateTexture("assets/textures/UI/podcounterOn.png", false);
 	podcounterOff = generateTexture("assets/textures/UI/podCounterOff.png", false);
 
@@ -457,7 +459,7 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> cbp, Gam
 		//drawUI(testTexture, callback_ptr->xres - 300.f, 30.f, callback_ptr->xres - 30.f, 300.f, 0);
 
 		// Boost Meter
-		for (int i = 0; i < 10; i++) {
+		/*for (int i = 0; i < 10; i++) {
 			int boost_meter = (int)gameState->findEntity("vehicle_0")->playerProperties->boost_meter;
 			int offset = 50 * i;
 			int boostoffset = 10 * i;
@@ -471,25 +473,27 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> cbp, Gam
 			else {
 				drawUI(boostGrey, 50.0f + offset, 50.f, 100.0f + offset, 100.f, 0);
 			}
-		}
+		}*/
 		
 
 		// Dot Boost Meter
-		/*
-		for (int i = 0; i < 49; i++) {
+		drawUI(boostBox, 45.0f, 45.0f, 355.0f, 80.0f, 2);
+		for (int i = 0; i < 30; i++) {
 			int boost_meter = (int)gameState->findEntity("vehicle_0")->playerProperties->boost_meter;
-			int offset = 12 * i;
-			float onMeter = (float)i / 65.0f;
+			int offset = 10 * i;
+			// Normalizing values
+			float onMeter = (float)i / 30.0f;
 			float actualMeter = (float)boost_meter / 100.0f;
 			//int boostoffset = 10 * i;
 
 			if (actualMeter > onMeter) {
-				drawUI(boostOn, 50.0f + offset, 50.f, 62.0f + offset, 100.f, 1);
+				drawUI(boostOn, 50.0f + offset, 50.f, 60.0f + offset, 75.f, 1);
 			}
 			else {
-				drawUI(boostOff, 50.0f + offset, 50.f, 62.0f + offset, 100.f, 1);
+				drawUI(boostOff, 50.0f + offset, 50.f, 60.0f + offset, 75.f, 1);
 			}
 		}
+
 
 		// Pod Counter
 		for (int i = 0; i < 10; i++) {
@@ -497,15 +501,10 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> cbp, Gam
 			int offset = 60 * i;
 			int boostoffset = 10 * i;
 
-				}
-			}
-
-
 		}
 		
-
-
-
+		
+		
 
 		// Display game timer / countdown
 		std::string timerMins = std::to_string(abs(timer->getCountdownMins()));

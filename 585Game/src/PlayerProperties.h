@@ -45,7 +45,7 @@ private:
 
 	float boost_strength = 20.0f;					// Strength of boost when activated
 	float boost_consumption_rate = 25.0f;			// How much meter is consumed when holding down boost button
-	float boost_recovery_rate = 10.0f;				// How fast meter recovers when not holding down boost button
+	float boost_recovery_rate = 15.0f;				// How fast meter recovers when not holding down boost button
 };
 
 
