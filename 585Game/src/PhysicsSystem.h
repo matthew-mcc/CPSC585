@@ -49,8 +49,10 @@ struct Vehicle {
 	vector<Trailer*> attachedTrailers;
 	vector<PxD6Joint*> attachedJoints;
 	bool onGround = false;
+	float aiBoost = 0.0f;
 	int AI_State;
 	int AI_CurrTrailerIndex;
+
 	
 	// Maybe we don't need a map of values, but instead just one personality?
 	/*map<string, float> AI_Personalities = {
