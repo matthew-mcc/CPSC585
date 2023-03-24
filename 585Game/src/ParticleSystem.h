@@ -28,11 +28,12 @@ public:
     ParticleSystem(Shader shader, unsigned int texture, unsigned int amount, float startingLife, float size, vec3 color, string mode);
     void Update(float dt, glm::vec3 spawnPoint, glm::vec3 spawnVelocity, glm::vec3 offset = glm::vec3(0.0f, 0.0f, 0.f), glm::vec3 offset2 = glm::vec3(0.0f, 0.0f, 0.f));
     void Draw(glm::mat4 view, glm::mat4 proj, glm::vec3 cameraPosition);
+    void respawnParticle(Particle& particle, glm::vec3 spawnPoint, glm::vec3 spawnVelocity, glm::vec3 offset = glm::vec3(0.0f, 0.0f, 0.f));
+    void updateTex(unsigned int tex);
     vec3 color;
 
 private:
     unsigned int firstUnusedParticle();
-    void respawnParticle(Particle& particle, glm::vec3 spawnPoint, glm::vec3 spawnVelocity, glm::vec3 offset = glm::vec3(0.0f, 0.0f, 0.f));
     std::vector<Particle> particles;
     Shader shader;
     unsigned int texture;
@@ -41,7 +42,7 @@ private:
     float size = 0.2f;
 
     string mode;
-    float timer = 0.f;
+    float timer = (startingLife + 0.1f) / (float)amount;
     
     unsigned int VAO;
 };

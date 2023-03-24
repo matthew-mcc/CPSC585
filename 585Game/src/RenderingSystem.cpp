@@ -64,9 +64,9 @@ void RenderingSystem::initRenderer() {
 	menuBackground = generateTexture("assets/textures/UI/menuBackground.png", false);
 	menuLoading = generateTexture("assets/textures/UI/menuLoading.png", false);
 
-	for (int i = 1; i <= 6; i++) {
-		const std::string path = "assets/textures/UI/" + to_string(i) + ".png";
-		ui_player_tracker.push_back(generateTexture(path.c_str(), false));
+	for (int i = 1; i <= 12; i++) {
+		if (i <= 6) ui_player_tracker.push_back(generateTexture(("assets/textures/UI/" + to_string(i) + ".png").c_str(), false));
+		ui_score_tracker.push_back(generateTexture(("assets/textures/UI/cargo_indicators/" + to_string(i) + ".png").c_str(), false));
 	}
 
 
@@ -80,6 +80,11 @@ void RenderingSystem::initRenderer() {
 	particleShader.setInt("sprite", 1);
 	portalParticles = ParticleSystem(particleShader, orbTexture, 500, 4.0f, 0.2f, portalColor, "p");
 	dirtParticles = ParticleSystem(particleShader, rockTexture, 500, 1.0f, 0.2f, dirtColor, "d");
+
+	for (int i = 0; i < 6; i++) {
+		indicators.push_back(ParticleSystem(particleShader, ui_player_tracker[i], 1.f, 300.f, 0.f, vec3(1.f), "i"));
+		indicatorCounters.push_back(ParticleSystem(particleShader, ui_player_tracker[i], 1.f, 300.f, 0.1f, vec3(1.f), "i"));
+	}
 
 	// FRAME BUFFER INITIALIZATIONS
 	nearShadowMap = FBuffer(8192, 2048, 40.f, 10.f, -500.f, 100.f);
@@ -312,6 +317,25 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> cbp, Gam
 		vec3(toMat4(playerEntity->transform->getRotation())*vec4(dirtOffset, 0.f)),
 		vec3(toMat4(playerEntity->transform->getRotation())*vec4(-dirtOffset.x, dirtOffset.y, dirtOffset.z, 0.f)));
 	dirtParticles.Draw(view, projection, camera_previous_position);
+
+	for (int i = 0; i < indicators.size(); i++) {
+		indicators[i].Update(timer->getDeltaTime(), 
+			gameState->findEntity("vehicle_" + to_string(i))->transform->getPosition(),
+			vec3(1.f),
+			vec3(0.f, 3.f, 0.f));
+		if (i != 0) indicators[i].Draw(view, projection, camera_previous_position);
+
+		int playerScore = gameState->findEntity("vehicle_" + to_string(i))->nbChildEntities;
+		if (playerScore > 0) {
+			if (playerScore > 12) playerScore = 12;
+			indicatorCounters[i].updateTex(ui_score_tracker[playerScore-1]);
+			indicatorCounters[i].Update(timer->getDeltaTime(),
+				gameState->findEntity("vehicle_" + to_string(i))->transform->getPosition(),
+				vec3(1.f),
+				vec3(0.f, 3.f, 0.f));
+			if (i != 0) indicatorCounters[i].Draw(view, projection, camera_previous_position);
+		}
+	}
 	glViewport(0, 0, callback_ptr->xres, callback_ptr->yres);
 	glDepthMask(GL_TRUE);
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -430,31 +454,6 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> cbp, Gam
 				drawUI(boostOff, 50.0f + offset, 50.f, 62.0f + offset, 100.f, 1);
 			}
 		}
-
-		// Player Tracker UI
-		for (int i = 0; i < 6; i++) {
-			float cx;
-			float cy;
-			float s[4];
-			std::string playerString = "ui_p";
-			glm::vec3 targetPos = gameState->findEntity("vehicle_" + to_string(i))->transform->getPosition();
-			glm::mat4 MVP = projection * view * model;
-
-			s[0] = (targetPos.x * MVP[0][0]) + (targetPos.y * MVP[1][0]) + (targetPos.z * MVP[2][0]) + MVP[3][0];
-			s[1] = (targetPos.x * MVP[0][1]) + (targetPos.y * MVP[1][1]) + (targetPos.z * MVP[2][1]) + MVP[3][1];
-			s[2] = (targetPos.x * MVP[0][2]) + (targetPos.y * MVP[1][2]) + (targetPos.z * MVP[2][2]) + MVP[3][2];
-			s[3] = (targetPos.x * MVP[0][3]) + (targetPos.y * MVP[1][3]) + (targetPos.z * MVP[2][3]) + MVP[3][3];
-
-			cx = s[0] / s[3] * callback_ptr->xres / 2 + callback_ptr->xres / 2;
-			cy = s[1] / s[3] * callback_ptr->yres / 2 + callback_ptr->yres / 2;
-
-			drawUI(ui_player_tracker[i], cx - 20.0f, cy + 40.0f, cx + 20.0f, cy + 80.0f, i);
-		}
-		
-
-
-
-
 
 		// Pod Counter
 		for (int i = 0; i < 10; i++) {

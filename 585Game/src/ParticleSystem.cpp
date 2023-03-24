@@ -34,9 +34,9 @@ ParticleSystem::ParticleSystem(Shader shader, unsigned int texture, unsigned int
 
 void ParticleSystem::Update(float dt, glm::vec3 spawnPoint, glm::vec3 spawnVelocity, glm::vec3 offset, glm::vec3 offset2) {
 	// add particles
+	int newParticles = 0;
 	timer += dt;
 	float increment = (startingLife + 0.1f) / (float)amount;
-	int newParticles = 0;
 	while (timer > increment) {
 		timer -= increment;
 		newParticles++;
@@ -50,9 +50,12 @@ void ParticleSystem::Update(float dt, glm::vec3 spawnPoint, glm::vec3 spawnVeloc
 		}
 	}
 	// update all particles
-	for (unsigned int i = 0; i < amount; ++i)
-	{
+	for (unsigned int i = 0; i < amount; ++i) {
 		Particle& p = particles[i];
+		if (mode.compare("i") == 0) {
+			p.position = spawnPoint + offset;
+			return;
+		}
 		p.life -= dt; // reduce life
 		if (p.life > 0.0f)
 		{	// particle is alive, thus update
@@ -70,20 +73,21 @@ void ParticleSystem::Draw(glm::mat4 view, glm::mat4 proj, glm::vec3 cameraPositi
 	// use additive blending to give it a 'glow' effect
 	if (mode.compare("p") == 0) glBlendFunc(GL_SRC_ALPHA, GL_ONE);
 	shader.use();
-	for (Particle particle : particles)
+	for (int i = 0; i < amount; i++)
 	{
-		if (particle.life > 0.0f)
+		if (particles[i].life > 0.0f)
 		{
 			glm::mat4 model = mat4(1.0f);
 			shader.setMat4("model", model);
 			shader.setMat4("view", view);
 			shader.setMat4("projection", proj);
-			shader.setVec4("color", particle.color);
+			shader.setVec4("color", particles[i].color);
 
-			shader.setVec3("particleCenter", particle.position);
+			shader.setVec3("particleCenter", particles[i].position);
 			shader.setVec3("camRight", glm::vec3(view[0][0], view[1][0], view[2][0]));
 			shader.setVec3("camUp", glm::vec3(view[0][1], view[1][1], view[2][1]));
-			shader.setFloat("scale", particle.size);
+			shader.setFloat("scale", particles[i].size);
+			shader.setBool("screenSpace", mode.compare("i") == 0);
 			glActiveTexture(GL_TEXTURE1);
 			glBindTexture(GL_TEXTURE_2D, texture);
 			glActiveTexture(GL_TEXTURE0);
@@ -135,5 +139,13 @@ void ParticleSystem::respawnParticle(Particle& particle, glm::vec3 spawnPoint, g
 		particle.position = spawnPoint + offset;
 		particle.velocity = spawnVelocity;
 	}
+	else if (mode.compare("i") == 0) {
+		particle.position = spawnPoint + offset;
+		particle.velocity = vec3(0.f);
+	}
+}
+
+void ParticleSystem::updateTex(unsigned int tex) {
+	texture = tex;
 }
 

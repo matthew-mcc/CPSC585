@@ -16,10 +16,19 @@ uniform vec3 camUp;
 
 uniform float scale;
 
+uniform bool screenSpace;
+
 void main()
 {
-    vec3 vertPosWorldSpace = particleCenter + camRight*aPos.x*scale + camUp*aPos.y*scale;
     TexCoords = aTexCoords;
     ParticleColor = color;
-    gl_Position = projection * view * model * vec4(vertPosWorldSpace, 1.0);
+    if (!screenSpace) {
+        vec3 vertPosWorldSpace = particleCenter + camRight*aPos.x*scale + camUp*aPos.y*scale;
+        gl_Position = projection * view * model * vec4(vertPosWorldSpace, 1.0);
+    }
+    else {
+        gl_Position = projection * view * model * vec4(particleCenter, 1.0);
+        gl_Position /= gl_Position.w;
+        gl_Position.xy += vec2(0.0, scale) + aPos.xy * vec2(-0.03, 0.05);
+    }
 }
