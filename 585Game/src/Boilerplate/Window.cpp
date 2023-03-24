@@ -210,15 +210,14 @@ public:
 		if (io.WantCaptureMouse) return;
 		if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS) {
 			//cout << "Mouse Left clicked" << endl;
-			moveCamera = true;
+			clickL = true;
 			clickPos = cursor_pos;
 			keys_pressed++;
 		}
 		if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_RELEASE) {
 			//cout << "Mouse left released" << endl;
-			moveCamera = false;
+			clickL = false;
 			clickPos = glm::vec2(0.f, 0.f);
-			xAngle = 0.f;
 			keys_pressed--;
 		}
 
@@ -244,16 +243,8 @@ public:
 		cursor_pos.x = (float)((2.f / xres) * xpos - 1.f);
 		cursor_pos.y = (float)((2.f / yres) * ypos - 1.f);
 		cursor_pos.y *= -1.f;
-		//float xoffset = (cursor_pos.x - lastX) * 1000.f;
-		//float yoffset = (lastY - cursor_pos.y) * 1000.f;
 		lastX = cursor_pos.x;
 		lastY = cursor_pos.y;
-		//float sensitivity = 0.05f;
-		//xoffset *= sensitivity;
-		//yoffset *= sensitivity;
-		if (moveCamera) {
-			xAngle = asinf(glm::clamp((clickPos.x - lastX), -1.f, 1.f));// * atan(1) * 4.f;
-		}
 	}
 
 	// SCROLL CALLBACK

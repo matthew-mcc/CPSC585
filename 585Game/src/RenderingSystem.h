@@ -44,7 +44,8 @@ private:
 	std::shared_ptr<CallbackInterface> callback_ptr;
 
 	// Particle Generators
-	ParticleSystem testParticles;
+	ParticleSystem portalParticles;
+	ParticleSystem dirtParticles;
 
 	// Frame buffers
 	FBuffer nearShadowMap;
@@ -59,6 +60,7 @@ private:
 	// UI Textures
 	unsigned int testTexture;
 	unsigned int orbTexture;
+	unsigned int rockTexture;
 	unsigned int boostBlue;
 	unsigned int boostOrange;
 	unsigned int boostGrey;
@@ -125,7 +127,6 @@ private:
 	float camera_radius = 7.5f;
 	float rad_base = 7.5f;
 
-
 	// Camera Parameters
 	float camera_lag = 5.0f;
 	float fov = 45.f;
@@ -133,4 +134,8 @@ private:
 	// Audio Parameters
 	float playerVolume = 0.5f;
 	float npcVolume = 1.0f;
+
+	vec3 dirtOffset = vec3(1.2f, -0.3f, -0.9f);
+	vec3 portalColor = vec3(0.78f, 0.f, 0.23f);
+	vec3 dirtColor = vec3(0.37f, 0.16f, 0.16f);
 };

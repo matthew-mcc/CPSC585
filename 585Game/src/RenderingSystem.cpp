@@ -45,7 +45,7 @@ void RenderingSystem::initRenderer() {
 
 	testTexture = generateTexture("assets/textures/alien.png", false);
 	orbTexture = generateTexture("assets/textures/orb.png", false);
-
+	rockTexture = generateTexture("assets/textures/rock.png", false);
 	// Choose one, top = squares, bottom = chevrons
 	boostBlue = generateTexture("assets/textures/UI/boostBlue.png", false);
 	boostGrey = generateTexture("assets/textures/UI/boostGrey.png", false);
@@ -78,7 +78,8 @@ void RenderingSystem::initRenderer() {
 	particleShader = Shader("src/Shaders/particleVertex.txt", "src/Shaders/particleFragment.txt");
 	particleShader.use();
 	particleShader.setInt("sprite", 1);
-	testParticles = ParticleSystem(particleShader, orbTexture, 400);
+	portalParticles = ParticleSystem(particleShader, orbTexture, 500, 4.0f, 0.2f, portalColor, "p");
+	dirtParticles = ParticleSystem(particleShader, rockTexture, 500, 1.0f, 0.2f, dirtColor, "d");
 
 	// FRAME BUFFER INITIALIZATIONS
 	nearShadowMap = FBuffer(8192, 2048, 40.f, 10.f, -500.f, 100.f);
@@ -167,7 +168,7 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> cbp, Gam
 	// Camera Zoom: Pull view back with increasing number of towed trailers
 	float camera_zoom_forward = clamp(1.0f + (float)playerEntity->nbChildEntities * 0.5f, 1.0f, 11.0f);
 	float camera_zoom_up = clamp(1.0f + (float)playerEntity->nbChildEntities * 0.4f, 1.0f, 11.0f);
-	
+
 	// Chase Camera: Compute eye and target offsets
 		// Eye Offset: Camera position (world space)
 		// Target Offset: Camera focus point (world space)
@@ -179,28 +180,29 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> cbp, Gam
 	glm::vec3 Camera_collision(0.f);
 	glm::vec3 Reset_collision(1.f);
 
-	// Camera Look: Orbit camera around vehicle
-	float lag_amount = camera_lag;
-	if (callback_ptr->moveCamera) {
-		camera_position_right = sinf(callback_ptr->xAngle) * camera_radius;
-		camera_position_forward = -cosf(callback_ptr->xAngle) * camera_radius;
-		lag_amount = camera_lag * 4.f;
-		Camera_collision = PhysicsSystem::CameraRaycasting(camera_previous_position,camera_radius,1.f);
-	}
-	else {
-		Camera_collision = PhysicsSystem::CameraRaycasting(camera_previous_position,camera_radius,1.f);
-		Reset_collision = PhysicsSystem::CameraRaycasting(player_pos+ResetVec, camera_radius, 1.f);
-	}
-
 	// Camera lag: Generate target_position - prev_position creating a vector. Scale by constant factor, then add to prev and update
 	vec3 camera_target_position = player_pos + eye_offset;
 	camera_target_position.y = player_pos.y + camera_position_up + (float)playerEntity->nbChildEntities * 0.4f;
 	vec3 camera_track_vector = camera_target_position - camera_previous_position;
-	camera_track_vector = camera_track_vector * lag_amount * (float)timer->getDeltaTime();
+	camera_track_vector = camera_track_vector * camera_lag * (float)timer->getDeltaTime();
 	camera_previous_position = vec3(translate(mat4(1.0f), camera_track_vector) * vec4(camera_previous_position, 1.0f));
 
+	// Camera Look: Orbit camera around vehicle
+	if (callback_ptr->moveCamera) {
+		vec3 lookOffset = camera_previous_position - player_pos;
+		lookOffset = vec4(lookOffset, 0.f) * glm::rotate(glm::mat4(1.f), callback_ptr->xAngle - 3.1415126f, world_up);
+		lookOffset += player_pos;
+		Camera_collision = PhysicsSystem::CameraRaycasting(camera_previous_position, camera_radius, 1.f);
+		view = lookAt(lookOffset, target_offset, world_up);
+	}
+	else {
+		Camera_collision = PhysicsSystem::CameraRaycasting(camera_previous_position, camera_radius, 1.f);
+		Reset_collision = PhysicsSystem::CameraRaycasting(player_pos + ResetVec, camera_radius, 1.f);
+		view = lookAt(camera_previous_position, target_offset, world_up);
+	}
+
 	// Set view matrix
-	view = lookAt(camera_previous_position, target_offset, world_up);
+	//view = lookAt(camera_previous_position, target_offset, world_up);
 
 	// For audio - probably need to change later
 	gameState->listener_position = camera_previous_position;
@@ -217,7 +219,7 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> cbp, Gam
 			float reset_speed = 50.f; // the speed to rset the camera
 			float step_time = (float)timer->getDeltaTime();
 			float step_range = step_time * reset_speed;
-			resetValue(camera_position_forward,step_range,-7.5f,reset_speed, step_time);
+			resetValue(camera_position_forward, step_range, -7.5f, reset_speed, step_time);
 			resetValue(camera_position_up, step_range, 3.5f, reset_speed, step_time);
 			resetValue(camera_position_right, step_range, 0.f, reset_speed, step_time);
 			resetValue(rad_base, step_range, 7.5f, reset_speed, step_time);
@@ -227,7 +229,7 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> cbp, Gam
 	updateRadius(rad_base,camera_zoom_forward);
 	// Set projection and view matrices
 	projection = perspective(radians(fov), (float)callback_ptr->xres / (float)callback_ptr->yres, 0.1f, 10000.0f);
-	
+
 
 	// MESH ANIMATIONS
 	// Center Portal
@@ -293,11 +295,23 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> cbp, Gam
 	bindTexture(6, farShadowMap.fbTextures[1]);
 	setCelShaderUniforms(&celMap.shader);
 	celMap.render(gameState, "c", lightPos, callback_ptr);
+	portalParticles.color = portalColor;
+	dirtParticles.color = dirtColor;
 	glBindFramebuffer(GL_FRAMEBUFFER, celMap.FBO[0]);
 	glDepthMask(GL_FALSE);
 	glViewport(0, 0, 1920, 1080);
-	testParticles.Update(timer->getDeltaTime(), fps, gameState->findEntity("platform_center")->transform->getPosition(), glm::vec3(0.f, 0.f, 0.f), glm::vec3(0.f, 0.f, 15.8f));
-	testParticles.Draw(view, projection, camera_previous_position);
+	portalParticles.Update(timer->getDeltaTime(),
+		gameState->findEntity("platform_center")->transform->getPosition(),
+		glm::vec3(1.f),
+		glm::vec3(0.f, 0.f, 31.6f));
+	portalParticles.Draw(view, projection, camera_previous_position);
+
+	dirtParticles.Update(timer->getDeltaTime(),
+		playerEntity->transform->getPosition() + vec3(rand() % 50 / 100.f - 0.25f, rand() % 50 / 100.f - 0.25f, rand() % 50 / 100.f - 0.25f),
+		gameState->audio_ptr->contact * playerEntity->playerProperties->throttle * (glm::vec3(0.f, 10.f, 0.f) + -2.f * playerEntity->transform->getForwardVector() + vec3(rand()%300/100.f-1.5f, rand() % 300 / 100.f - 1.5f, rand() % 300 / 100.f - 1.5f)),
+		vec3(toMat4(playerEntity->transform->getRotation())*vec4(dirtOffset, 0.f)),
+		vec3(toMat4(playerEntity->transform->getRotation())*vec4(-dirtOffset.x, dirtOffset.y, dirtOffset.z, 0.f)));
+	dirtParticles.Draw(view, projection, camera_previous_position);
 	glViewport(0, 0, callback_ptr->xres, callback_ptr->yres);
 	glDepthMask(GL_TRUE);
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -567,6 +581,13 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> cbp, Gam
 	ImGui::SliderFloat("Camera Target Forward", &camera_target_forward, -30.f, 30.f);
 	ImGui::SliderFloat("Camera Target Up", &camera_target_up, -30.f, 30.f);
 	ImGui::SliderFloat("Camera Target Right", &camera_target_right, -30.f, 30.f);
+
+	ImGui::Text("Particle Parameters");
+	ImGui::SliderFloat("Dirt offset x", (float*)&dirtOffset.x, -2.f, 2.f);
+	ImGui::SliderFloat("Dirt offset y", (float*)&dirtOffset.y, -2.f, 2.f);
+	ImGui::SliderFloat("Dirt offset z", (float*)&dirtOffset.z, -2.f, 2.f);
+	ImGui::ColorEdit3("Portal Color", (float*)&portalColor);
+	ImGui::ColorEdit3("Dirt Color", (float*)&dirtColor);
 	
 
 	ImGui::Text("Audio");
