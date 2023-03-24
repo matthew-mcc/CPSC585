@@ -150,6 +150,17 @@ Entity* GameState::spawnVehicle() {
 	vehiclesSpawned++;
 }
 
+int GameState::calculatePoints(string name) {
+	int podCount = findEntity(name)->nbChildEntities;
+	int score = 0;
+	for (int i = podCount; i > 0; i--) {
+		score += i;
+	}
+	return score;
+
+}
+
+
 void GameState::endGame() {
 	// Give a default vehicle to compare against
 	Entity* winningVehicle = findEntity("vehicle_0");

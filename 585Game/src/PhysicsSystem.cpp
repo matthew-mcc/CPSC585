@@ -465,10 +465,8 @@ void PhysicsSystem::dropOffTrailer(Vehicle* vehicle) {
 	// Find entity of vehicle that triggered the dropoff
 	// Add score to this entity
 	Entity* vehicleEntity = gameState->findEntity("vehicle_" + to_string(getVehicleIndex(vehicle)));
-	int scoreToAdd = 0;
-	for (int i = nbTrailers; i > 0; i--) {
-		scoreToAdd += i;
-	}
+	int scoreToAdd = gameState->calculatePoints("vehicle_" + to_string(getVehicleIndex(vehicle)));
+
 	vehicleEntity->playerProperties->addScore(scoreToAdd);
 	cout << vehicleEntity->name << "'s new score: " << vehicleEntity->playerProperties->getScore() << "\n";		// For debugging
 }
@@ -782,6 +780,8 @@ void PhysicsSystem::stepPhysics(shared_ptr<CallbackInterface> callback_ptr, Time
 		std::cout << "boost: " << gameState->findEntity("vehicle_0")->playerProperties->boost << std::endl;
 	}
 
+
+
 	// Apply trailer forces
 		// Spinning motion for dropped off trailers
 		// Vaccuum effect for stolen trailers
@@ -836,6 +836,7 @@ void PhysicsSystem::stepPhysics(shared_ptr<CallbackInterface> callback_ptr, Time
 				&& AircontrolBuffer.block.shape->getSimulationFilterData().word0 == COLLISION_FLAG_GROUND){
 				
 				// Update ground flag
+				if (vehicles.at(i)->onGround == false) vehicles.at(i)->landed = true;
 				vehicles.at(i)->onGround = true;
 
 				// Forward Drive
@@ -877,12 +878,11 @@ void PhysicsSystem::stepPhysics(shared_ptr<CallbackInterface> callback_ptr, Time
 			}
 
 			// Audio Flag for ground contact
-			gameState->audio_ptr->contact = vehicles.at(i)->onGround;
+			// gameState->audio_ptr->contact = vehicles.at(i)->onGround;
 
 			// Boost
 			if (vehicles.at(i)->vehicle.mPhysXState.physxActor.rigidBody->getLinearVelocity().magnitude() < player->playerProperties->boost_max_velocity) {
 				vehicles.at(i)->vehicle.mPhysXState.physxActor.rigidBody->addForce(vehicle_transform.rotate(PxVec3(0.f, 0.f, player->playerProperties->boost) * timestep), PxForceMode().eVELOCITY_CHANGE);
-				
 			}
 
 			// Reset
@@ -907,6 +907,7 @@ void PhysicsSystem::stepPhysics(shared_ptr<CallbackInterface> callback_ptr, Time
 			// Update ground flag
 			if (gScene->raycast(vehicle_transform.p, vehicle_transform.rotate(PxVec3(0.f, -1.f, 0.f)), 0.7f, AircontrolBuffer)
 				&& AircontrolBuffer.block.shape->getSimulationFilterData().word0 == COLLISION_FLAG_GROUND) {
+				if (vehicles.at(i)->onGround == false) vehicles.at(i)->landed = true;
 				vehicles.at(i)->onGround = true;
 			}
 			else {
@@ -992,34 +993,65 @@ void PhysicsSystem::stepPhysics(shared_ptr<CallbackInterface> callback_ptr, Time
 	}
 
 	// Update Audio
-	
-	
 	for (int i = 0; i < vehicles.size(); i++) {
 		std::string vehicleName = "vehicle_";
 		vehicleName += std::to_string(i);
 		float distance;
 
-		glm::vec3 audio_position = gameState->findEntity(vehicleName)->transform->getPosition();
+		glm::vec3 audio_position = toGLMVec3(vehicles.at(i)->vehicle.mPhysXState.physxActor.rigidBody->getGlobalPose().p);
 		glm::vec3 audio_velocity = gameState->findEntity(vehicleName)->transform->getLinearVelocity();
 		glm::vec3 audio_forward = gameState->findEntity(vehicleName)->transform->getForwardVector();
 		glm::vec3 audio_up = gameState->findEntity(vehicleName)->transform->getUpVector();
 		distance = glm::length(glm::distance(gameState->listener_position, audio_position));
+
 		if (i == 0) {
 			//std::cout << "Listener updated" << std::endl;
 			gameState->audio_ptr->Update3DListener(gameState->listener_position, audio_velocity, audio_forward, audio_up);
 			gameState->audio_ptr->setVolume(vehicleName + "_tire", 1.f);
-			gameState->audio_ptr->UpdateTire(vehicleName, audio_position, audio_velocity, audio_forward, audio_up, distance, gameState->audio_ptr->contact);
+			gameState->audio_ptr->UpdateTire(vehicleName, audio_position, audio_velocity, audio_forward, audio_up, distance, vehicles.at(i)->onGround);
+			gameState->audio_ptr->UpdateBoostPlaceholder(vehicleName, audio_position, audio_velocity, audio_forward, audio_up, distance, gameState->findEntity("vehicle_0")->playerProperties->boost);
 		}
 		else {
 			gameState->audio_ptr->setVolume(vehicleName + "_tire", 1.f);
-			gameState->audio_ptr->UpdateTire(vehicleName, audio_position, audio_velocity, audio_forward, audio_up, distance, true);
-			//gameState->audio_ptr->UpdateTire(vehicleName, audio_position, audio_velocity, audio_forward, audio_up, distance, gameState->audio_ptr->contact);
+			gameState->audio_ptr->UpdateTire(vehicleName, audio_position, audio_velocity, audio_forward, audio_up, distance, vehicles.at(i)->onGround);
+			gameState->audio_ptr->UpdateBoostPlaceholder(vehicleName, audio_position, audio_velocity, audio_forward, audio_up, distance, vehicles.at(i)->aiBoost);
 		}
-		gameState->audio_ptr->UpdateBoostPlaceholder(audio_position, audio_velocity, audio_forward, audio_up, distance, gameState->findEntity("vehicle_0")->playerProperties->boost);
+
+		if (vehicles.at(i)->landed) {
+			gameState->audio_ptr->Landing(audio_position);
+			vehicles.at(i)->landed = false;
+		}
+
+		
 		//std::cout << vehicleName << ": " << audio_position.x;
 		//std::cout << ", " << audio_position.y;
 		//std::cout << ", " << audio_position.z << std::endl;
-		
+
+		// For some fun horn sounds
+		if (i == 0 && callback_ptr->horn1) {
+			callback_ptr->horn1 = false;
+			gameState->audio_ptr->hornhonk(audio_position, audio_velocity, audio_forward, audio_up);
+		}
+		if (i == 1 && callback_ptr->horn2) {
+			callback_ptr->horn2 = false;
+			gameState->audio_ptr->hornhonk(audio_position, audio_velocity, audio_forward, audio_up);
+		}
+		if (i == 2 && callback_ptr->horn3) {
+			callback_ptr->horn3 = false;
+			gameState->audio_ptr->hornhonk(audio_position, audio_velocity, audio_forward, audio_up);
+		}
+		if (i == 3 && callback_ptr->horn4) {
+			callback_ptr->horn4 = false;
+			gameState->audio_ptr->hornhonk(audio_position, audio_velocity, audio_forward, audio_up);
+		}
+		if (i == 4 && callback_ptr->horn5) {
+			callback_ptr->horn5 = false;
+			gameState->audio_ptr->hornhonk(audio_position, audio_velocity, audio_forward, audio_up);
+		}
+		if (i == 5 && callback_ptr->horn6) {
+			callback_ptr->horn6 = false;
+			gameState->audio_ptr->hornhonk(audio_position, audio_velocity, audio_forward, audio_up);
+		}
 
 	}
 	
@@ -1274,7 +1306,10 @@ void PhysicsSystem::AI_DropOff(Vehicle* vehicle) {
 void PhysicsSystem::AI_ApplyBoost(Vehicle* vehicle) {
 	if (vehicle->vehicle.mPhysXState.physxActor.rigidBody->getLinearVelocity().magnitude() < 60.f) {
 		vehicle->vehicle.mPhysXState.physxActor.rigidBody->addForce(vehicle->vehicle.mPhysXState.physxActor.rigidBody->getGlobalPose().q.rotate(PxVec3(0, 0, 1)), PxForceMode().eVELOCITY_CHANGE);
-
+		vehicle->aiBoost = 20.0f;
+	}
+	else {
+		vehicle->aiBoost = 0.0f;
 	}
 }
 

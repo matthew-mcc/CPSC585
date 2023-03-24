@@ -313,7 +313,7 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> cbp, Gam
 
 	dirtParticles.Update(timer->getDeltaTime(),
 		playerEntity->transform->getPosition() + vec3(rand() % 50 / 100.f - 0.25f, rand() % 50 / 100.f - 0.25f, rand() % 50 / 100.f - 0.25f),
-		gameState->audio_ptr->contact * playerEntity->playerProperties->throttle * (glm::vec3(0.f, 10.f, 0.f) + -2.f * playerEntity->transform->getForwardVector() + vec3(rand()%300/100.f-1.5f, rand() % 300 / 100.f - 1.5f, rand() % 300 / 100.f - 1.5f)),
+		playerEntity->transform->getOnGround() * playerEntity->playerProperties->throttle * (glm::vec3(0.f, 10.f, 0.f) + -2.f * playerEntity->transform->getForwardVector() + vec3(rand()%300/100.f-1.5f, rand() % 300 / 100.f - 1.5f, rand() % 300 / 100.f - 1.5f)),
 		vec3(toMat4(playerEntity->transform->getRotation())*vec4(dirtOffset, 0.f)),
 		vec3(toMat4(playerEntity->transform->getRotation())*vec4(-dirtOffset.x, dirtOffset.y, dirtOffset.z, 0.f)));
 	dirtParticles.Draw(view, projection, camera_previous_position);
@@ -422,7 +422,7 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> cbp, Gam
 		drawUI(testTexture, callback_ptr->xres - 300.f, 30.f, callback_ptr->xres - 30.f, 300.f, 0);
 
 		// Boost Meter
-		/*for (int i = 0; i < 10; i++) {
+		for (int i = 0; i < 10; i++) {
 			int boost_meter = (int)gameState->findEntity("vehicle_0")->playerProperties->boost_meter;
 			int offset = 50 * i;
 			int boostoffset = 10 * i;
@@ -437,9 +437,10 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> cbp, Gam
 				drawUI(boostGrey, 50.0f + offset, 50.f, 100.0f + offset, 100.f, 0);
 			}
 		}
-		*/
+		
 
 		// Dot Boost Meter
+		/*
 		for (int i = 0; i < 49; i++) {
 			int boost_meter = (int)gameState->findEntity("vehicle_0")->playerProperties->boost_meter;
 			int offset = 12 * i;
@@ -461,15 +462,14 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> cbp, Gam
 			int offset = 60 * i;
 			int boostoffset = 10 * i;
 
-			if (pod_count > i) {
-				drawUI(podcounterOn, 50.0f + offset, 130.f, 100.0f + offset, 180.f, 0);
+				}
 			}
-			else {
-				drawUI(podcounterOff, 50.0f + offset, 130.f, 100.0f + offset, 180.f, 0);
-			}
-		}
 
-		//drawUI(boostBlue, callback_ptr->xres - 1800.f, 30.f, callback_ptr->xres - 1730.f, 100.f, 0);
+
+		}
+		
+
+
 
 
 		// Display game timer / countdown

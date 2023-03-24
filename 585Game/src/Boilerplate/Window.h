@@ -123,6 +123,12 @@ public:
 
 	bool clickR = false;
 	bool clickL = false;
+	bool horn1 = false;
+	bool horn2 = false;
+	bool horn3 = false;
+	bool horn4 = false;
+	bool horn5 = false;
+	bool horn6 = false;
 
 	// GAMEPAD VEHICLE INPUT
 	void XboxUpdate(XboxInput x, Timer* timer, float vehicleSpeed, bool gameEnded) {

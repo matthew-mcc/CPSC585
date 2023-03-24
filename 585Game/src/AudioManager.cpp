@@ -8,15 +8,18 @@ void AudioManager::Init(int vehicleCount) {
 	audioEngine.LoadBank(bank_path_actions, FMOD_STUDIO_LOAD_BANK_NORMAL);
 	audioEngine.LoadEvent(e_pod_pickup);
 	audioEngine.LoadEvent(e_dropoff);
+	audioEngine.LoadEvent(a_hornhonk);
 
 	//audioEngine.LoadEvent(e_tire_roll);
 	for (int i = 0; i < vehicleCount; i++) {
 		std::string vehicle = "vehicle_" + to_string(i);
 		audioEngine.LoadEventInstanced(e_tire_roll, vehicle + "_tire");
 		audioEngine.LoadEventInstanced(e_engine, vehicle + "_engine");
+		audioEngine.LoadEventInstanced(e_boost, vehicle + "_boost");
 
 		audioEngine.PlayEvent(vehicle + "_tire");
 		//audioEngine.PlayEvent(vehicle + "_engine");
+		audioEngine.PlayEvent(vehicle + "_boost");
 	}
 	/*
 	audioEngine.LoadEventInstanced(e_tire_roll, "vehicle_0_tire");
@@ -54,8 +57,10 @@ void AudioManager::Init(int vehicleCount) {
 
 	audioEngine.LoadSound("assets/audio/ping_placeholder.flac");
 	audioEngine.LoadSound("assets/audio/Latch1.wav");
+	audioEngine.LoadSound("assets/audio/Landing1.wav");
 	audioEngine.LoadSound("assets/audio/SpaceMusic2.wav", false, true, false);
 	audioEngine.PlaySound("assets/audio/SpaceMusic2.wav", glm::vec3(0.0f), 1.0f);
+
 
 	audioEngine.SetEventVolume("vehicle_0", 0.5f);
 }
@@ -103,6 +108,10 @@ void AudioManager::Dropoff() {
 	audioEngine.PlaySound("assets/audio/ping_placeholder.flac", dropoffPos, 10.0f);
 }
 
+void AudioManager::Landing(glm::vec3 pos) {
+	audioEngine.PlaySound("assets/audio/Landing1.wav", pos, 15.0f);
+}
+
 
 void AudioManager::UpdateTire(const std::string &strEventName, const glm::vec3 &pos, const glm::vec3 &velocity, const glm::vec3 &forward, const glm::vec3 &up, float distance, bool contact) {
 	float speed = 0.0f;
@@ -143,20 +152,22 @@ void AudioManager::UpdateTire(const std::string &strEventName, const glm::vec3 &
 
 }
 
-void AudioManager::UpdateBoostPlaceholder(const glm::vec3& pos, const glm::vec3& velocity, const glm::vec3& forward, const glm::vec3& up, float distance, float boost) {
-	audioEngine.SetEvent3dAttributes(e_boost, pos, velocity, forward, up);
-	audioEngine.SetEventParameter(e_boost, "Boost", boost);
+void AudioManager::UpdateBoostPlaceholder(const std::string& strEventName, const glm::vec3& pos, const glm::vec3& velocity, const glm::vec3& forward, const glm::vec3& up, float distance, float boost) {
+	
+	std::string boostname = strEventName + "_boost";
+	audioEngine.SetEvent3dAttributes(boostname, pos, velocity, forward, up);
+	audioEngine.SetEventParameter(boostname, "Boost", boost);
 }
-
-
-
 
 
 void AudioManager::setVolume(const std::string& strEventName, float db) {
 	audioEngine.SetEventVolume(strEventName, db);
 }
 
-
+void AudioManager::hornhonk(const glm::vec3& pos, const glm::vec3& velocity, const glm::vec3& forward, const glm::vec3& up) {
+	audioEngine.SetEvent3dAttributes(a_hornhonk, pos, velocity, forward, up);
+	audioEngine.PlayEvent(a_hornhonk);
+}
 
 
 
