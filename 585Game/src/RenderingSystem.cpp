@@ -44,6 +44,7 @@ void RenderingSystem::initRenderer() {
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
+	// TEXTURE LOADING
 	testTexture = generateTexture("assets/textures/alien.png", false);
 	orbTexture = generateTexture("assets/textures/orb.png", false);
 	rockTexture = generateTexture("assets/textures/rock.png", false);
@@ -76,11 +77,6 @@ void RenderingSystem::initRenderer() {
 		ui_score_tracker.push_back(generateTexture(("assets/textures/UI/cargo_indicators/" + to_string(i) + ".png").c_str(), false));
 	}
 
-
-
-
-
-
 	// PARTICLE SYSTEM INITIALIZATIONS
 	particleShader = Shader("src/Shaders/particleVertex.txt", "src/Shaders/particleFragment.txt");
 	particleShader.use();
@@ -89,7 +85,8 @@ void RenderingSystem::initRenderer() {
 	dirtParticles = ParticleSystem(particleShader, rockTexture, 500, 1.0f, 0.2f, dirtColor, "d");
 	
 	for (int i = 0; i < gameState->numVehicles; i++) {
-		boostParticles.push_back(ParticleSystem(particleShader, orbTexture, 2000, 0.5f, 0.15f, boostColor, "b"));
+		if(i == 0) boostParticles.push_back(ParticleSystem(particleShader, orbTexture, 2000, 0.5f, 0.15f, boostColor, "b"));
+		else boostParticles.push_back(ParticleSystem(particleShader, orbTexture, 1000, 0.5f, 0.15f, boostColor, "b"));	// Optimization: Less particles for non-player vehicles
 	}
 
 	for (int i = 0; i < 6; i++) {
@@ -256,7 +253,18 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> cbp, Gam
 	}
 	updateRadius(rad_base,camera_zoom_forward);
 	// Set projection and view matrices
-	projection = perspective(radians(fov), (float)callback_ptr->xres / (float)callback_ptr->yres, 0.1f, 10000.0f);
+	if (playerEntity->playerProperties->boost != 0) {
+		if (fov < fov_boost) {
+			fov = fov + ((fov_boost - fov) / fov_boost) * fov_change_speed * (float)timer->getDeltaTime();
+		}
+		projection = perspective(radians(fov), (float)callback_ptr->xres / (float)callback_ptr->yres, 0.1f, 10000.0f);
+	}
+	else {
+		if (fov > fov_rest) {
+			fov = fov - ((fov - fov_rest) / fov) * (fov_change_speed / 2.f) * (float)timer->getDeltaTime();
+		}
+		projection = perspective(radians(fov), (float)callback_ptr->xres / (float)callback_ptr->yres, 0.1f, 10000.0f);
+	}
 
 
 	// MESH ANIMATIONS
