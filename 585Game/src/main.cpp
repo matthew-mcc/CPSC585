@@ -15,7 +15,7 @@ int main() {
 	// Systems Creation
 	Timer* timer = &Timer::Instance();
 	GameState* gameState = new GameState();
-	RenderingSystem renderer = RenderingSystem();
+	RenderingSystem renderer = RenderingSystem(gameState);
 	PhysicsSystem physics;
 	XboxInput xInput;
 	AiController* aiController = new AiController();

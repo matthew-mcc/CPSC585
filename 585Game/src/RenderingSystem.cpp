@@ -16,7 +16,8 @@
 
 
 // Rendering System Constructor
-RenderingSystem::RenderingSystem() {
+RenderingSystem::RenderingSystem(GameState* gameState) {
+	this->gameState = gameState;
 	initRenderer();
 }
 
@@ -84,7 +85,10 @@ void RenderingSystem::initRenderer() {
 	particleShader.setInt("sprite", 1);
 	portalParticles = ParticleSystem(particleShader, orbTexture, 500, 4.0f, 0.2f, portalColor, "p");
 	dirtParticles = ParticleSystem(particleShader, rockTexture, 500, 1.0f, 0.2f, dirtColor, "d");
-	boostParticles = ParticleSystem(particleShader, orbTexture, 2000, 0.5f, 0.15f, boostColor, "b");
+	
+	for (int i = 0; i < gameState->numVehicles; i++) {
+		boostParticles.push_back(ParticleSystem(particleShader, orbTexture, 2000, 0.5f, 0.15f, boostColor, "b"));
+	}
 
 	for (int i = 0; i < 6; i++) {
 		indicators.push_back(ParticleSystem(particleShader, ui_player_tracker[i], 1.f, 300.f, 0.f, vec3(1.f), "i"));
@@ -319,7 +323,6 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> cbp, Gam
 	celMap.render(gameState, "c", lightPos, callback_ptr);
 	
 	portalParticles.color = portalColor;
-	boostParticles.color = boostColor;
 	dirtParticles.color = dirtColor;
 
 	glBindFramebuffer(GL_FRAMEBUFFER, celMap.FBO[0]);
@@ -339,12 +342,15 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> cbp, Gam
 		vec3(toMat4(playerEntity->transform->getRotation())*vec4(-dirtOffset.x, dirtOffset.y, dirtOffset.z, 0.f)));
 	dirtParticles.Draw(view, projection, camera_previous_position);
 
-	boostParticles.Update(timer->getDeltaTime(),
-		playerEntity->transform->getPosition() + vec3(0.f, 0.f, 0.f),
-		(playerEntity->transform->getLinearVelocity() - (playerEntity->transform->getForwardVector() * 30.0f)) * float(playerEntity->playerProperties->boost != 0.f),
-		vec3(toMat4(playerEntity->transform->getRotation())* vec4(boostOffset, 0.f)),
-		vec3(toMat4(playerEntity->transform->getRotation())* vec4(-boostOffset.x, boostOffset.y, boostOffset.z, 0.f)));
-	boostParticles.Draw(view, projection, camera_previous_position);
+	for (int i = 0; i < boostParticles.size(); i++) {
+		Entity* vehicleEntity = gameState->findEntity("vehicle_" + to_string(i));
+		boostParticles.at(i).Update(timer->getDeltaTime(),
+			vehicleEntity->transform->getPosition() + vec3(0.f, 0.f, 0.f),
+			(vehicleEntity->transform->getLinearVelocity() - (vehicleEntity->transform->getForwardVector() * 30.0f))* float(vehicleEntity->playerProperties->boost != 0.f),
+			vec3(toMat4(vehicleEntity->transform->getRotation())* vec4(boostOffset, 0.f)),
+			vec3(toMat4(vehicleEntity->transform->getRotation())* vec4(-boostOffset.x, boostOffset.y, boostOffset.z, 0.f)));
+		boostParticles.at(i).Draw(view, projection, camera_previous_position);
+	}
 
 	for (int i = 0; i < indicators.size(); i++) {
 		indicators[i].Update(timer->getDeltaTime(), 
@@ -580,7 +586,6 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> cbp, Gam
 	ImGui::SliderFloat("Boost offset z", (float*)&boostOffset.z, -2.f, 2.f);
 	ImGui::ColorEdit3("Portal Color", (float*)&portalColor);
 	ImGui::ColorEdit3("Dirt Color", (float*)&dirtColor);
-	ImGui::ColorEdit3("Boost Color", (float*)&boostColor);
 	
 
 	ImGui::Text("Audio");

@@ -987,6 +987,7 @@ void PhysicsSystem::stepPhysics(shared_ptr<CallbackInterface> callback_ptr, Time
 
 			// Ground flag
 			entityList.at(i).transform->setOnGround(vehicles.at(vehicleIndex)->onGround);
+			if (vehicleIndex != 0) entityList.at(i).playerProperties->boost = vehicles.at(vehicleIndex)->aiBoost;
 
 			vehicleIndex++;
 		}

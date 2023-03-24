@@ -15,7 +15,7 @@ using namespace std;
 class RenderingSystem {
 public:
 	// Default Constructor
-	RenderingSystem();
+	RenderingSystem(GameState* gameState);
 
 	// Initialize Renderer
 	void initRenderer();
@@ -34,6 +34,9 @@ public:
 	// Window Pointer
 	GLFWwindow* window;
 
+	// GameState Pointer
+	GameState* gameState;
+
 private:
 	void setCelShaderUniforms(Shader* shader);
 	void bindTexture(int location, unsigned int texture);
@@ -46,7 +49,7 @@ private:
 	// Particle Generators
 	ParticleSystem portalParticles;
 	ParticleSystem dirtParticles;
-	ParticleSystem boostParticles;
+	std::vector<ParticleSystem> boostParticles;
 	std::vector<ParticleSystem> indicators;
 	std::vector<ParticleSystem> indicatorCounters;
 
