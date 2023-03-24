@@ -67,15 +67,25 @@ void PlayerProperties::updateBoost() {
 	if (boost_status) {
 		boost = boost_strength;
 		boost_meter = boost_meter - boost_consumption_rate * timer->getDeltaTime();
+		boost_reset_countdown = boost_reset_time;
+		boost_recovery = true;
 	}
 
 	// Case 2 = we are not boosting, in recovery mode
 	if(!boost_status) {
 		boost = 0.0f;
+		if (boost_reset_countdown > 0) {
+			boost_reset_countdown -= timer->getDeltaTime();
+		}
+		else {
+			boost_recovery = false;
+		}
+
 		// For now no recovery time
-		if (boost_meter < 100.0f) {
+		if (boost_meter < 100.0f && !boost_recovery) {
 			boost_meter = boost_meter + boost_recovery_rate * timer->getDeltaTime();
 		}
+
 		if (boost_meter > 100.0f) {
 			boost_meter = 100.0f;
 		}

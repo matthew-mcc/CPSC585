@@ -72,6 +72,7 @@ private:
 	unsigned int boostGrey;
 	unsigned int podcounterOn;
 	unsigned int podcounterOff;
+	unsigned int boostBox;
 	unsigned int boostOn;
 	unsigned int boostOff;
 	unsigned int menuBackground;
