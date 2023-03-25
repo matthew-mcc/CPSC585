@@ -5,6 +5,15 @@ ParticleSystem::ParticleSystem(){}
 
 ParticleSystem::ParticleSystem(Shader shader, unsigned int texture, unsigned int amount, float startingLife, float size, vec3 color, std::string mode)
 	: shader(shader), texture(texture), amount(amount), startingLife(startingLife), size(size), color(color), mode(mode) {
+	initPS(shader, texture, amount, startingLife, size, color, vec3(0.f), vec3(0.f), mode);
+}
+
+ParticleSystem::ParticleSystem(Shader shader, unsigned int texture, unsigned int amount, float startingLife, float size, vec3 color, vec3 color2, vec3 color3, std::string mode)
+	: shader(shader), texture(texture), amount(amount), startingLife(startingLife), size(size), color(color), color2(color2), color3(color3), mode(mode) {
+	initPS(shader, texture, amount, startingLife, size, color, color2, color3, mode);
+}
+
+void ParticleSystem::initPS(Shader shader, unsigned int texture, unsigned int amount, float startingLife, float size, vec3 color, vec3 color2, vec3 color3, std::string mode) {
 	// set up mesh and attribute properties
 	//test
 	unsigned int VBO;
@@ -50,8 +59,15 @@ void ParticleSystem::Update(float dt, glm::vec3 spawnPoint, glm::vec3 spawnVeloc
 				else respawnParticle(particles[unusedParticle], spawnPoint, spawnVelocity + vec3(rand() % 300 / 100.f - 1.5f, rand() % 300 / 100.f - 1.5f, rand() % 300 / 100.f - 1.5f), offset);
 			}
 			else if (mode.compare("b") == 0) {
-				if (rand() % 2) respawnParticle(particles[unusedParticle], spawnPoint + vec3(rand() % 200 / 1000.f - 0.1f, rand() % 200 / 1000.f - 0.1f, rand() % 200 / 1000.f - 0.1f), (spawnVelocity + vec3(rand() % 200 / 100.f - 1.f, rand() % 200 / 100.f - 1.f, rand() % 200 / 100.f - 1.f)), offset2);
-				else			respawnParticle(particles[unusedParticle], spawnPoint + vec3(rand() % 200 / 1000.f - 0.1f, rand() % 200 / 1000.f - 0.1f, rand() % 200 / 1000.f - 0.1f), (spawnVelocity + vec3(rand() % 200 / 100.f - 1.f, rand() % 200 / 100.f - 1.f, rand() % 200 / 100.f - 1.f)), offset);
+				vec3 randPos, randVel;
+				do {
+					randPos = vec3(rand() % 200 / 1000.f - 0.1f, rand() % 200 / 1000.f - 0.1f, rand() % 200 / 1000.f - 0.1f);
+				} while (length(randPos) > 0.1f);
+				do {
+					randVel = vec3(rand() % 200 / 100.f - 1.f, rand() % 200 / 100.f - 1.f, rand() % 200 / 100.f - 1.f);
+				} while (length(randVel) > 1.f);
+				if (rand() % 2) respawnParticle(particles[unusedParticle], spawnPoint + randPos, spawnVelocity + randVel, offset2);
+				else			respawnParticle(particles[unusedParticle], spawnPoint + randPos, spawnVelocity + randVel, offset);
 			}
 			else respawnParticle(particles[unusedParticle], spawnPoint, spawnVelocity, offset);
 		}
@@ -76,15 +92,15 @@ void ParticleSystem::Update(float dt, glm::vec3 spawnPoint, glm::vec3 spawnVeloc
 				float lifetime = p.life / startingLife;
 				if (lifetime > 0.6f) {
 					float u = (lifetime - 0.6f) * 2.5f;
-					p.color = u * vec4(1.f, 1.f, 1.f, 1.f) + (1.f - u) * vec4(1.f, 1.f, 0.f, 1.f);
+					p.color = u * vec4(color, 1.f) + (1.f - u) * vec4(color2, 1.f);
 				}
 				else if (lifetime > 0.3f) {
 					float u = (lifetime - 0.3f) * 3.f;
-					p.color = u * vec4(1.f, 1.f, 0.f, 1.f) + (1.f - u) * vec4(1.f, 0.f, 0.f, 1.f);
+					p.color = u * vec4(color2, 1.f) + (1.f - u) * vec4(color3, 1.f);
 				}
 				else if (lifetime > 0.f) {
 					float u = lifetime * 3.f;
-					p.color = u * vec4(1.f, 0.f, 0.f, 1.f) + (1.f - u) * vec4(0.f, 0.f, 0.f, 1.f);
+					p.color = u * vec4(color3, 1.f) + (1.f - u) * vec4(0.f, 0.f, 0.f, 1.f);
 				}
 			}
 			if (mode.compare("p") == 0) p.velocity += ((spawnPoint + offset + vec3(0.f, 30.f, 0.f)) - p.position) * 0.002f;
