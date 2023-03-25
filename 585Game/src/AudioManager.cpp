@@ -16,6 +16,7 @@ void AudioManager::Init(int vehicleCount) {
 		audioEngine.LoadEventInstanced(e_tire_roll, vehicle + "_tire");
 		audioEngine.LoadEventInstanced(e_engine, vehicle + "_engine");
 		audioEngine.LoadEventInstanced(e_boost, vehicle + "_boost");
+		audioEngine.LoadEventInstanced(a_hornhonk, vehicle + "_honk");
 
 		audioEngine.PlayEvent(vehicle + "_tire");
 		//audioEngine.PlayEvent(vehicle + "_engine");
@@ -154,9 +155,9 @@ void AudioManager::UpdateTire(const std::string &strEventName, const glm::vec3 &
 
 void AudioManager::UpdateBoostPlaceholder(const std::string& strEventName, const glm::vec3& pos, const glm::vec3& velocity, const glm::vec3& forward, const glm::vec3& up, float distance, float boost) {
 	
-	std::string boostname = strEventName + "_boost";
-	audioEngine.SetEvent3dAttributes(boostname, pos, velocity, forward, up);
-	audioEngine.SetEventParameter(boostname, "Boost", boost);
+	std::string soundName = strEventName + "_boost";
+	audioEngine.SetEvent3dAttributes(soundName, pos, velocity, forward, up);
+	audioEngine.SetEventParameter(soundName, "Boost", boost);
 }
 
 
@@ -164,9 +165,10 @@ void AudioManager::setVolume(const std::string& strEventName, float db) {
 	audioEngine.SetEventVolume(strEventName, db);
 }
 
-void AudioManager::hornhonk(const glm::vec3& pos, const glm::vec3& velocity, const glm::vec3& forward, const glm::vec3& up) {
-	audioEngine.SetEvent3dAttributes(a_hornhonk, pos, velocity, forward, up);
-	audioEngine.PlayEvent(a_hornhonk);
+void AudioManager::hornhonk(const std::string& strEventName, const glm::vec3& pos, const glm::vec3& velocity, const glm::vec3& forward, const glm::vec3& up) {
+	std::string soundName = strEventName + "_honk";
+	audioEngine.SetEvent3dAttributes(soundName, pos, velocity, forward, up);
+	audioEngine.PlayEvent(soundName);
 }
 
 

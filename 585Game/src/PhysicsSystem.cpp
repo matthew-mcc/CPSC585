@@ -1007,7 +1007,7 @@ void PhysicsSystem::stepPhysics(shared_ptr<CallbackInterface> callback_ptr, Time
 
 		if (i == 0) {
 			//std::cout << "Listener updated" << std::endl;
-			gameState->audio_ptr->Update3DListener(gameState->listener_position, audio_velocity, audio_forward, audio_up);
+			gameState->audio_ptr->Update3DListener(gameState->listener_position, audio_velocity, -audio_forward, audio_up);
 			gameState->audio_ptr->setVolume(vehicleName + "_tire", 1.f);
 			gameState->audio_ptr->UpdateTire(vehicleName, audio_position, audio_velocity, audio_forward, audio_up, distance, vehicles.at(i)->onGround);
 			gameState->audio_ptr->UpdateBoostPlaceholder(vehicleName, audio_position, audio_velocity, audio_forward, audio_up, distance, gameState->findEntity("vehicle_0")->playerProperties->boost);
@@ -1031,27 +1031,27 @@ void PhysicsSystem::stepPhysics(shared_ptr<CallbackInterface> callback_ptr, Time
 		// For some fun horn sounds
 		if (i == 0 && callback_ptr->horn1) {
 			callback_ptr->horn1 = false;
-			gameState->audio_ptr->hornhonk(audio_position, audio_velocity, audio_forward, audio_up);
+			gameState->audio_ptr->hornhonk("vehicle_0", audio_position, audio_velocity, audio_forward, audio_up);
 		}
 		if (i == 1 && callback_ptr->horn2) {
 			callback_ptr->horn2 = false;
-			gameState->audio_ptr->hornhonk(audio_position, audio_velocity, audio_forward, audio_up);
+			gameState->audio_ptr->hornhonk("vehicle_1", audio_position, audio_velocity, audio_forward, audio_up);
 		}
 		if (i == 2 && callback_ptr->horn3) {
 			callback_ptr->horn3 = false;
-			gameState->audio_ptr->hornhonk(audio_position, audio_velocity, audio_forward, audio_up);
+			gameState->audio_ptr->hornhonk("vehicle_2", audio_position, audio_velocity, audio_forward, audio_up);
 		}
 		if (i == 3 && callback_ptr->horn4) {
 			callback_ptr->horn4 = false;
-			gameState->audio_ptr->hornhonk(audio_position, audio_velocity, audio_forward, audio_up);
+			gameState->audio_ptr->hornhonk("vehicle_3", audio_position, audio_velocity, audio_forward, audio_up);
 		}
 		if (i == 4 && callback_ptr->horn5) {
 			callback_ptr->horn5 = false;
-			gameState->audio_ptr->hornhonk(audio_position, audio_velocity, audio_forward, audio_up);
+			gameState->audio_ptr->hornhonk("vehicle_4", audio_position, audio_velocity, audio_forward, audio_up);
 		}
 		if (i == 5 && callback_ptr->horn6) {
 			callback_ptr->horn6 = false;
-			gameState->audio_ptr->hornhonk(audio_position, audio_velocity, audio_forward, audio_up);
+			gameState->audio_ptr->hornhonk("vehicle_5", audio_position, audio_velocity, audio_forward, audio_up);
 		}
 
 	}

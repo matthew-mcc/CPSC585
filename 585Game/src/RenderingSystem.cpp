@@ -485,7 +485,42 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> cbp, Gam
 		
 
 		// Dot Boost Meter
-		drawUI(boostBox, 45.0f, 45.0f, 355.0f, 80.0f, 2);
+		// Goddarn scaling ok
+		// So lets set some bounds for the entire scaling factor
+		// Which will be our box
+		// We want it in the bottom left quadrant, ... so divide by 4?
+		int ui_bmeter_count = 30;
+		int ui_bmeter_leftbound = (callback_ptr->xres / 20);
+		int ui_bmeter_rightbound = (callback_ptr->xres / 4);
+		int ui_bmeter_upbound = (callback_ptr->yres / 12);
+		int ui_bmeter_lowbound = (callback_ptr->yres / 20);
+
+
+		int leewayX = callback_ptr->xres / 200;
+		int leewayY = callback_ptr->yres / 150;
+		
+		int ui_bmeter_increment = (ui_bmeter_rightbound - ui_bmeter_leftbound) / 30.0f;
+
+		drawUI(boostBox, 
+			ui_bmeter_leftbound - leewayX, ui_bmeter_lowbound - leewayY,
+			ui_bmeter_leftbound + ui_bmeter_increment * ui_bmeter_count + leewayX, ui_bmeter_upbound + leewayY, 2);
+		for (int i = 0; i < ui_bmeter_count; i++) {
+			int boost_meter = (int)gameState->findEntity("vehicle_0")->playerProperties->boost_meter;
+			int offset = ui_bmeter_increment * i;
+			
+			// Normalizing values
+			float onMeter = (float)i / (float)ui_bmeter_count;
+			float actualMeter = (float)boost_meter / 100.0f;
+			//int boostoffset = 10 * i;
+
+			if (actualMeter > onMeter) {
+				drawUI(boostOn, ui_bmeter_leftbound + offset, ui_bmeter_lowbound, ui_bmeter_leftbound + ui_bmeter_increment + offset, ui_bmeter_upbound, 1);
+			}
+			else {
+				drawUI(boostOff, ui_bmeter_leftbound + offset, ui_bmeter_lowbound, ui_bmeter_leftbound + ui_bmeter_increment + offset, ui_bmeter_upbound, 1);
+			}
+		}
+		/*
 		for (int i = 0; i < 30; i++) {
 			int boost_meter = (int)gameState->findEntity("vehicle_0")->playerProperties->boost_meter;
 			int offset = 10 * i;
@@ -500,8 +535,7 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> cbp, Gam
 			else {
 				drawUI(boostOff, 50.0f + offset, 50.f, 60.0f + offset, 75.f, 1);
 			}
-		}
-
+		}*/
 
 		// Pod Counter
 		for (int i = 0; i < 10; i++) {
