@@ -89,6 +89,7 @@ void ParticleSystem::Update(float dt, glm::vec3 spawnPoint, glm::vec3 spawnVeloc
 				else p.color.a = 1.f;
 			}
 			else {
+				p.velocity *= 0.8f;
 				float lifetime = p.life / startingLife;
 				if (lifetime > 0.6f) {
 					float u = (lifetime - 0.6f) * 2.5f;
