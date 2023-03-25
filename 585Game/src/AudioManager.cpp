@@ -22,39 +22,6 @@ void AudioManager::Init(int vehicleCount) {
 		//audioEngine.PlayEvent(vehicle + "_engine");
 		audioEngine.PlayEvent(vehicle + "_boost");
 	}
-	/*
-	audioEngine.LoadEventInstanced(e_tire_roll, "vehicle_0_tire");
-	audioEngine.LoadEventInstanced(e_tire_roll, "vehicle_1_tire");
-	audioEngine.LoadEventInstanced(e_tire_roll, "vehicle_2_tire");
-	audioEngine.LoadEventInstanced(e_tire_roll, "vehicle_3_tire");
-	audioEngine.LoadEventInstanced(e_tire_roll, "vehicle_4_tire");
-	audioEngine.LoadEventInstanced(e_tire_roll, "vehicle_5_tire");
-
-	audioEngine.LoadEventInstanced(e_engine, "vehicle_0_engine");
-	audioEngine.LoadEventInstanced(e_engine, "vehicle_1_engine");
-	audioEngine.LoadEventInstanced(e_engine, "vehicle_2_engine");
-	audioEngine.LoadEventInstanced(e_engine, "vehicle_3_engine");
-	audioEngine.LoadEventInstanced(e_engine, "vehicle_4_engine");
-	audioEngine.LoadEventInstanced(e_engine, "vehicle_5_engine");
-
-	audioEngine.PlayEvent("vehicle_0_tire");
-	audioEngine.PlayEvent("vehicle_1_tire");
-	audioEngine.PlayEvent("vehicle_2_tire");
-	audioEngine.PlayEvent("vehicle_3_tire");
-	audioEngine.PlayEvent("vehicle_4_tire");
-	audioEngine.PlayEvent("vehicle_5_tire");
-
-	audioEngine.PlayEvent("vehicle_0_engine");
-	audioEngine.PlayEvent("vehicle_1_engine");
-	audioEngine.PlayEvent("vehicle_2_engine");
-	audioEngine.PlayEvent("vehicle_3_engine");
-	audioEngine.PlayEvent("vehicle_4_engine");
-	audioEngine.PlayEvent("vehicle_5_engine");
-	*/
-
-	// Someday, we will change this
-	//audioEngine.LoadEvent(e_boost);
-	//audioEngine.PlayEvent(e_boost);
 
 	audioEngine.LoadSound("assets/audio/ping_placeholder.flac");
 	audioEngine.LoadSound("assets/audio/Latch1.wav");
@@ -92,8 +59,7 @@ void AudioManager::setTestFlag() {
 
 
 void AudioManager::SFX(std::string eventName) {
-	// Not implemented yet, going to need to figure out a better way to do this
-
+	// Huh?
 }
 
 void AudioManager::Latch(glm::vec3 pos) {
@@ -125,24 +91,6 @@ void AudioManager::UpdateTire(const std::string &strEventName, const glm::vec3 &
 		speed = glm::length(velocity);
 	}
 	rpm = speed * 100.0f;
-	/*
-	else {
-		// In hindsight, all of this is the same as if I just -10 off transform velocity
-		FMOD_3D_ATTRIBUTES attributes;
-		FMOD_3D_ATTRIBUTES* attributes_ptr = &attributes;
-		glm::vec3 velocity;
-		audioEngine.GetEvent3dAttributes(strEventName, attributes_ptr);
-		velocity.x = attributes.velocity.x;
-		velocity.y = attributes.velocity.y;
-		velocity.z = attributes.velocity.z;
-		speed = glm::length(velocity);
-		speed -= 10.0f;
-		if (speed < 0.0f) {
-			speed = 0.0f;
-		}
-	}
-	*/
-	
 
 	audioEngine.SetEvent3dAttributes(tireSound, pos, velocity, forward, up);
 	audioEngine.SetEventParameter(tireSound, "Speed", speed);

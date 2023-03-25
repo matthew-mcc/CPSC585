@@ -70,11 +70,15 @@ private:
 	unsigned int boostBlue;
 	unsigned int boostOrange;
 	unsigned int boostGrey;
-	unsigned int podcounterOn;
-	unsigned int podcounterOff;
 	unsigned int boostBox;
+	unsigned int boostText;
 	unsigned int boostOn;
 	unsigned int boostOff;
+
+	unsigned int podsText;
+	unsigned int podcounterOn;
+	unsigned int podcounterOff;
+
 	unsigned int menuBackground;
 	unsigned int menuLoading;
 	unsigned int menuPlay;
@@ -84,7 +88,7 @@ private:
 
 	std::vector<unsigned int> ui_player_tracker;
 	std::vector<unsigned int> ui_score_tracker;
-
+	std::vector<unsigned int> ui_playercard;
 
 	// Shaders
 	Shader textShader;

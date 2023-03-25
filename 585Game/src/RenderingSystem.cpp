@@ -61,9 +61,11 @@ void RenderingSystem::initRenderer() {
 	boostOff = generateTexture("assets/textures/UI/dotsOff.png", false);
 
 	boostBox = generateTexture("assets/textures/UI/boostBox.png", false);
+	boostText = generateTexture("assets/textures/UI/boostText.png", false);
 
 	podcounterOn = generateTexture("assets/textures/UI/podcounterOn.png", false);
 	podcounterOff = generateTexture("assets/textures/UI/podCounterOff.png", false);
+	podsText = generateTexture("assets/textures/UI/podsText.png", false);
 
 	menuBackground = generateTexture("assets/textures/UI/menuBackground.png", false);
 	menuLoading = generateTexture("assets/textures/UI/menuLoading.png", false);
@@ -73,6 +75,8 @@ void RenderingSystem::initRenderer() {
 	backToMenu = generateTexture("assets/textures/UI/backToMenu.png", false);
 	timerAndScore = generateTexture("assets/textures/UI/timerAndScore.png", false);
 
+	// Only 1 exists atm
+	ui_playercard.push_back(generateTexture("assets/textures/UI/playerCard1.png", false));
 	for (int i = 1; i <= 12; i++) {
 		if (i <= 6) ui_player_tracker.push_back(generateTexture(("assets/textures/UI/" + to_string(i) + ".png").c_str(), false));
 		ui_score_tracker.push_back(generateTexture(("assets/textures/UI/cargo_indicators/" + to_string(i) + ".png").c_str(), false));
@@ -494,21 +498,38 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> cbp, Gam
 		// So lets set some bounds for the entire scaling factor
 		// Which will be our box
 		// We want it in the bottom left quadrant, ... so divide by 4?
-		int ui_bmeter_count = 30;
-		int ui_bmeter_leftbound = (callback_ptr->xres / 20);
+		int leewayX = callback_ptr->xres / 200;
+		int leewayY = callback_ptr->yres / 150;
+		
+		int ui_bmeter_count = 30;	// Total number of columns the meter has
+		int ui_bmeter_leftbound = (callback_ptr->xres / 15);
 		int ui_bmeter_rightbound = (callback_ptr->xres / 4);
 		int ui_bmeter_upbound = (callback_ptr->yres / 12);
 		int ui_bmeter_lowbound = (callback_ptr->yres / 20);
 
-
-		int leewayX = callback_ptr->xres / 200;
-		int leewayY = callback_ptr->yres / 150;
+		int ui_pcount_upbound = (ui_bmeter_upbound - ui_bmeter_lowbound + 2 * leewayY) + ui_bmeter_upbound + 2 * leewayY;
+		int ui_pcount_lowbound = ui_bmeter_upbound + 2 * leewayY;
 		
 		int ui_bmeter_increment = (ui_bmeter_rightbound - ui_bmeter_leftbound) / 30.0f;
+		int ui_pcount_increment = (ui_bmeter_rightbound - ui_bmeter_leftbound) / 10.0f;
+			
+		drawUI(boostText, 
+			ui_bmeter_leftbound / 5, ui_bmeter_lowbound - leewayY,
+			ui_bmeter_leftbound - 2 * leewayX, ui_bmeter_upbound + leewayY, 2);
 
-		drawUI(boostBox, 
-			ui_bmeter_leftbound - leewayX, ui_bmeter_lowbound - leewayY,
-			ui_bmeter_leftbound + ui_bmeter_increment * ui_bmeter_count + leewayX, ui_bmeter_upbound + leewayY, 2);
+		drawUI(podsText,
+			ui_bmeter_leftbound / 5, ui_pcount_lowbound,
+			ui_bmeter_leftbound - 2 * leewayX, ui_pcount_upbound, 2);
+		
+		drawUI(ui_playercard[0],
+			ui_bmeter_leftbound / 5, ui_pcount_upbound + 2 * leewayY,
+			ui_bmeter_leftbound - 2 * leewayX, callback_ptr->yres / 4, 2);
+
+		drawUI(boostBox,
+			ui_bmeter_leftbound - (leewayX * 2 / 3 ), ui_bmeter_lowbound - leewayY,
+			ui_bmeter_leftbound + ui_bmeter_increment * ui_bmeter_count + (leewayX * 2 / 3), ui_bmeter_upbound + leewayY, 2);
+
+		// Drawing Boost Meter
 		for (int i = 0; i < ui_bmeter_count; i++) {
 			int boost_meter = (int)gameState->findEntity("vehicle_0")->playerProperties->boost_meter;
 			int offset = ui_bmeter_increment * i;
@@ -525,33 +546,45 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> cbp, Gam
 				drawUI(boostOff, ui_bmeter_leftbound + offset, ui_bmeter_lowbound, ui_bmeter_leftbound + ui_bmeter_increment + offset, ui_bmeter_upbound, 1);
 			}
 		}
-		/*
-		for (int i = 0; i < 30; i++) {
-			int boost_meter = (int)gameState->findEntity("vehicle_0")->playerProperties->boost_meter;
-			int offset = 10 * i;
-			// Normalizing values
-			float onMeter = (float)i / 30.0f;
-			float actualMeter = (float)boost_meter / 100.0f;
-			//int boostoffset = 10 * i;
 
-			if (actualMeter > onMeter) {
-				drawUI(boostOn, 50.0f + offset, 50.f, 60.0f + offset, 75.f, 1);
+
+		// Drawing Pod Counter
+		for (int i = 0; i < 18; i++) {
+			int pod_count = gameState->findEntity("vehicle_0")->nbChildEntities;
+			int pod_total = 10;
+			int offset = ui_pcount_increment * i / 2;
+			int ui_pcount_halfbound = ui_pcount_lowbound + (ui_pcount_upbound - ui_pcount_lowbound) / 2;
+
+
+			if (i < pod_count) {
+				if (i % 2 == 0) {
+					drawUI(podcounterOn, ui_bmeter_leftbound + offset, ui_pcount_halfbound, ui_bmeter_leftbound + ui_pcount_increment + offset - leewayX, ui_pcount_upbound, 1);
+				}
+				else {
+					drawUI(podcounterOn, ui_bmeter_leftbound + offset, ui_pcount_lowbound, ui_bmeter_leftbound + ui_pcount_increment + offset - leewayX, ui_pcount_halfbound, 1);
+				}
 			}
 			else {
-				drawUI(boostOff, 50.0f + offset, 50.f, 60.0f + offset, 75.f, 1);
+				if (i % 2 == 0) {
+					drawUI(podcounterOff, ui_bmeter_leftbound + offset, ui_pcount_halfbound, ui_bmeter_leftbound + ui_pcount_increment + offset - leewayX, ui_pcount_upbound, 1);
+				}
+				else {
+					drawUI(podcounterOff, ui_bmeter_leftbound + offset, ui_pcount_lowbound, ui_bmeter_leftbound + ui_pcount_increment + offset - leewayX, ui_pcount_halfbound, 1);
+				}
 			}
-		}*/
-
-		// Pod Counter
-		for (int i = 0; i < 10; i++) {
-			int pod_count = gameState->findEntity("vehicle_0")->nbChildEntities;
-			int offset = 60 * i;
-			int boostoffset = 10 * i;
-
 		}
-		
-		
-		
+
+		// Extra score text - needs some variable bane changes
+		string morescoreand20yearsago;
+		int bonus_score = gameState->calculatePoints("vehicle_0") - gameState->findEntity("vehicle_0")->nbChildEntities;
+		morescoreand20yearsago = "+" + to_string(bonus_score) + " bonus";
+		RenderText(textShader, textVAO, textVBO, morescoreand20yearsago,
+			ui_bmeter_leftbound - leewayX,
+			ui_pcount_upbound + 2 * leewayY,
+			0.8f,
+			vec3(0.93, 0.93f, 0.93f),
+			textChars);
+
 
 		// Display game timer / countdown
 		std::string timerMins = std::to_string(abs(timer->getCountdownMins()));
