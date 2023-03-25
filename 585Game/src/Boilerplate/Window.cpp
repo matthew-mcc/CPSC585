@@ -56,7 +56,7 @@ public:
 	virtual void keyCallback(int key, int scancode, int action, int mods) {
 
 		// THROTTLE (W)
-		if (key == GLFW_KEY_W) {
+		if (key == GLFW_KEY_W || key == GLFW_KEY_UP) {
 			if (action == GLFW_PRESS) {
 				throttle = 1.f;
 				keys_pressed++;
@@ -68,7 +68,7 @@ public:
 		}
 
 		// BRAKE (S)
-		if (key == GLFW_KEY_S) {
+		if (key == GLFW_KEY_S || key == GLFW_KEY_DOWN) {
 			if (action == GLFW_PRESS) {
 				reverse = 1.f;
 				brake = 1.f;
@@ -82,7 +82,7 @@ public:
 		}
 
 		// STEER LEFT (A)
-		if (key == GLFW_KEY_A) {
+		if (key == GLFW_KEY_A || key == GLFW_KEY_LEFT) {
 			if (action == GLFW_PRESS ) {
 				A = true;
 				navigateL = true;
@@ -106,7 +106,7 @@ public:
 		}
 
 		// STEER RIGHT (D)
-		if (key == GLFW_KEY_D) {
+		if (key == GLFW_KEY_D || key == GLFW_KEY_RIGHT) {
 			if (action == GLFW_PRESS ) {
 				D = true;
 				navigateR = true;
