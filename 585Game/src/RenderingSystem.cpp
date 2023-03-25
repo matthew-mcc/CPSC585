@@ -86,7 +86,7 @@ void RenderingSystem::initRenderer() {
 	dirtParticles = ParticleSystem(particleShader, rockTexture, 500, 1.0f, 0.2f, dirtColor, "d");
 	
 	for (int i = 0; i < gameState->numVehicles; i++) {
-		if(i == 0) boostParticles.push_back(ParticleSystem(particleShader, rockTexture, 500, 0.5f, 0.25f, boostColor1, boostColor2, boostColor3, "b"));
+		if(i == 0) boostParticles.push_back(ParticleSystem(particleShader, rockTexture, 1000, 0.5f, 0.25f, boostColor1, boostColor2, boostColor3, "b"));
 		else boostParticles.push_back(ParticleSystem(particleShader, rockTexture, 500, 0.5f, 0.2f, boostColor1, boostColor2, boostColor3, "b"));	// Optimization: Less particles for non-player vehicles
 	}
 
