@@ -204,12 +204,12 @@ void GameState::menuEventHandler(std::shared_ptr<CallbackInterface> cbp) {
 	// Only handle events when in menu
 	if (inMenu) {
 		// Navigate Right
-		if (cbp->navigateR) {
+		if (cbp->navigateR && !showInfo) {
 			menuOptionIndex = (menuOptionIndex + 1) % nbMenuOptions;
 			cbp->navigateR = false;
 		}
 		// Navigate Left
-		else if (cbp->navigateL) {
+		else if (cbp->navigateL && !showInfo) {
 			menuOptionIndex = (menuOptionIndex - 1) % nbMenuOptions;
 			cbp->navigateL = false;
 		}
@@ -220,14 +220,22 @@ void GameState::menuEventHandler(std::shared_ptr<CallbackInterface> cbp) {
 
 		// Buttons
 		if (cbp->menuConfirm) {
+			if (showInfo) {
+				showInfo = false;
+			}
+			// Info
+			else if (menuOptionIndex == 0) {
+				showInfo = true;
+			}
 			// Play
-			if (menuOptionIndex == 0) {
+			else if (menuOptionIndex == 1) {
 				loading = true;
 			}
 			// Quit
-			if (menuOptionIndex == 1) {
+			else if (menuOptionIndex == 2) {
 				quit = true;
 			}
+			cbp->menuConfirm = false;
 		}
 	}
 }

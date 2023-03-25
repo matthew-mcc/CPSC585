@@ -68,9 +68,12 @@ void RenderingSystem::initRenderer() {
 	podsText = generateTexture("assets/textures/UI/podsText.png", false);
 
 	menuBackground = generateTexture("assets/textures/UI/menuBackground.png", false);
+	menuTitle = generateTexture("assets/textures/UI/menuTitle.png", false);
 	menuLoading = generateTexture("assets/textures/UI/menuLoading.png", false);
 	menuPlay = generateTexture("assets/textures/UI/menuPlay.png", false);
 	menuQuit = generateTexture("assets/textures/UI/menuQuit.png", false);
+	menuInfo = generateTexture("assets/textures/UI/menuInfo.png", false);
+	menuInfoDisplay = generateTexture("assets/textures/UI/menuInfoDisplay.png", false);
 
 	backToMenu = generateTexture("assets/textures/UI/backToMenu.png", false);
 	timerAndScore = generateTexture("assets/textures/UI/timerAndScore.png", false);
@@ -81,7 +84,7 @@ void RenderingSystem::initRenderer() {
 	for (int i = 1; i <= 12; i++) {
 		if (i <= 6) { 
 			ui_player_tracker.push_back(generateTexture(("assets/textures/UI/" + to_string(i) + ".png").c_str(), false)); 
-			ui_player_token.push_back(generateTexture(("assets/textures/UI/playertoken" + to_string(i) + ".png").c_str(), false));
+			//ui_player_token.push_back(generateTexture(("assets/textures/UI/playertoken" + to_string(i) + ".png").c_str(), false));
 		}
 		ui_score_tracker.push_back(generateTexture(("assets/textures/UI/cargo_indicators/" + to_string(i) + ".png").c_str(), false));
 
@@ -161,25 +164,35 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> cbp, Gam
 		textShader.setMat4("projection", textProjection);
 
 		// Draw Background
-		drawUI(menuBackground, 0, 0, callback_ptr->xres, callback_ptr->yres, 1);
+		drawUI(menuBackground, 0, 0, callback_ptr->xres, callback_ptr->yres, 2);
 
 		// Load Screen
 		if (gameState->loading) {
-			drawUI(menuLoading, 0, 0, callback_ptr->xres, callback_ptr->yres, 0);
+			drawUI(menuLoading, 0, 0, callback_ptr->xres, callback_ptr->yres, 1);
 			gameState->inMenu = false;
 			gameState->loading = false;
 		}
 
+		// Info Screen
+		else if (gameState->showInfo) {
+			drawUI(menuInfoDisplay, 0, 0, callback_ptr->xres, callback_ptr->yres, 1);
+		}
+
 		// Menu Screen
 		else {
-			// Highlight Play
+			// Highlight Info
 			if (gameState->menuOptionIndex == 0) {
-				drawUI(menuPlay, 0, 0, callback_ptr->xres, callback_ptr->yres, 0);
+				drawUI(menuInfo, 0, 0, callback_ptr->xres, callback_ptr->yres, 1);
+			}
+			// Highlight Play
+			if (gameState->menuOptionIndex == 1) {
+				drawUI(menuPlay, 0, 0, callback_ptr->xres, callback_ptr->yres, 1);
 			}
 			// Highlight Quit
-			else if (gameState->menuOptionIndex == 1) {
-				drawUI(menuQuit, 0, 0, callback_ptr->xres, callback_ptr->yres, 0);
+			else if (gameState->menuOptionIndex == 2) {
+				drawUI(menuQuit, 0, 0, callback_ptr->xres, callback_ptr->yres, 1);
 			}
+			drawUI(menuTitle, 0, 0, callback_ptr->xres, callback_ptr->yres, 0);
 		}
 
 		glfwSwapBuffers(window);

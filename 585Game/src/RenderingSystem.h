@@ -80,9 +80,12 @@ private:
 	unsigned int podcounterOff;
 
 	unsigned int menuBackground;
+	unsigned int menuTitle;
 	unsigned int menuLoading;
 	unsigned int menuPlay;
 	unsigned int menuQuit;
+	unsigned int menuInfo;
+	unsigned int menuInfoDisplay;
 	unsigned int backToMenu;
 	unsigned int timerAndScore;
 
