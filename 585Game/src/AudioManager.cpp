@@ -26,6 +26,9 @@ void AudioManager::Init(int vehicleCount) {
 	audioEngine.LoadSound("assets/audio/ping_placeholder.flac");
 	audioEngine.LoadSound("assets/audio/Latch1.wav");
 	audioEngine.LoadSound("assets/audio/Landing1.wav");
+	audioEngine.LoadSound("assets/audio/Click1.wav");
+	audioEngine.LoadSound("assets/audio/Click2.wav");
+	audioEngine.LoadSound("assets/audio/Click3.wav");
 	audioEngine.LoadSound("assets/audio/SpaceMusic2.wav", false, true, false);
 	audioEngine.PlaySound("assets/audio/SpaceMusic2.wav", glm::vec3(0.0f), 1.0f);
 
@@ -77,6 +80,12 @@ void AudioManager::Dropoff() {
 
 void AudioManager::Landing(glm::vec3 pos) {
 	audioEngine.PlaySound("assets/audio/Landing1.wav", pos, 15.0f);
+}
+
+void AudioManager::MenuClick(int type) {
+	if (type == 0) audioEngine.PlaySound("assets/audio/Click1.wav");
+	if (type == 1) audioEngine.PlaySound("assets/audio/Click2.wav");
+	if (type == 2) audioEngine.PlaySound("assets/audio/Click3.wav");
 }
 
 

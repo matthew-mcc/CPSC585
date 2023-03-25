@@ -207,11 +207,13 @@ void GameState::menuEventHandler(std::shared_ptr<CallbackInterface> cbp) {
 		if (cbp->navigateR && !showInfo) {
 			menuOptionIndex = (menuOptionIndex + 1) % nbMenuOptions;
 			cbp->navigateR = false;
+			audio_ptr->MenuClick(1);
 		}
 		// Navigate Left
 		else if (cbp->navigateL && !showInfo) {
 			menuOptionIndex = (menuOptionIndex - 1) % nbMenuOptions;
 			cbp->navigateL = false;
+			audio_ptr->MenuClick(1);
 		}
 		// Navigation Wrap-Around
 		if (menuOptionIndex < 0) {
@@ -222,14 +224,17 @@ void GameState::menuEventHandler(std::shared_ptr<CallbackInterface> cbp) {
 		if (cbp->menuConfirm) {
 			if (showInfo) {
 				showInfo = false;
+				audio_ptr->MenuClick(0);
 			}
 			// Info
 			else if (menuOptionIndex == 0) {
 				showInfo = true;
+				audio_ptr->MenuClick(0);
 			}
 			// Play
 			else if (menuOptionIndex == 1) {
 				loading = true;
+				audio_ptr->MenuClick(2);
 			}
 			// Quit
 			else if (menuOptionIndex == 2) {
