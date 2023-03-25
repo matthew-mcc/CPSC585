@@ -71,6 +71,7 @@ void RenderingSystem::initRenderer() {
 	menuQuit = generateTexture("assets/textures/UI/menuQuit.png", false);
 
 	backToMenu = generateTexture("assets/textures/UI/backToMenu.png", false);
+	timerAndScore = generateTexture("assets/textures/UI/timerAndScore.png", false);
 
 	for (int i = 1; i <= 12; i++) {
 		if (i <= 6) ui_player_tracker.push_back(generateTexture(("assets/textures/UI/" + to_string(i) + ".png").c_str(), false));
@@ -566,10 +567,19 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> cbp, Gam
 			timer_xoffset = callback_ptr->xres / 2.f - 100.f;
 		}
 
+		drawUI(timerAndScore, callback_ptr->xres / 2 - 172, callback_ptr->yres - 110, callback_ptr->xres / 2 + 172, callback_ptr->yres, 1);
 		RenderText(textShader, textVAO, textVBO, timerMins + ":" + timerSeconds,
-			timer_xoffset,
-			callback_ptr->yres - 32.f, 0.6f,
-			vec3(0.2, 0.2f, 0.2f),
+			timer_xoffset - 115,
+			callback_ptr->yres - 80.f, 
+			0.8f,
+			vec3(0.93, 0.93f, 0.93f),
+			textChars);
+		string playerScoreText = to_string(gameState->findEntity("vehicle_0")->playerProperties->getScore());
+		RenderText(textShader, textVAO, textVBO, playerScoreText,
+			(callback_ptr->xres / 2 + 80) - (8 * (int)playerScoreText.size() - 1),
+			callback_ptr->yres - 80.f,
+			0.8f,
+			vec3(0.93, 0.93f, 0.93f),
 			textChars);
 
 		// Display boost meter - deprecated
