@@ -75,11 +75,16 @@ void RenderingSystem::initRenderer() {
 	backToMenu = generateTexture("assets/textures/UI/backToMenu.png", false);
 	timerAndScore = generateTexture("assets/textures/UI/timerAndScore.png", false);
 
-	// Only 1 exists atm
+	// Only 2 exists atm, will need to be added later like the rest
 	ui_playercard.push_back(generateTexture("assets/textures/UI/playerCard1.png", false));
+	ui_playercard.push_back(generateTexture("assets/textures/UI/playerCard2.png", false));
 	for (int i = 1; i <= 12; i++) {
-		if (i <= 6) ui_player_tracker.push_back(generateTexture(("assets/textures/UI/" + to_string(i) + ".png").c_str(), false));
+		if (i <= 6) { 
+			ui_player_tracker.push_back(generateTexture(("assets/textures/UI/" + to_string(i) + ".png").c_str(), false)); 
+			ui_player_token.push_back(generateTexture(("assets/textures/UI/playertoken" + to_string(i) + ".png").c_str(), false));
+		}
 		ui_score_tracker.push_back(generateTexture(("assets/textures/UI/cargo_indicators/" + to_string(i) + ".png").c_str(), false));
+
 	}
 
 	// PARTICLE SYSTEM INITIALIZATIONS
@@ -557,28 +562,24 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> cbp, Gam
 
 
 			if (i < pod_count) {
-				if (i % 2 == 0) {
+				if (i % 2 == 0) 
 					drawUI(podcounterOn, ui_bmeter_leftbound + offset, ui_pcount_halfbound, ui_bmeter_leftbound + ui_pcount_increment + offset - leewayX, ui_pcount_upbound, 1);
-				}
-				else {
+				else 
 					drawUI(podcounterOn, ui_bmeter_leftbound + offset, ui_pcount_lowbound, ui_bmeter_leftbound + ui_pcount_increment + offset - leewayX, ui_pcount_halfbound, 1);
-				}
 			}
 			else {
-				if (i % 2 == 0) {
+				if (i % 2 == 0) 
 					drawUI(podcounterOff, ui_bmeter_leftbound + offset, ui_pcount_halfbound, ui_bmeter_leftbound + ui_pcount_increment + offset - leewayX, ui_pcount_upbound, 1);
-				}
-				else {
+				else 
 					drawUI(podcounterOff, ui_bmeter_leftbound + offset, ui_pcount_lowbound, ui_bmeter_leftbound + ui_pcount_increment + offset - leewayX, ui_pcount_halfbound, 1);
-				}
 			}
 		}
 
-		// Extra score text - needs some variable bane changes
-		string morescoreand20yearsago;
+		// Extra score text
+		string morescore;
 		int bonus_score = gameState->calculatePoints("vehicle_0") - gameState->findEntity("vehicle_0")->nbChildEntities;
-		morescoreand20yearsago = "+" + to_string(bonus_score) + " bonus";
-		RenderText(textShader, textVAO, textVBO, morescoreand20yearsago,
+		morescore = "+" + to_string(bonus_score) + " bonus";
+		RenderText(textShader, textVAO, textVBO, morescore,
 			ui_bmeter_leftbound - leewayX,
 			ui_pcount_upbound + 2 * leewayY,
 			0.8f,
