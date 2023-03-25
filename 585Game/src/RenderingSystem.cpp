@@ -86,7 +86,7 @@ void RenderingSystem::initRenderer() {
 	dirtParticles = ParticleSystem(particleShader, rockTexture, 500, 1.0f, 0.2f, dirtColor, "d");
 	
 	for (int i = 0; i < gameState->numVehicles; i++) {
-		if(i == 0) boostParticles.push_back(ParticleSystem(particleShader, rockTexture, 1000, 0.5f, 0.25f, boostColor1, boostColor2, boostColor3, "b"));
+		if(i == 0) boostParticles.push_back(ParticleSystem(particleShader, rockTexture, 500, 0.5f, 0.25f, boostColor1, boostColor2, boostColor3, "b"));
 		else boostParticles.push_back(ParticleSystem(particleShader, rockTexture, 500, 0.5f, 0.2f, boostColor1, boostColor2, boostColor3, "b"));	// Optimization: Less particles for non-player vehicles
 	}
 
@@ -358,9 +358,10 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> cbp, Gam
 		boostParticles.at(i).color2 = boostColor2;
 		boostParticles.at(i).color3 = boostColor3;
 		Entity* vehicleEntity = gameState->findEntity("vehicle_" + to_string(i));
-		boostParticles.at(i).Update(timer->getDeltaTime(),
+		boostParticles.at(i).UpdateBoost(timer->getDeltaTime(),
 			vehicleEntity->transform->getPosition() + vec3(0.f, 0.f, 0.f),
-			(vehicleEntity->transform->getLinearVelocity() - (vehicleEntity->transform->getForwardVector() * (rand() % 11 / 1.f + 25.f)))* float(vehicleEntity->playerProperties->boost != 0.f),
+			vehicleEntity->transform->getForwardVector(),
+			(vehicleEntity->transform->getLinearVelocity()) * float(vehicleEntity->playerProperties->boost != 0.f),
 			vec3(toMat4(vehicleEntity->transform->getRotation())* vec4(boostOffset, 0.f)),
 			vec3(toMat4(vehicleEntity->transform->getRotation())* vec4(-boostOffset.x, boostOffset.y, boostOffset.z, 0.f)));
 		boostParticles.at(i).Draw(view, projection, camera_previous_position);
