@@ -50,7 +50,8 @@ struct Vehicle {
 	vector<PxD6Joint*> attachedJoints;
 	int AI_State;
 	int AI_CurrTrailerIndex;
-	
+	float AI_BoostMeter;
+	bool AI_IsBoosting = false;
 	// Maybe we don't need a map of values, but instead just one personality?
 	/*map<string, float> AI_Personalities = {
 		{"Aggressive", 0.f},

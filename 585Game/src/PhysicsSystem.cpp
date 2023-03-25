@@ -633,6 +633,7 @@ void PhysicsSystem::initVehicles(int vehicleCount) {
 		// Init AI_State
 		vehicles.at(i)->AI_State = 0;
 		vehicles.at(i)->AI_CurrTrailerIndex = 0;
+		vehicles.at(i)->AI_BoostMeter = 100.f;
 
 		//Load the params from json or set directly.
 		gVehicleDataPath = "assets/vehicledata";
@@ -727,8 +728,8 @@ void PhysicsSystem::initVehicles(int vehicleCount) {
 
 
 	// Init AI Vehicle Personality
+	//vehicles.at(1)->AI_Personality = "Defensive";
 	vehicles.at(1)->AI_Personality = "Defensive";
-	vehicles.at(2)->AI_Personality = "Aggressive";
 
 }
 
@@ -1127,7 +1128,12 @@ void PhysicsSystem::AI_MoveTo(Vehicle* vehicle, PxVec3 destination) {
 
 void PhysicsSystem::AI_FindTrailer(Vehicle* vehicle) {
 	int tempIdx = 0;
+	Timer* timer = &Timer::Instance();
 	PxReal closestDistanceSq = PX_MAX_REAL;
+	vehicle->AI_IsBoosting = false;
+	if (!vehicle->AI_IsBoosting && !vehicle->AI_BoostMeter > 100.f) {
+		vehicle->AI_BoostMeter += 10.f * timer->getDeltaTime();
+	}
 	
 	for (int i = 0; i < trailers.size(); i++) {
 
@@ -1256,7 +1262,20 @@ void PhysicsSystem::AI_DropOff(Vehicle* vehicle) {
 }
 
 void PhysicsSystem::AI_ApplyBoost(Vehicle* vehicle) {
-	if (vehicle->vehicle.mPhysXState.physxActor.rigidBody->getLinearVelocity().magnitude() < 60.f) {
+	Timer* timer = &Timer::Instance();
+	vehicle->AI_IsBoosting = true;
+	bool allowedToBoost = true;
+	if (vehicle->AI_BoostMeter < 0.f) {
+		allowedToBoost = false;
+	}
+
+
+	if (vehicle->AI_IsBoosting && vehicle->AI_BoostMeter > 0) {
+		vehicle->AI_BoostMeter = vehicle->AI_BoostMeter - 25.f * timer->getDeltaTime();
+	}
+
+	
+	if (vehicle->vehicle.mPhysXState.physxActor.rigidBody->getLinearVelocity().magnitude() < 60.f && allowedToBoost) {
 		vehicle->vehicle.mPhysXState.physxActor.rigidBody->addForce(vehicle->vehicle.mPhysXState.physxActor.rigidBody->getGlobalPose().q.rotate(PxVec3(0, 0, 1)), PxForceMode().eVELOCITY_CHANGE);
 
 	}
