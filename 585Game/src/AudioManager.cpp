@@ -82,10 +82,10 @@ void AudioManager::Landing(glm::vec3 pos) {
 	audioEngine.PlaySound("assets/audio/Landing1.wav", pos, 15.0f);
 }
 
-void AudioManager::MenuClick(int type) {
-	if (type == 0) audioEngine.PlaySound("assets/audio/Click1.wav");
-	if (type == 1) audioEngine.PlaySound("assets/audio/Click2.wav");
-	if (type == 2) audioEngine.PlaySound("assets/audio/Click3.wav");
+void AudioManager::MenuClick(int type, glm::vec3 pos) {
+	if (type == 0) audioEngine.PlaySound("assets/audio/Click1.wav", pos);
+	if (type == 1) audioEngine.PlaySound("assets/audio/Click2.wav", pos);
+	if (type == 2) audioEngine.PlaySound("assets/audio/Click3.wav", pos);
 }
 
 

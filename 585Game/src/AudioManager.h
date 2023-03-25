@@ -34,7 +34,7 @@ public:
 	void LatchEvent(glm::vec3 pos);
 	void Dropoff();
 	void Landing(glm::vec3 pos);
-	void MenuClick(int type);
+	void MenuClick(int type, glm::vec3 pos);
 
 	void UpdateTire(const std::string& strEventName, const glm::vec3 &pos, const glm::vec3 &velocity, const glm::vec3 &forward, const glm::vec3 &up, float distance, bool contact);
 	void UpdateBoostPlaceholder(const std::string& strEventName, const glm::vec3& pos, const glm::vec3& velocity, const glm::vec3& forward, const glm::vec3& up, float distance, float boost);
