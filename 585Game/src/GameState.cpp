@@ -150,11 +150,14 @@ Entity* GameState::spawnVehicle() {
 	vehiclesSpawned++;
 }
 
-int GameState::calculatePoints(string name) {
-	int podCount = findEntity(name)->nbChildEntities;
+int GameState::calculatePoints(int vehicleIndex, int totalTrailers, int stolenTrailers) {
+	string name = "vehicle_" + to_string(vehicleIndex);
 	int score = 0;
-	for (int i = podCount; i > 0; i--) {
-		score += i;
+	for (int i = 0; i < totalTrailers; i++) {
+		score += 1;
+	}
+	for (int i = 0; i < stolenTrailers; i++) {
+		score += 1;
 	}
 	return score;
 

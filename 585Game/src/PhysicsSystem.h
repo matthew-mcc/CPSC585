@@ -41,6 +41,7 @@ struct Trailer {
 	int entityIndex;
 	bool isFlying = false;
 	bool isTowed = false;
+	bool isStolen = false;
 	float groundDistance = 0.0f;
 };
 
