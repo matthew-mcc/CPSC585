@@ -633,7 +633,7 @@ void PhysicsSystem::initVehicles(int vehicleCount) {
 		// Init AI_State
 		vehicles.at(i)->AI_State = 0;
 		vehicles.at(i)->AI_CurrTrailerIndex = 0;
-		vehicles.at(i)->AI_BoostMeter = 00.f;
+		vehicles.at(i)->AI_BoostMeter = 100.f;
 
 		//Load the params from json or set directly.
 		gVehicleDataPath = "assets/vehicledata";
@@ -731,6 +731,7 @@ void PhysicsSystem::initVehicles(int vehicleCount) {
 	// Init AI Vehicle Personality
 	vehicles.at(1)->AI_Personality = "Defensive";
 	vehicles.at(2)->AI_Personality = "Aggressive";
+	vehicles.at(3)->AI_Personality = "Aggressive";
 	
 }
 
@@ -1184,6 +1185,10 @@ void PhysicsSystem::AI_MoveTo(Vehicle* vehicle, PxVec3 destination) {
 	target.y = destination.y - pos.y;
 	target.z = destination.z - pos.z;
 
+
+	
+	
+
 	//PxVec3 objectDirection = (currTrailer->rigidBody->getGlobalPose().p - vehicle->vehicle.mPhysXState.physxActor.rigidBody->getGlobalPose().p).getNormalized();
 	PxVec3 objectDirection = (destination - vehicle->vehicle.mPhysXState.physxActor.rigidBody->getGlobalPose().p).getNormalized();
 	PxReal dotProduct = objectDirection.dot(vehicle->vehicle.mPhysXState.physxActor.rigidBody->getGlobalPose().q.rotate(PxVec3(1, 0, 0)));
@@ -1205,6 +1210,19 @@ void PhysicsSystem::AI_MoveTo(Vehicle* vehicle, PxVec3 destination) {
 	target.normalize();
 
 	float dot = target.dot(vanHeadingPx);
+
+
+	if (vehicle->AI_DroppingOff) {
+
+		PxVec3 delta = vehicle->vehicle.mPhysXState.physxActor.rigidBody->getGlobalPose().p - destination;
+
+		PxReal distanceSq = delta.x * delta.x + delta.z * delta.z;
+
+		if (distanceSq < 9000 && sqrt(dot * dot) > 0.95f) {
+			//cout << "boost tech" << endl;
+			AI_ApplyBoost(vehicle);
+		}
+	}
 	if (sqrt(dot * dot) > 0.95f) {
 		vehicle->vehicle.mCommandState.steer = 0.f;
 	}
@@ -1226,7 +1244,7 @@ void PhysicsSystem::AI_FindTrailer(Vehicle* vehicle) {
 	PxReal closestDistanceSq = PX_MAX_REAL;
 	vehicle->AI_IsBoosting = false;
 	if (!vehicle->AI_IsBoosting && !vehicle->AI_BoostMeter > 100.f) {
-		vehicle->AI_BoostMeter += 10.f * timer->getDeltaTime();
+		vehicle->AI_BoostMeter += 20.f * timer->getDeltaTime();
 	}
 	
 	for (int i = 0; i < trailers.size(); i++) {
@@ -1346,12 +1364,12 @@ void PhysicsSystem::AI_CollectTrailer(Vehicle* vehicle, PxReal timestep) {
 }
 
 void PhysicsSystem::AI_DropOff(Vehicle* vehicle) {
-
+	vehicle->AI_DroppingOff = true;
 	//vehicle->vehicle.mCommandState.throttle = 0.f;
 	AI_MoveTo(vehicle, PxVec3(0.f, 0.f, 32.f));
-	
 	if (vehicle->attachedTrailers.size() == 0) {
 		vehicle->AI_State = 0;
+		vehicle->AI_DroppingOff = false;
 	}
 
 }
@@ -1533,7 +1551,7 @@ void PhysicsSystem::AI_BumpPlayer(Vehicle* vehicle) {
 			// Calculate distance
 			PxReal distanceSq = delta.x * delta.x + delta.z * delta.z;
 			if (distanceSq < 500.f) {
-				//AI_ApplyBoost(vehicle);
+				AI_ApplyBoost(vehicle);
 			}
 		}
 		else {

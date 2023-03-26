@@ -55,6 +55,7 @@ struct Vehicle {
 	vector<PxVec3> positions;
 	bool AI_IsStuck = false;
 	float AI_ReverseTimer = 0.f;
+	bool AI_DroppingOff = false;
 	
 	// Maybe we don't need a map of values, but instead just one personality?
 	/*map<string, float> AI_Personalities = {
