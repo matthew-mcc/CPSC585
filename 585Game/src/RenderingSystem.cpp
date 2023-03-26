@@ -581,6 +581,14 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> cbp, Gam
 			vehicle->attachedJoints.at(i)->release();
 		}*/
 
+		
+		int stolenIndex = -1;
+		int stolenIndexIndex = 0;
+		if (gameState->findEntity("vehicle_0")->playerProperties->stolenTrailerIndices.size() > 0) {
+			
+			stolenIndex = gameState->findEntity("vehicle_0")->playerProperties->stolenTrailerIndices[stolenIndexIndex];
+			stolenIndexIndex++;
+		}
 
 		// Drawing Pod Counter
 		for (int i = 0; i < 18; i++) {
@@ -588,15 +596,52 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> cbp, Gam
 			int pod_total = 10;
 			int offset = ui_pcount_increment * i / 2;
 			int ui_pcount_halfbound = ui_pcount_lowbound + (ui_pcount_upbound - ui_pcount_lowbound) / 2;
+			
 
-
-
+			// Drawing on cargo pods
 			if (i < pod_count) {
-				if (i % 2 == 0) 
-					drawUI(podcounterPickup, ui_bmeter_leftbound + offset, ui_pcount_halfbound, ui_bmeter_leftbound + ui_pcount_increment + offset - leewayX, ui_pcount_upbound, 1);
-				else 
-					drawUI(podcounterPickup, ui_bmeter_leftbound + offset, ui_pcount_lowbound, ui_bmeter_leftbound + ui_pcount_increment + offset - leewayX, ui_pcount_halfbound, 1);
+
+
+
+
+
+
+				// Drawing on top row
+				if (i % 2 == 0) {
+
+					// Deciding on stolen or not
+					if (i == stolenIndex) {
+						drawUI(podcounterOn, ui_bmeter_leftbound + offset, ui_pcount_halfbound, ui_bmeter_leftbound + ui_pcount_increment + offset - leewayX, ui_pcount_upbound, 1);
+						
+						// Checking if there is a next stolen pod
+						if (gameState->findEntity("vehicle_0")->playerProperties->stolenTrailerIndices.size() > stolenIndexIndex) {
+							
+							stolenIndex = gameState->findEntity("vehicle_0")->playerProperties->stolenTrailerIndices[stolenIndexIndex];
+							stolenIndexIndex++;
+						}
+					}
+
+					else
+						drawUI(podcounterPickup, ui_bmeter_leftbound + offset, ui_pcount_halfbound, ui_bmeter_leftbound + ui_pcount_increment + offset - leewayX, ui_pcount_upbound, 1);
+				}
+
+				// Drawing on bottom row
+				else {
+					if (i == stolenIndex) {
+						drawUI(podcounterOn, ui_bmeter_leftbound + offset, ui_pcount_lowbound, ui_bmeter_leftbound + ui_pcount_increment + offset - leewayX, ui_pcount_halfbound, 1);
+						
+						if (gameState->findEntity("vehicle_0")->playerProperties->stolenTrailerIndices.size() > stolenIndexIndex) {
+							
+							stolenIndex = gameState->findEntity("vehicle_0")->playerProperties->stolenTrailerIndices[stolenIndexIndex];
+							stolenIndexIndex++;
+						}
+					}
+					else 
+						drawUI(podcounterPickup, ui_bmeter_leftbound + offset, ui_pcount_lowbound, ui_bmeter_leftbound + ui_pcount_increment + offset - leewayX, ui_pcount_halfbound, 1);
+				}
 			}
+
+			// Drawing off cargo pods
 			else {
 				if (i % 2 == 0) 
 					drawUI(podcounterOff, ui_bmeter_leftbound + offset, ui_pcount_halfbound, ui_bmeter_leftbound + ui_pcount_increment + offset - leewayX, ui_pcount_upbound, 1);
@@ -604,6 +649,9 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> cbp, Gam
 					drawUI(podcounterOff, ui_bmeter_leftbound + offset, ui_pcount_lowbound, ui_bmeter_leftbound + ui_pcount_increment + offset - leewayX, ui_pcount_halfbound, 1);
 			}
 		}
+
+
+
 
 		// Extra score text
 		string morescore;

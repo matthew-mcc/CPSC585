@@ -777,21 +777,30 @@ void PhysicsSystem::stepPhysics(shared_ptr<CallbackInterface> callback_ptr, Time
 
 	// Debug - Add trailer on key command
 	if (callback_ptr->addTrailer) {
-		attachTrailer(trailers.at(rigidBodyAddIndex), vehicles.at(0));
+		//attachTrailer(trailers.at(rigidBodyAddIndex), vehicles.at(0));
 		callback_ptr->addTrailer = false;
 		rigidBodyAddIndex++;
 
 		// Position Debug
-		std::cout << "position: " << gameState->findEntity("vehicle_0")->transform->getPosition().x;
-		std::cout << ", " << gameState->findEntity("vehicle_0")->transform->getPosition().y;
-		std::cout << ", " << gameState->findEntity("vehicle_0")->transform->getPosition().z << std::endl;
+		//std::cout << "position: " << gameState->findEntity("vehicle_0")->transform->getPosition().x;
+		//std::cout << ", " << gameState->findEntity("vehicle_0")->transform->getPosition().y;
+		//std::cout << ", " << gameState->findEntity("vehicle_0")->transform->getPosition().z << std::endl;
 
-		std::cout << "listener: " << gameState->listener_position.x;
-		std::cout << ", " << gameState->listener_position.y;
-		std::cout << ", " << gameState->listener_position.z << std::endl;
-		std::cout << "====================================" << std::endl;
+		//std::cout << "listener: " << gameState->listener_position.x;
+		//std::cout << ", " << gameState->listener_position.y;
+		//std::cout << ", " << gameState->listener_position.z << std::endl;
+		//std::cout << "====================================" << std::endl;
 
-		std::cout << "boost: " << gameState->findEntity("vehicle_0")->playerProperties->boost << std::endl;
+		//std::cout << "boost: " << gameState->findEntity("vehicle_0")->playerProperties->boost << std::endl;
+	
+
+		// Stolen Trailer Debug
+		std::cout << "Stolen List: ";
+		for (int i = 0; i < gameState->findEntity("vehicle_0")->playerProperties->stolenTrailerIndices.size(); i++) {
+			std::cout << gameState->findEntity("vehicle_0")->playerProperties->stolenTrailerIndices[i] << ", ";
+		}
+		std::cout << std::endl;
+	
 	}
 
 
