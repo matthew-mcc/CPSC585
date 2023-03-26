@@ -108,6 +108,14 @@ quat toGLMQuat(PxQuat pxTransform) {
 	return quaternion;
 }
 
+int getStolenTrailerCount(Vehicle* vehicle) {
+	int count = 0;
+	for (int i = 0; i < vehicle->attachedTrailers.size(); i++) {
+		if (vehicle->attachedTrailers.at(i)->isStolen) count++;
+	}
+	return count;
+}
+
 PxVec3 PhysicsSystem::randomSpawnPosition() {
 	// Iterate until desirable location is found
 	while (true) {
@@ -991,9 +999,12 @@ void PhysicsSystem::stepPhysics(shared_ptr<CallbackInterface> callback_ptr, Time
 			vec3 rot(0.0f, 0.0f, 6.0f * timer->getDeltaTime());
 			entityList.at(i).localTransforms.at(1)->setRotation(normalize(entityList.at(i).localTransforms.at(1)->getRotation() * quat(rot)));
 
-			// Ground flag
+			// Ground Flag
 			entityList.at(i).transform->setOnGround(vehicles.at(vehicleIndex)->onGround);
 			if (vehicleIndex != 0) entityList.at(i).playerProperties->boost = vehicles.at(vehicleIndex)->aiBoost;
+
+			// Stolen Trailer Counter
+			entityList.at(i).playerProperties->nbStolenTrailers = getStolenTrailerCount(vehicles.at(vehicleIndex));
 
 			vehicleIndex++;
 		}

@@ -31,6 +31,9 @@ public:
 	// debug 
 	bool addTrailer = false;
 
+	// Stolen Trailers
+	int nbStolenTrailers = 0;
+
 private:
 	bool playerControlled = false;
 	int playerScore = 0;
