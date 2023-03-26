@@ -88,7 +88,7 @@ void RenderingSystem::initRenderer() {
 	for (int i = 1; i <= 12; i++) {
 		if (i <= 6) { 
 			ui_player_tracker.push_back(generateTexture(("assets/textures/UI/" + to_string(i) + ".png").c_str(), false)); 
-			//ui_player_token.push_back(generateTexture(("assets/textures/UI/playertoken" + to_string(i) + ".png").c_str(), false));
+			ui_player_token.push_back(generateTexture(("assets/textures/UI/playertoken" + to_string(i) + ".png").c_str(), false));
 		}
 		ui_score_tracker.push_back(generateTexture(("assets/textures/UI/cargo_indicators/" + to_string(i) + ".png").c_str(), false));
 
@@ -705,10 +705,18 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> cbp, Gam
 		*/
 
 		// Display player scores
-		/*
+		vector<pair<int, int>> scoreboard;
 		for (int i = 0; i < gameState->numVehicles; i++) {
-			string vehicleName = "vehicle_" + to_string(i);
-			string scoreText = "Salvager #" + to_string(i+1) + ": " + to_string(gameState->findEntity(vehicleName)->playerProperties->getScore());
+			scoreboard.push_back(std::make_pair(gameState->findEntity("vehicle_" + to_string(i))->playerProperties->getScore(), i));
+		}
+		sort(scoreboard.rbegin(), scoreboard.rend());
+
+		/*
+		// Text Scoreboard:
+		for (int i = 0; i < gameState->numVehicles; i++) {
+			//string vehicleName = "vehicle_" + to_string(scoreboard[i].first);
+			string scoreText = "Salvager #" + to_string(scoreboard[i].second) + ": " + to_string(scoreboard[i].first);
+
 			RenderText(textShader, textVAO, textVBO, scoreText,
 				callback_ptr->xres - (16 * (int)scoreText.size()),
 				callback_ptr->yres - 100.f - (i * 50.f),
@@ -719,15 +727,73 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> cbp, Gam
 		*/
 
 
-		int ui_scoreboard_leftbound = (callback_ptr->xres * 3 / 4);
-		int ui_scoreboard_rightbound = (callback_ptr->xres * 14 / 15);
-		int ui_scoreboard_upbound = (callback_ptr->yres * 11 / 12);
+		int ui_scoreboard_leftbound = (callback_ptr->xres * 7 / 8);
+		int ui_scoreboard_rightbound = (callback_ptr->xres * 19 / 20);
+		int ui_scoreboard_upbound = (callback_ptr->yres * 19 / 20);
 		// No lower bound, we'll just keep incrementing down
 
-		int ui_scoreboard_increment = (callback_ptr->yres * 11 / 12);
+		int ui_scoreboard_row_increment = (callback_ptr->yres / 40);
+		int ui_scoreboard_column_incremenent = (callback_ptr->xres / 80);
 
-		drawUI(scoreBarDark, ui_scoreboard_leftbound, ui_scoreboard_upbound + ui_scoreboard_increment, ui_scoreboard_rightbound, ui_scoreboard_upbound, 1);
+		float j = 0.0f;
 
+		RenderText(textShader, textVAO, textVBO, "Score: ",
+			ui_scoreboard_leftbound,
+			ui_scoreboard_upbound + leewayY,
+			0.75f,
+			vec3(0.2f),
+			textChars);
+
+		for (int i = 0; i < gameState->numVehicles; i++) {
+			// If == player
+			if (scoreboard[i].second == 0) {
+
+				drawUI(scoreBarDark, 
+					ui_scoreboard_leftbound, 
+					ui_scoreboard_upbound - ui_scoreboard_row_increment * (j + 1.25f), 
+					ui_scoreboard_rightbound, 
+					ui_scoreboard_upbound - ui_scoreboard_row_increment * j, 
+					2);
+				drawUI(ui_playercard[0], 
+					ui_scoreboard_leftbound, 
+					ui_scoreboard_upbound - ui_scoreboard_row_increment * (j + 1.25f),
+					ui_scoreboard_leftbound + ui_scoreboard_column_incremenent * 1.25f, 
+					ui_scoreboard_upbound - ui_scoreboard_row_increment * j, 
+					1);
+				RenderText(textShader, textVAO, textVBO, ": " + to_string(scoreboard[i].first),
+					ui_scoreboard_leftbound + ui_scoreboard_column_incremenent * 1.25f,
+					ui_scoreboard_upbound - ui_scoreboard_row_increment * (j + 1.25f) + 5.0f,
+					0.75f,
+					vec3(1.0f),
+					textChars);
+
+				j = j + 1.25f;
+			}
+			else {
+
+				drawUI(scoreBar, 
+					ui_scoreboard_leftbound,
+					ui_scoreboard_upbound - ui_scoreboard_row_increment * (j + 1), 
+					ui_scoreboard_rightbound, 
+					ui_scoreboard_upbound - ui_scoreboard_row_increment * j, 
+					2);
+				drawUI(ui_player_token[scoreboard[i].second],
+					ui_scoreboard_leftbound, 
+					ui_scoreboard_upbound - ui_scoreboard_row_increment * (j + 1),
+					ui_scoreboard_leftbound + ui_scoreboard_column_incremenent, 
+					ui_scoreboard_upbound - ui_scoreboard_row_increment * j, 
+					1);
+				RenderText(textShader, textVAO, textVBO, ": " + to_string(scoreboard[i].first),
+					ui_scoreboard_leftbound + ui_scoreboard_column_incremenent,
+					ui_scoreboard_upbound - ui_scoreboard_row_increment * (j + 1) + 2.5f,
+					0.6f,
+					vec3(1.0f),
+					textChars);
+
+				j = j + 1.0f;
+
+			}
+		}
 	}
 
 	// Imgui Window
