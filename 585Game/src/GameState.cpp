@@ -154,7 +154,7 @@ int GameState::calculatePoints(int vehicleIndex, int totalTrailers, int stolenTr
 	string name = "vehicle_" + to_string(vehicleIndex);
 	int score = 0;
 	for (int i = 0; i < totalTrailers; i++) {
-		score += 1;
+		score += 3;
 	}
 	for (int i = 0; i < stolenTrailers; i++) {
 		score += 1;

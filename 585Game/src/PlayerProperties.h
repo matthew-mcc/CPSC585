@@ -1,5 +1,6 @@
 #pragma once
 #include <Boilerplate/Window.h>
+#include <vector>
 
 class PlayerProperties {
 public:
@@ -30,6 +31,9 @@ public:
 
 	// debug 
 	bool addTrailer = false;
+
+	// Stolen Trailers
+	std::vector<int> stolenTrailerIndices;
 
 private:
 	bool playerControlled = false;
