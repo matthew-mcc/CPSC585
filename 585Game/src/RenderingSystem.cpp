@@ -590,7 +590,7 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> cbp, Gam
 
 		// Extra score text
 		string morescore;
-		int bonus_score = gameState->calculatePoints(0, gameState->findEntity("vehicle_0")->nbChildEntities, gameState->findEntity("vehicle_0")->playerProperties->nbStolenTrailers);
+		int bonus_score = gameState->calculatePoints(0, gameState->findEntity("vehicle_0")->nbChildEntities, gameState->findEntity("vehicle_0")->playerProperties->stolenTrailerIndices.size());
 		morescore = "Cargo Value: " + to_string(bonus_score);
 		RenderText(textShader, textVAO, textVBO, morescore,
 			ui_bmeter_leftbound - leewayX,
