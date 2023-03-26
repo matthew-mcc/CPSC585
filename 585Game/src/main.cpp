@@ -27,7 +27,7 @@ int main() {
 
 	// Initialize Systems
 	xInput.run();
-	audio.Init(6);	// Remember to change this if we ever find a better way to keep track of vehicle count
+	audio.Init(gameState->numVehicles);	// Remember to change this if we ever find a better way to keep track of vehicle count
 	std::shared_ptr<CallbackInterface> callback_ptr = processInput(renderer.window);
 	renderer.SetupImgui();
 	physics.initPhysX();
@@ -74,6 +74,7 @@ int main() {
 			physics.initPhysicsSystem(gameState, aiController);
 			timer->init();
 			renderer.resetRenderer();
+			audio.StartEvents(gameState->numVehicles);
 			isLoaded = true;
 		}
 

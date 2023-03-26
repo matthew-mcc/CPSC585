@@ -727,10 +727,9 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> cbp, Gam
 		*/
 
 
-		int ui_scoreboard_leftbound = (callback_ptr->xres * 7 / 8);
-		int ui_scoreboard_rightbound = (callback_ptr->xres * 19 / 20);
+		int ui_scoreboard_leftbound = (callback_ptr->xres * 11 / 12);
+		int ui_scoreboard_rightbound = (callback_ptr->xres * 29 / 30);
 		int ui_scoreboard_upbound = (callback_ptr->yres * 19 / 20);
-		// No lower bound, we'll just keep incrementing down
 
 		int ui_scoreboard_row_increment = (callback_ptr->yres / 40);
 		int ui_scoreboard_column_incremenent = (callback_ptr->xres / 80);
@@ -794,6 +793,10 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> cbp, Gam
 
 			}
 		}
+
+
+
+
 	}
 
 	// Imgui Window
