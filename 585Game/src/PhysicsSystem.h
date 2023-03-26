@@ -52,6 +52,10 @@ struct Vehicle {
 	int AI_CurrTrailerIndex;
 	float AI_BoostMeter;
 	bool AI_IsBoosting = false;
+	vector<PxVec3> positions;
+	bool AI_IsStuck = false;
+	float AI_ReverseTimer = 0.f;
+	
 	// Maybe we don't need a map of values, but instead just one personality?
 	/*map<string, float> AI_Personalities = {
 		{"Aggressive", 0.f},
@@ -124,6 +128,9 @@ private:
 	void AI_DetermineAttackPatterns(Vehicle* vehicle, Vehicle* target);
 	void AI_DefensiveManeuvers(Vehicle* self, Vehicle* attacker, PxReal timestep);
 	void AI_ApplyBoost(Vehicle* vehicle);
+	void AI_Stuck(Vehicle* vehicle);
+	void AI_UnStuck(Vehicle* vehicle);
+	
 };
 
 

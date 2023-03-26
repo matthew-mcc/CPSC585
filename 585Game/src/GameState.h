@@ -25,7 +25,7 @@ public:
 	bool gameEnded = false;
 
 	// Game Parameters
-	int numVehicles = 2;
+	int numVehicles = 6;
 	int numTrailers = 30;
 
 	// Audio 

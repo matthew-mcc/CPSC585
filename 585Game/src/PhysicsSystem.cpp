@@ -633,7 +633,7 @@ void PhysicsSystem::initVehicles(int vehicleCount) {
 		// Init AI_State
 		vehicles.at(i)->AI_State = 0;
 		vehicles.at(i)->AI_CurrTrailerIndex = 0;
-		vehicles.at(i)->AI_BoostMeter = 100.f;
+		vehicles.at(i)->AI_BoostMeter = 00.f;
 
 		//Load the params from json or set directly.
 		gVehicleDataPath = "assets/vehicledata";
@@ -652,6 +652,7 @@ void PhysicsSystem::initVehicles(int vehicleCount) {
 		vehicles.back()->vehicle.mEngineDriveState.gearboxState.currentGear = vehicles.back()->vehicle.mEngineDriveParams.gearBoxParams.neutralGear + 1;
 		vehicles.back()->vehicle.mEngineDriveState.gearboxState.targetGear = vehicles.back()->vehicle.mEngineDriveParams.gearBoxParams.neutralGear + 1;
 		vehicles.back()->vehicle.mEngineDriveParams.gearBoxParams.switchTime = 0.1;
+		
 
 		//Set the vehicle to use the automatic gearbox.
 		vehicles.back()->vehicle.mTransmissionCommandState.targetGear = PxVehicleEngineDriveTransmissionCommandState::eAUTOMATIC_GEAR;
@@ -728,9 +729,9 @@ void PhysicsSystem::initVehicles(int vehicleCount) {
 
 
 	// Init AI Vehicle Personality
-	//vehicles.at(1)->AI_Personality = "Defensive";
 	vehicles.at(1)->AI_Personality = "Defensive";
-
+	vehicles.at(2)->AI_Personality = "Aggressive";
+	
 }
 
 void PhysicsSystem::initPhysicsSystem(GameState* gameState, AiController* aiController) {
@@ -902,6 +903,8 @@ void PhysicsSystem::stepPhysics(shared_ptr<CallbackInterface> callback_ptr, Time
 
 		// AI VEHICLE INPUT
 		else {
+			// Set previous pos
+			//vehicles.at(i)->AI_PrevPos = vehicles.at(i)->vehicle.mPhysXState.physxActor.rigidBody->getGlobalPose().p;
 			AI_StateController(vehicles.at(i), timestep);
 		}
 	}
@@ -1030,20 +1033,51 @@ void PhysicsSystem::stepPhysics(shared_ptr<CallbackInterface> callback_ptr, Time
 // AI
 
 void PhysicsSystem::AI_StateController(Vehicle* vehicle, PxReal timestep) {
-	
+	Timer* timer = &Timer::Instance();
+
 	//cout << vehicles.at(0)->vehicle.mPhysXState.physxActor.rigidBody->getGlobalPose().p.x << " " << vehicles.at(0)->vehicle.mPhysXState.physxActor.rigidBody->getGlobalPose().p.y << " " << vehicles.at(0)->vehicle.mPhysXState.physxActor.rigidBody->getGlobalPose().p.z << endl;
 	//cout << vehicle->AI_State << endl;
+	//cout << vehicles.at(1)->vehicle.mEngineDriveState.gearboxState.currentGear << endl;
+	AI_Stuck(vehicle);
+
+	if (vehicle->AI_IsStuck) {
+		/*vehicle->vehicle.mEngineDriveState.gearboxState.targetGear = 0;
+		vehicle->vehicle.mEngineDriveState.gearboxState.currentGear = 0;
+		vehicle->vehicle.mCommandState.brakes[0] = 0;
+		vehicle->vehicle.mCommandState.nbBrakes = 1;*/
+
+		if (vehicle->AI_ReverseTimer < 0.25f) {
+			if (vehicle->vehicle.mPhysXState.physxActor.rigidBody->getLinearVelocity().magnitude() < 60.f) {
+				vehicle->vehicle.mPhysXState.physxActor.rigidBody->addForce(vehicle->vehicle.mPhysXState.physxActor.rigidBody->getGlobalPose().q.rotate(PxVec3(0, 0, -1)), PxForceMode().eVELOCITY_CHANGE);
+				vehicle->vehicle.mCommandState.steer = 1.f;
+			}
+			vehicle->AI_ReverseTimer += timer->getDeltaTime();
+		}
+		else {
+			vehicle->AI_IsStuck = false;
+			vehicle->AI_ReverseTimer = 0.f;
+		}
+		
+		/*vehicle->vehicle.mEngineDriveParams.gearBoxParams.switchTime = 0.1;
+		vehicle->vehicle.mCommandState.brakes[0] = 0;
+		vehicle->vehicle.mCommandState.nbBrakes = 1;
+		vehicle->vehicle.mCommandState.throttle = 1.f;
+		vehicle->vehicle.mCommandState.steer = 1.f;*/
+	}
+	else {
+		if (vehicle->AI_State == 0) {
+			AI_FindTrailer(vehicle);
+			AI_CollectTrailer(vehicle, timestep);
+		}
+		if (vehicle->AI_State == 1) {
+			AI_DropOff(vehicle);
+		}
+		if (vehicle->AI_State == 2) {
+			AI_BumpPlayer(vehicle);
+		}
+	}
 	
-	if (vehicle->AI_State == 0) {
-		AI_FindTrailer(vehicle);
-		AI_CollectTrailer(vehicle, timestep);
-	}
-	if (vehicle->AI_State == 1) {
-		AI_DropOff(vehicle);
-	}
-	if (vehicle->AI_State == 2) {
-		AI_BumpPlayer(vehicle);
-	}
+	
 
 }
 
@@ -1052,6 +1086,66 @@ void PhysicsSystem::AI_InitSystem() {
 	AI_State = 0;
 	currTrailerIndex = 0;
 }
+
+void PhysicsSystem::AI_UnStuck(Vehicle* vehicle) {
+	Timer* timer = &Timer::Instance();
+	/*vehicles.at(i)->vehicle.mEngineDriveState.gearboxState.currentGear = 0;
+	vehicles.at(i)->vehicle.mCommandState.throttle = player->playerProperties->brake;
+	vehicles.at(i)->vehicle.mCommandState.brakes[0] = player->playerProperties->throttle;
+	vehicles.at(i)->vehicle.mCommandState.nbBrakes = 1;*/
+
+	vehicle->vehicle.mEngineDriveState.gearboxState.currentGear = 0;
+	vehicle->vehicle.mEngineDriveState.gearboxState.targetGear = 0;
+	vehicle->vehicle.mEngineDriveParams.gearBoxParams.switchTime = 0.1;
+	vehicle->vehicle.mCommandState.brakes[0] = 0;
+	vehicle->vehicle.mCommandState.nbBrakes = 1;
+	vehicle->vehicle.mCommandState.throttle = 1.f;
+	vehicle->vehicle.mCommandState.steer = 1.f;
+
+	if (vehicle->AI_ReverseTimer < 10.f) {
+		
+		vehicle->AI_ReverseTimer += timer->getDeltaTime();
+
+		//cout << "Attempting reverse with gearBox: " << vehicle->vehicle.mEngineDriveState.gearboxState.currentGear << endl;
+
+		/*vehicle->vehicle.mCommandState.brakes[0] = 0;
+		vehicle->vehicle.mCommandState.nbBrakes = 1;*/
+		//vehicle->vehicle.mCommandState.throttle = 1.f;
+	}
+	else if (vehicle->AI_ReverseTimer >= 10.f) {
+		vehicle->vehicle.mEngineDriveState.gearboxState.currentGear = 2;
+		vehicle->vehicle.mEngineDriveState.gearboxState.targetGear = 2;
+		vehicle->AI_IsStuck = false;
+		vehicle->AI_ReverseTimer = 0.f;
+	}
+	
+}
+
+void PhysicsSystem::AI_Stuck(Vehicle* vehicle) {
+	Timer* timer = &Timer::Instance();
+	if (vehicle->positions.size() < 500) {
+		vehicle->positions.push_back(vehicle->vehicle.mPhysXState.physxActor.rigidBody->getGlobalPose().p);
+		}
+
+	else {
+		PxVec3 delta = vehicle->positions[0] - vehicle->positions[499];
+		PxReal distanceSq = delta.x * delta.x + delta.z * delta.z;
+
+		
+		if (distanceSq < 100.f) {
+			
+			float timeStuck = 0.f;
+			vehicle->AI_IsStuck = true;
+			cout << "VEHICLE STUCK" << endl;
+			
+		}
+		
+		vehicle->positions.clear();
+	}
+	
+}
+
+
 
 void PhysicsSystem::AI_MoveTo(Vehicle* vehicle, PxVec3 destination) {
 	
@@ -1253,6 +1347,7 @@ void PhysicsSystem::AI_CollectTrailer(Vehicle* vehicle, PxReal timestep) {
 
 void PhysicsSystem::AI_DropOff(Vehicle* vehicle) {
 
+	//vehicle->vehicle.mCommandState.throttle = 0.f;
 	AI_MoveTo(vehicle, PxVec3(0.f, 0.f, 32.f));
 	
 	if (vehicle->attachedTrailers.size() == 0) {
@@ -1438,7 +1533,7 @@ void PhysicsSystem::AI_BumpPlayer(Vehicle* vehicle) {
 			// Calculate distance
 			PxReal distanceSq = delta.x * delta.x + delta.z * delta.z;
 			if (distanceSq < 500.f) {
-				AI_ApplyBoost(vehicle);
+				//AI_ApplyBoost(vehicle);
 			}
 		}
 		else {
