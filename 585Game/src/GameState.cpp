@@ -150,11 +150,14 @@ Entity* GameState::spawnVehicle() {
 	vehiclesSpawned++;
 }
 
-int GameState::calculatePoints(string name) {
-	int podCount = findEntity(name)->nbChildEntities;
+int GameState::calculatePoints(int vehicleIndex, int totalTrailers, int stolenTrailers) {
+	string name = "vehicle_" + to_string(vehicleIndex);
 	int score = 0;
-	for (int i = podCount; i > 0; i--) {
-		score += i;
+	for (int i = 0; i < totalTrailers; i++) {
+		score += 1;
+	}
+	for (int i = 0; i < stolenTrailers; i++) {
+		score += 1;
 	}
 	return score;
 
@@ -204,14 +207,16 @@ void GameState::menuEventHandler(std::shared_ptr<CallbackInterface> cbp) {
 	// Only handle events when in menu
 	if (inMenu) {
 		// Navigate Right
-		if (cbp->navigateR) {
+		if (cbp->navigateR && !showInfo) {
 			menuOptionIndex = (menuOptionIndex + 1) % nbMenuOptions;
 			cbp->navigateR = false;
+			audio_ptr->MenuClick(1, listener_position);
 		}
 		// Navigate Left
-		else if (cbp->navigateL) {
+		else if (cbp->navigateL && !showInfo) {
 			menuOptionIndex = (menuOptionIndex - 1) % nbMenuOptions;
 			cbp->navigateL = false;
+			audio_ptr->MenuClick(1, listener_position);
 		}
 		// Navigation Wrap-Around
 		if (menuOptionIndex < 0) {
@@ -220,14 +225,25 @@ void GameState::menuEventHandler(std::shared_ptr<CallbackInterface> cbp) {
 
 		// Buttons
 		if (cbp->menuConfirm) {
+			if (showInfo) {
+				showInfo = false;
+				audio_ptr->MenuClick(0, listener_position);
+			}
+			// Info
+			else if (menuOptionIndex == 0) {
+				showInfo = true;
+				audio_ptr->MenuClick(0, listener_position);
+			}
 			// Play
-			if (menuOptionIndex == 0) {
+			else if (menuOptionIndex == 1) {
 				loading = true;
+				audio_ptr->MenuClick(2, listener_position);
 			}
 			// Quit
-			if (menuOptionIndex == 1) {
+			else if (menuOptionIndex == 2) {
 				quit = true;
 			}
+			cbp->menuConfirm = false;
 		}
 	}
 }

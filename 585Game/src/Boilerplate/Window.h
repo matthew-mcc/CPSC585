@@ -90,6 +90,7 @@ public:
 
 	// Main Menu
 	bool menuConfirm = false;
+	bool menuConfirmHold = false;
 	bool navigateR = false;
 	bool navigateRHold = false;
 	bool navigateL = false;
@@ -210,13 +211,19 @@ public:
 
 		// Main Menu
 		if (keys_pressed <= 0) {
-
 			// Menu Confirm
 			if (x.data.A) {
-				menuConfirm = true;
+				if (menuConfirmHold) {
+					menuConfirm = false;
+				}
+				else {
+					menuConfirm = true;
+					menuConfirmHold = true;
+				}
 			}
 			else {
 				menuConfirm = false;
+				menuConfirmHold = false;
 			}
 
 			// Back to Menu

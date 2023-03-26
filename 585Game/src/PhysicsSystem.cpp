@@ -326,6 +326,8 @@ void PhysicsSystem::detachTrailer(Trailer* trailer, Vehicle* vehicle, Vehicle* v
 	for (int i = vehicle->attachedTrailers.size() - 1; i >= breakPoint; i--) {
 		vehicle->attachedJoints.at(i)->release();
 		vehicle->attachedTrailers.at(i)->isTowed = false;
+		if (vaccuumTarget == NULL) vehicle->attachedTrailers.at(i)->isStolen = false;
+		else vehicle->attachedTrailers.at(i)->isStolen = true;
 		vehicle->attachedTrailers.at(i)->vaccuumTarget = vaccuumTarget;
 		vehicle->attachedTrailers.at(i)->rigidBody->setAngularDamping(1);
 		vehicle->attachedTrailers.at(i)->rigidBody->setLinearDamping(1);
@@ -447,10 +449,15 @@ void PhysicsSystem::dropOffTrailer(Vehicle* vehicle) {
 	vector<PxD6Joint*> newJoints;
 	vector<Trailer*> newTrailers;
 	int nbTrailers = vehicle->attachedTrailers.size();
+	int nbStolenTrailers = 0;
 
 	// Add trailers to flyTrailer list
 	// Release all joints attached to vehicle
 	for (int i = 0; i < nbTrailers; i++) {
+		if (vehicle->attachedTrailers.at(i)->isStolen) {
+			vehicle->attachedTrailers.at(i)->isStolen = false;
+			nbStolenTrailers++;
+		}
 		vehicle->attachedTrailers.at(i)->isFlying = true;
 		vehicle->attachedTrailers.at(i)->isTowed = false;
 		changeRigidDynamicShape(vehicle->attachedTrailers.at(i)->rigidBody, detachedTrailerShape);
@@ -465,10 +472,9 @@ void PhysicsSystem::dropOffTrailer(Vehicle* vehicle) {
 	// Find entity of vehicle that triggered the dropoff
 	// Add score to this entity
 	Entity* vehicleEntity = gameState->findEntity("vehicle_" + to_string(getVehicleIndex(vehicle)));
-	int scoreToAdd = gameState->calculatePoints("vehicle_" + to_string(getVehicleIndex(vehicle)));
-
+	int scoreToAdd = gameState->calculatePoints(getVehicleIndex(vehicle), nbTrailers, nbStolenTrailers);
 	vehicleEntity->playerProperties->addScore(scoreToAdd);
-	cout << vehicleEntity->name << "'s new score: " << vehicleEntity->playerProperties->getScore() << "\n";		// For debugging
+	cout << vehicleEntity->name << "'s new score: " << vehicleEntity->playerProperties->getScore() << ". Number Stolen: " << nbStolenTrailers << "\n";		// For debugging
 }
 
 void PhysicsSystem::resetCollectedTrailers() {
