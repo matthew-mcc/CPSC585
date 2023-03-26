@@ -33,7 +33,6 @@ public:
 	bool addTrailer = false;
 
 	// Stolen Trailers
-	int nbStolenTrailers = 0;
 	std::vector<int> stolenTrailerIndices;
 
 private:

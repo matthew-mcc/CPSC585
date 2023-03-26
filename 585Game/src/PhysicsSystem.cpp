@@ -1005,7 +1005,6 @@ void PhysicsSystem::stepPhysics(shared_ptr<CallbackInterface> callback_ptr, Time
 
 			// Stolen Trailer Counter
 			vector<int> stolenTrailerIndices = getStolenTrailerIndices(vehicles.at(vehicleIndex));
-			entityList.at(i).playerProperties->nbStolenTrailers = stolenTrailerIndices.size();
 			entityList.at(i).playerProperties->stolenTrailerIndices = stolenTrailerIndices;
 
 			vehicleIndex++;
