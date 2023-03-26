@@ -18,9 +18,6 @@ void AudioManager::Init(int vehicleCount) {
 		audioEngine.LoadEventInstanced(e_boost, vehicle + "_boost");
 		audioEngine.LoadEventInstanced(a_hornhonk, vehicle + "_honk");
 
-		audioEngine.PlayEvent(vehicle + "_tire");
-		//audioEngine.PlayEvent(vehicle + "_engine");
-		audioEngine.PlayEvent(vehicle + "_boost");
 	}
 
 	audioEngine.LoadSound("assets/audio/ping_placeholder.flac");
@@ -34,6 +31,16 @@ void AudioManager::Init(int vehicleCount) {
 
 
 	audioEngine.SetEventVolume("vehicle_0", 0.5f);
+}
+
+void AudioManager::StartEvents(int vehicleCount) {
+
+	for (int i = 0; i < vehicleCount; i++) {
+		std::string vehicle = "vehicle_" + to_string(i);
+		audioEngine.PlayEvent(vehicle + "_tire");
+		audioEngine.PlayEvent(vehicle + "_engine");
+		audioEngine.PlayEvent(vehicle + "_boost");
+	}
 }
 
 
@@ -110,12 +117,20 @@ void AudioManager::UpdateTire(const std::string &strEventName, const glm::vec3 &
 
 }
 
-void AudioManager::UpdateBoostPlaceholder(const std::string& strEventName, const glm::vec3& pos, const glm::vec3& velocity, const glm::vec3& forward, const glm::vec3& up, float distance, float boost) {
+void AudioManager::UpdateBoost(const std::string& strEventName, const glm::vec3& pos, const glm::vec3& velocity, const glm::vec3& forward, const glm::vec3& up, float distance, float boost) {
 	
 	std::string soundName = strEventName + "_boost";
 	audioEngine.SetEvent3dAttributes(soundName, pos, velocity, forward, up);
 	audioEngine.SetEventParameter(soundName, "Boost", boost);
 }
+
+void AudioManager::UpdateEngine(const std::string& strEventName, const glm::vec3& pos, const glm::vec3& velocity, const glm::vec3& forward, const glm::vec3& up, float distance, float rpm) {
+	std::string soundName = strEventName + "_engine";
+	audioEngine.SetEvent3dAttributes(soundName, pos, velocity, forward, up);
+	audioEngine.SetEventParameter(soundName, "RPM", rpm);
+
+}
+
 
 
 void AudioManager::setVolume(const std::string& strEventName, float db) {

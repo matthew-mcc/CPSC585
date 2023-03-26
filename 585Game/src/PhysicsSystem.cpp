@@ -798,11 +798,14 @@ void PhysicsSystem::stepPhysics(shared_ptr<CallbackInterface> callback_ptr, Time
 	
 
 		// Stolen Trailer Debug
-		std::cout << "Stolen List: ";
-		for (int i = 0; i < gameState->findEntity("vehicle_0")->playerProperties->stolenTrailerIndices.size(); i++) {
-			std::cout << gameState->findEntity("vehicle_0")->playerProperties->stolenTrailerIndices[i] << ", ";
-		}
-		std::cout << std::endl;
+		//std::cout << "Stolen List: ";
+		//for (int i = 0; i < gameState->findEntity("vehicle_0")->playerProperties->stolenTrailerIndices.size(); i++) {
+		//	std::cout << gameState->findEntity("vehicle_0")->playerProperties->stolenTrailerIndices[i] << ", ";
+		//}
+		//std::cout << std::endl;
+
+		std::cout << "engine: " << vehicles.at(0)->vehicle.mEngineDriveState.engineState.rotationSpeed << std::endl;
+
 	
 	}
 
@@ -1035,19 +1038,23 @@ void PhysicsSystem::stepPhysics(shared_ptr<CallbackInterface> callback_ptr, Time
 		glm::vec3 audio_velocity = gameState->findEntity(vehicleName)->transform->getLinearVelocity();
 		glm::vec3 audio_forward = gameState->findEntity(vehicleName)->transform->getForwardVector();
 		glm::vec3 audio_up = gameState->findEntity(vehicleName)->transform->getUpVector();
+
 		distance = glm::length(glm::distance(gameState->listener_position, audio_position));
+
 
 		if (i == 0) {
 			//std::cout << "Listener updated" << std::endl;
 			gameState->audio_ptr->Update3DListener(gameState->listener_position, audio_velocity, -audio_forward, audio_up);
 			gameState->audio_ptr->setVolume(vehicleName + "_tire", 1.f);
 			gameState->audio_ptr->UpdateTire(vehicleName, audio_position, audio_velocity, audio_forward, audio_up, distance, vehicles.at(i)->onGround);
-			gameState->audio_ptr->UpdateBoostPlaceholder(vehicleName, audio_position, audio_velocity, audio_forward, audio_up, distance, gameState->findEntity("vehicle_0")->playerProperties->boost);
+			gameState->audio_ptr->UpdateEngine(vehicleName, audio_position, audio_velocity, audio_forward, audio_up, distance, vehicles.at(i)->vehicle.mEngineDriveState.engineState.rotationSpeed);
+			gameState->audio_ptr->UpdateBoost(vehicleName, audio_position, audio_velocity, audio_forward, audio_up, distance, gameState->findEntity("vehicle_0")->playerProperties->boost);
 		}
 		else {
 			gameState->audio_ptr->setVolume(vehicleName + "_tire", 1.f);
 			gameState->audio_ptr->UpdateTire(vehicleName, audio_position, audio_velocity, audio_forward, audio_up, distance, vehicles.at(i)->onGround);
-			gameState->audio_ptr->UpdateBoostPlaceholder(vehicleName, audio_position, audio_velocity, audio_forward, audio_up, distance, vehicles.at(i)->aiBoost);
+			gameState->audio_ptr->UpdateEngine(vehicleName, audio_position, audio_velocity, audio_forward, audio_up, distance, vehicles.at(i)->vehicle.mEngineDriveState.engineState.rotationSpeed);
+			gameState->audio_ptr->UpdateBoost(vehicleName, audio_position, audio_velocity, audio_forward, audio_up, distance, vehicles.at(i)->aiBoost);
 		}
 
 		if (vehicles.at(i)->landed) {
