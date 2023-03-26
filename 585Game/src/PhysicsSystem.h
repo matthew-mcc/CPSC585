@@ -41,6 +41,7 @@ struct Trailer {
 	int entityIndex;
 	bool isFlying = false;
 	bool isTowed = false;
+	bool isStolen = false;
 	float groundDistance = 0.0f;
 };
 
@@ -48,6 +49,9 @@ struct Vehicle {
 	EngineDriveVehicle vehicle;
 	vector<Trailer*> attachedTrailers;
 	vector<PxD6Joint*> attachedJoints;
+	bool onGround = false;
+	bool landed = false;
+	float aiBoost = 0.0f;
 	int AI_State;
 	int AI_CurrTrailerIndex;
 	float AI_BoostMeter;
@@ -56,6 +60,7 @@ struct Vehicle {
 	bool AI_IsStuck = false;
 	float AI_ReverseTimer = 0.f;
 	bool AI_DroppingOff = false;
+
 	
 	// Maybe we don't need a map of values, but instead just one personality?
 	/*map<string, float> AI_Personalities = {

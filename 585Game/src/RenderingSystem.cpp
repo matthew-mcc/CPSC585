@@ -16,7 +16,8 @@
 
 
 // Rendering System Constructor
-RenderingSystem::RenderingSystem() {
+RenderingSystem::RenderingSystem(GameState* gameState) {
+	this->gameState = gameState;
 	initRenderer();
 }
 
@@ -43,28 +44,72 @@ void RenderingSystem::initRenderer() {
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
+	// TEXTURE LOADING
 	testTexture = generateTexture("assets/textures/alien.png", false);
 	orbTexture = generateTexture("assets/textures/orb.png", false);
+	rockTexture = generateTexture("assets/textures/rock.png", false);
 	// Choose one, top = squares, bottom = chevrons
-	boostBlue = generateTexture("assets/textures/boostBlue.png", false);
-	boostGrey = generateTexture("assets/textures/boostGrey.png", false);
-	boostOrange = generateTexture("assets/textures/boostOrange.png", false);
+	boostBlue = generateTexture("assets/textures/UI/boostBlue.png", false);
+	boostGrey = generateTexture("assets/textures/UI/boostGrey.png", false);
+	boostOrange = generateTexture("assets/textures/UI/boostOrange.png", false);
 	// Will default to chevrons if not commented out
-	boostBlue = generateTexture("assets/textures/boostChevBlue.png", false);
-	boostGrey = generateTexture("assets/textures/boostChevGrey.png", false);
-	boostOrange = generateTexture("assets/textures/boostChevOrange.png", false);
+	boostBlue = generateTexture("assets/textures/UI/boostChevBlue.png", false);
+	boostGrey = generateTexture("assets/textures/UI/boostChevGrey.png", false);
+	boostOrange = generateTexture("assets/textures/UI/boostChevOrange.png", false);
 
-	podcounterOn = generateTexture("assets/textures/podcounterOn.png", false);
-	podcounterOff = generateTexture("assets/textures/podCounterOff.png", false);
+	boostOn = generateTexture("assets/textures/UI/dotsOn.png", false);
+	boostOff = generateTexture("assets/textures/UI/dotsOff.png", false);
 
+	boostBox = generateTexture("assets/textures/UI/boostBox.png", false);
+	boostText = generateTexture("assets/textures/UI/boostText.png", false);
 
+	podcounterOn = generateTexture("assets/textures/UI/podcounterOn.png", false);
+	podcounterOff = generateTexture("assets/textures/UI/podCounterOff.png", false);
+	podcounterPickup = generateTexture("assets/textures/UI/podcounterPickup.png", false);
+	podsText = generateTexture("assets/textures/UI/podsText.png", false);
 
+	scoreBar = generateTexture("assets/textures/UI/boostBox.png", false);
+	scoreBarDark = generateTexture("assets/textures/UI/bar.png", false);
+
+	menuBackground = generateTexture("assets/textures/UI/menuBackground.png", false);
+	menuTitle = generateTexture("assets/textures/UI/menuTitle.png", false);
+	menuLoading = generateTexture("assets/textures/UI/menuLoading.png", false);
+	menuPlay = generateTexture("assets/textures/UI/menuPlay.png", false);
+	menuQuit = generateTexture("assets/textures/UI/menuQuit.png", false);
+	menuInfo = generateTexture("assets/textures/UI/menuInfo.png", false);
+	menuInfoDisplay = generateTexture("assets/textures/UI/menuInfoDisplay.png", false);
+
+	backToMenu = generateTexture("assets/textures/UI/backToMenu.png", false);
+	timerAndScore = generateTexture("assets/textures/UI/timerAndScore.png", false);
+
+	// Only 2 exists atm, will need to be added later like the rest
+	ui_playercard.push_back(generateTexture("assets/textures/UI/playerCard1.png", false));
+	ui_playercard.push_back(generateTexture("assets/textures/UI/playerCard2.png", false));
+	for (int i = 1; i <= 12; i++) {
+		if (i <= 6) { 
+			ui_player_tracker.push_back(generateTexture(("assets/textures/UI/" + to_string(i) + ".png").c_str(), false)); 
+			ui_player_token.push_back(generateTexture(("assets/textures/UI/playertoken" + to_string(i) + ".png").c_str(), false));
+		}
+		ui_score_tracker.push_back(generateTexture(("assets/textures/UI/cargo_indicators/" + to_string(i) + ".png").c_str(), false));
+
+	}
 
 	// PARTICLE SYSTEM INITIALIZATIONS
 	particleShader = Shader("src/Shaders/particleVertex.txt", "src/Shaders/particleFragment.txt");
 	particleShader.use();
 	particleShader.setInt("sprite", 1);
-	testParticles = ParticleSystem(particleShader, orbTexture, 400);
+	portalParticles = ParticleSystem(particleShader, orbTexture, 500, 4.0f, 0.2f, portalColor, "p");
+	dirtParticles = ParticleSystem(particleShader, rockTexture, 500, 1.0f, 0.2f, dirtColor, "d");
+	
+	for (int i = 0; i < gameState->numVehicles; i++) {
+		if(i == 0) boostParticles.push_back(ParticleSystem(particleShader, rockTexture, 1000, 0.5f, 0.25f, boostColor1, boostColor2, boostColor3, "b"));
+		else boostParticles.push_back(ParticleSystem(particleShader, rockTexture, 500, 0.5f, 0.2f, boostColor1, boostColor2, boostColor3, "b"));	// Optimization: Less particles for non-player vehicles
+	}
+
+	for (int i = 0; i < 6; i++) {
+		indicators.push_back(ParticleSystem(particleShader, ui_player_tracker[i], 1.f, 300.f, 0.f, vec3(1.f), "i"));
+		indicatorCounters.push_back(ParticleSystem(particleShader, ui_player_tracker[i], 1.f, 300.f, 0.1f, vec3(1.f), "i"));
+	}
 
 	// FRAME BUFFER INITIALIZATIONS
 	nearShadowMap = FBuffer(8192, 2048, 40.f, 10.f, -500.f, 100.f);
@@ -109,7 +154,8 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> cbp, Gam
 	glClearColor(skyColor.r, skyColor.g, skyColor.b, 1.0f);	// Set Background (Sky) Color
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	if (gameState->gameEnded && !callback_ptr->play) {
+	// RETURN TO MENU
+	if (gameState->gameEnded && callback_ptr->backToMenu) {
 		gameState->inMenu = true;
 		gameState->gameEnded = false;
 	}
@@ -121,20 +167,36 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> cbp, Gam
 		mat4 textProjection = ortho(0.0f, static_cast<float>(callback_ptr->xres), 0.0f, static_cast<float>(callback_ptr->yres));
 		textShader.setMat4("projection", textProjection);
 
+		// Draw Background
+		drawUI(menuBackground, 0, 0, callback_ptr->xres, callback_ptr->yres, 2);
+
 		// Load Screen
-		if (callback_ptr->play) {
-			RenderText(textShader, textVAO, textVBO, "Loading...",
-				500,
-				500,
-				1.5f,
-				vec3(0.2, 0.2f, 0.2f),
-				textChars);
+		if (gameState->loading) {
+			drawUI(menuLoading, 0, 0, callback_ptr->xres, callback_ptr->yres, 1);
 			gameState->inMenu = false;
+			gameState->loading = false;
+		}
+
+		// Info Screen
+		else if (gameState->showInfo) {
+			drawUI(menuInfoDisplay, 0, 0, callback_ptr->xres, callback_ptr->yres, 1);
 		}
 
 		// Menu Screen
 		else {
-			drawUI(testTexture, callback_ptr->xres - 300.f, 30.f, callback_ptr->xres - 30.f, 300.f, 0);
+			// Highlight Info
+			if (gameState->menuOptionIndex == 0) {
+				drawUI(menuInfo, 0, 0, callback_ptr->xres, callback_ptr->yres, 1);
+			}
+			// Highlight Play
+			if (gameState->menuOptionIndex == 1) {
+				drawUI(menuPlay, 0, 0, callback_ptr->xres, callback_ptr->yres, 1);
+			}
+			// Highlight Quit
+			else if (gameState->menuOptionIndex == 2) {
+				drawUI(menuQuit, 0, 0, callback_ptr->xres, callback_ptr->yres, 1);
+			}
+			drawUI(menuTitle, 0, 0, callback_ptr->xres, callback_ptr->yres, 0);
 		}
 
 		glfwSwapBuffers(window);
@@ -158,7 +220,7 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> cbp, Gam
 	// Camera Zoom: Pull view back with increasing number of towed trailers
 	float camera_zoom_forward = clamp(1.0f + (float)playerEntity->nbChildEntities * 0.5f, 1.0f, 11.0f);
 	float camera_zoom_up = clamp(1.0f + (float)playerEntity->nbChildEntities * 0.4f, 1.0f, 11.0f);
-	
+
 	// Chase Camera: Compute eye and target offsets
 		// Eye Offset: Camera position (world space)
 		// Target Offset: Camera focus point (world space)
@@ -170,28 +232,29 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> cbp, Gam
 	glm::vec3 Camera_collision(0.f);
 	glm::vec3 Reset_collision(1.f);
 
-	// Camera Look: Orbit camera around vehicle
-	float lag_amount = camera_lag;
-	if (callback_ptr->moveCamera) {
-		camera_position_right = sinf(callback_ptr->xAngle) * camera_radius;
-		camera_position_forward = -cosf(callback_ptr->xAngle) * camera_radius;
-		lag_amount = camera_lag * 4.f;
-		Camera_collision = PhysicsSystem::CameraRaycasting(camera_previous_position,camera_radius,1.f);
-	}
-	else {
-		Camera_collision = PhysicsSystem::CameraRaycasting(camera_previous_position,camera_radius,1.f);
-		Reset_collision = PhysicsSystem::CameraRaycasting(player_pos+ResetVec, camera_radius, 1.f);
-	}
-
 	// Camera lag: Generate target_position - prev_position creating a vector. Scale by constant factor, then add to prev and update
 	vec3 camera_target_position = player_pos + eye_offset;
 	camera_target_position.y = player_pos.y + camera_position_up + (float)playerEntity->nbChildEntities * 0.4f;
 	vec3 camera_track_vector = camera_target_position - camera_previous_position;
-	camera_track_vector = camera_track_vector * lag_amount * (float)timer->getDeltaTime();
+	camera_track_vector = camera_track_vector * camera_lag * (float)timer->getDeltaTime();
 	camera_previous_position = vec3(translate(mat4(1.0f), camera_track_vector) * vec4(camera_previous_position, 1.0f));
 
+	// Camera Look: Orbit camera around vehicle
+	if (callback_ptr->moveCamera) {
+		vec3 lookOffset = camera_previous_position - player_pos;
+		lookOffset = vec4(lookOffset, 0.f) * glm::rotate(glm::mat4(1.f), callback_ptr->xAngle - 3.1415126f, world_up);
+		lookOffset += player_pos;
+		Camera_collision = PhysicsSystem::CameraRaycasting(camera_previous_position, camera_radius, 1.f);
+		view = lookAt(lookOffset, target_offset, world_up);
+	}
+	else {
+		Camera_collision = PhysicsSystem::CameraRaycasting(camera_previous_position, camera_radius, 1.f);
+		Reset_collision = PhysicsSystem::CameraRaycasting(player_pos + ResetVec, camera_radius, 1.f);
+		view = lookAt(camera_previous_position, target_offset, world_up);
+	}
+
 	// Set view matrix
-	view = lookAt(camera_previous_position, target_offset, world_up);
+	//view = lookAt(camera_previous_position, target_offset, world_up);
 
 	// For audio - probably need to change later
 	gameState->listener_position = camera_previous_position;
@@ -208,7 +271,7 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> cbp, Gam
 			float reset_speed = 50.f; // the speed to rset the camera
 			float step_time = (float)timer->getDeltaTime();
 			float step_range = step_time * reset_speed;
-			resetValue(camera_position_forward,step_range,-7.5f,reset_speed, step_time);
+			resetValue(camera_position_forward, step_range, -7.5f, reset_speed, step_time);
 			resetValue(camera_position_up, step_range, 3.5f, reset_speed, step_time);
 			resetValue(camera_position_right, step_range, 0.f, reset_speed, step_time);
 			resetValue(rad_base, step_range, 7.5f, reset_speed, step_time);
@@ -217,8 +280,19 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> cbp, Gam
 	}
 	updateRadius(rad_base,camera_zoom_forward);
 	// Set projection and view matrices
-	projection = perspective(radians(fov), (float)callback_ptr->xres / (float)callback_ptr->yres, 0.1f, 10000.0f);
-	
+	if (playerEntity->playerProperties->boost != 0) {
+		if (fov < fov_boost) {
+			fov = fov + ((fov_boost - fov) / fov_boost) * fov_change_speed * (float)timer->getDeltaTime();
+		}
+		projection = perspective(radians(fov), (float)callback_ptr->xres / (float)callback_ptr->yres, 0.1f, 10000.0f);
+	}
+	else {
+		if (fov > fov_rest) {
+			fov = fov - ((fov - fov_rest) / fov) * (fov_change_speed / 2.f) * (float)timer->getDeltaTime();
+		}
+		projection = perspective(radians(fov), (float)callback_ptr->xres / (float)callback_ptr->yres, 0.1f, 10000.0f);
+	}
+
 
 	// MESH ANIMATIONS
 	// Center Portal
@@ -284,11 +358,59 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> cbp, Gam
 	bindTexture(6, farShadowMap.fbTextures[1]);
 	setCelShaderUniforms(&celMap.shader);
 	celMap.render(gameState, "c", lightPos, callback_ptr);
+	
+	portalParticles.color = portalColor;
+	dirtParticles.color = dirtColor;
+
 	glBindFramebuffer(GL_FRAMEBUFFER, celMap.FBO[0]);
 	glDepthMask(GL_FALSE);
 	glViewport(0, 0, 1920, 1080);
-	testParticles.Update(timer->getDeltaTime(), fps, gameState->findEntity("platform_center")->transform->getPosition(), glm::vec3(0.f, 0.f, 0.f), glm::vec3(0.f, 0.f, 15.8f));
-	testParticles.Draw(view, projection, camera_previous_position);
+
+	portalParticles.Update(timer->getDeltaTime(),
+		gameState->findEntity("platform_center")->transform->getPosition(),
+		glm::vec3(1.f),
+		glm::vec3(0.f, 0.f, 31.6f));
+	portalParticles.Draw(view, projection, camera_previous_position);
+
+	dirtParticles.Update(timer->getDeltaTime(),
+		playerEntity->transform->getPosition() + vec3(rand() % 50 / 100.f - 0.25f, rand() % 50 / 100.f - 0.25f, rand() % 50 / 100.f - 0.25f),
+		(float)playerEntity->transform->getOnGround() * (float)(length(playerEntity->transform->getLinearVelocity()) > 5.0f) * ((glm::vec3(0.f, 0.2f, 0.f) * length(playerEntity->transform->getLinearVelocity())) + -2.f * playerEntity->transform->getForwardVector() + 0.5f * playerEntity->transform->getLinearVelocity()),
+		vec3(toMat4(playerEntity->transform->getRotation())*vec4(dirtOffset, 0.f)),
+		vec3(toMat4(playerEntity->transform->getRotation())*vec4(-dirtOffset.x, dirtOffset.y, dirtOffset.z, 0.f)));
+	dirtParticles.Draw(view, projection, camera_previous_position);
+
+	for (int i = 0; i < boostParticles.size(); i++) {
+		boostParticles.at(i).color = boostColor1;
+		boostParticles.at(i).color2 = boostColor2;
+		boostParticles.at(i).color3 = boostColor3;
+		Entity* vehicleEntity = gameState->findEntity("vehicle_" + to_string(i));
+		boostParticles.at(i).UpdateBoost(timer->getDeltaTime(),
+			vehicleEntity->transform->getPosition() + vec3(0.f, 0.f, 0.f),
+			vehicleEntity->transform->getForwardVector(),
+			(vehicleEntity->transform->getLinearVelocity()) * float(vehicleEntity->playerProperties->boost != 0.f),
+			vec3(toMat4(vehicleEntity->transform->getRotation())* vec4(boostOffset, 0.f)),
+			vec3(toMat4(vehicleEntity->transform->getRotation())* vec4(-boostOffset.x, boostOffset.y, boostOffset.z, 0.f)));
+		boostParticles.at(i).Draw(view, projection, camera_previous_position);
+	}
+
+	for (int i = 0; i < indicators.size(); i++) {
+		indicators[i].Update(timer->getDeltaTime(), 
+			gameState->findEntity("vehicle_" + to_string(i))->transform->getPosition(),
+			vec3(1.f),
+			vec3(0.f, 3.f, 0.f));
+		if (i != 0) indicators[i].Draw(view, projection, camera_previous_position);
+
+		int playerScore = gameState->findEntity("vehicle_" + to_string(i))->nbChildEntities;
+		if (playerScore > 0) {
+			if (playerScore > 12) playerScore = 12;
+			indicatorCounters[i].updateTex(ui_score_tracker[playerScore-1]);
+			indicatorCounters[i].Update(timer->getDeltaTime(),
+				gameState->findEntity("vehicle_" + to_string(i))->transform->getPosition(),
+				vec3(1.f),
+				vec3(0.f, 3.f, 0.f));
+			if (i != 0) indicatorCounters[i].Draw(view, projection, camera_previous_position);
+		}
+	}
 	glViewport(0, 0, callback_ptr->xres, callback_ptr->yres);
 	glDepthMask(GL_TRUE);
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -351,7 +473,7 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> cbp, Gam
 	// Fetch and display FPS
 	int fpsTest = timer->getFPS(0.5);				// Get fps (WARNING: can be NULL!)
 	if (fpsTest != NULL) fps = fpsTest;				// Set fps if fpsTest isn't null
-	RenderText(textShader, textVAO, textVBO, "FPS: " + std::to_string(fps), 8.f, callback_ptr->yres - 32.f, 0.6f, vec3(0.2, 0.2f, 0.2f), textChars);
+	RenderText(textShader, textVAO, textVBO, "FPS: " + std::to_string(fps), 10.f, callback_ptr->yres - 26.f, 0.45f, vec3(0.2, 0.2f, 0.2f), textChars);
 
 	// Game Ended Screen
 	if (gameState->gameEnded) {
@@ -361,21 +483,22 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> cbp, Gam
 			winnerNum = to_string(stoi(winnerNum) + 1);
 			winnerText = "Salvager #" + winnerNum + " Wins!";
 		}
+		drawUI(backToMenu, callback_ptr->xres / 2 - 387, callback_ptr->yres / 2 + 158, callback_ptr->xres / 2 + 387, callback_ptr->yres / 2 + 415, 1);
 		RenderText(textShader, textVAO, textVBO, winnerText,
-			callback_ptr->xres / 2 - (18 * winnerText.length()),
-			callback_ptr->yres / 2 + 150,
-			1.5f,
-			vec3(0.2, 0.2f, 0.2f),
+			callback_ptr->xres / 2 - (16 * winnerText.length()),
+			callback_ptr->yres / 2 + 328,
+			1.25f,
+			vec3(0.94, 0.94f, 0.94f),
 			textChars);
 	}
 
 	// Normal Gameplay Screen
 	else {
 		// Ayyylien
-		drawUI(testTexture, callback_ptr->xres - 300.f, 30.f, callback_ptr->xres - 30.f, 300.f, 0);
+		//drawUI(testTexture, callback_ptr->xres - 300.f, 30.f, callback_ptr->xres - 30.f, 300.f, 0);
 
 		// Boost Meter
-		for (int i = 0; i < 10; i++) {
+		/*for (int i = 0; i < 10; i++) {
 			int boost_meter = (int)gameState->findEntity("vehicle_0")->playerProperties->boost_meter;
 			int offset = 50 * i;
 			int boostoffset = 10 * i;
@@ -389,24 +512,158 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> cbp, Gam
 			else {
 				drawUI(boostGrey, 50.0f + offset, 50.f, 100.0f + offset, 100.f, 0);
 			}
-		}
+		}*/
+		
 
-		// Pod Counter
-		for (int i = 0; i < 10; i++) {
-			int pod_count = gameState->findEntity("vehicle_0")->nbChildEntities;
-			int offset = 60 * i;
-			int boostoffset = 10 * i;
+		// Dot Boost Meter
+		// Goddarn scaling ok
+		// So lets set some bounds for the entire scaling factor
+		// Which will be our box
+		// We want it in the bottom left quadrant, ... so divide by 4?
+		int leewayX = callback_ptr->xres / 200;
+		int leewayY = callback_ptr->yres / 150;
+		
+		int ui_bmeter_count = 30;	// Total number of columns the meter has
+		int ui_bmeter_leftbound = (callback_ptr->xres / 15);
+		int ui_bmeter_rightbound = (callback_ptr->xres / 4);
+		int ui_bmeter_upbound = (callback_ptr->yres / 12);
+		int ui_bmeter_lowbound = (callback_ptr->yres / 20);
 
-			if (pod_count > i) {
-				drawUI(podcounterOn, 50.0f + offset, 130.f, 100.0f + offset, 180.f, 0);
+		int ui_pcount_upbound = (ui_bmeter_upbound - ui_bmeter_lowbound + 2 * leewayY) + ui_bmeter_upbound + 2 * leewayY;
+		int ui_pcount_lowbound = ui_bmeter_upbound + 2 * leewayY;
+		
+		int ui_bmeter_increment = (ui_bmeter_rightbound - ui_bmeter_leftbound) / 30.0f;
+		int ui_pcount_increment = (ui_bmeter_rightbound - ui_bmeter_leftbound) / 10.0f;
+			
+		drawUI(boostText, 
+			ui_bmeter_leftbound / 5, ui_bmeter_lowbound - leewayY,
+			ui_bmeter_leftbound - 2 * leewayX, ui_bmeter_upbound + leewayY, 2);
+
+		drawUI(podsText,
+			ui_bmeter_leftbound / 5, ui_pcount_lowbound,
+			ui_bmeter_leftbound - 2 * leewayX, ui_pcount_upbound, 2);
+		
+		drawUI(ui_playercard[0],
+			ui_bmeter_leftbound / 5, ui_pcount_upbound + 2 * leewayY,
+			ui_bmeter_leftbound - 2 * leewayX, callback_ptr->yres / 4, 2);
+
+		drawUI(boostBox,
+			ui_bmeter_leftbound - (leewayX * 2 / 3 ), ui_bmeter_lowbound - leewayY,
+			ui_bmeter_leftbound + ui_bmeter_increment * ui_bmeter_count + (leewayX * 2 / 3), ui_bmeter_upbound + leewayY, 2);
+
+		// Drawing Boost Meter
+		for (int i = 0; i < ui_bmeter_count; i++) {
+			int boost_meter = (int)gameState->findEntity("vehicle_0")->playerProperties->boost_meter;
+			int offset = ui_bmeter_increment * i;
+			
+			// Normalizing values
+			float onMeter = (float)i / (float)ui_bmeter_count;
+			float actualMeter = (float)boost_meter / 100.0f;
+			//int boostoffset = 10 * i;
+
+			if (actualMeter > onMeter) {
+				drawUI(boostOn, ui_bmeter_leftbound + offset, ui_bmeter_lowbound, ui_bmeter_leftbound + ui_bmeter_increment + offset, ui_bmeter_upbound, 1);
 			}
 			else {
-				drawUI(podcounterOff, 50.0f + offset, 130.f, 100.0f + offset, 180.f, 0);
+				drawUI(boostOff, ui_bmeter_leftbound + offset, ui_bmeter_lowbound, ui_bmeter_leftbound + ui_bmeter_increment + offset, ui_bmeter_upbound, 1);
 			}
 		}
 
-		//drawUI(boostBlue, callback_ptr->xres - 1800.f, 30.f, callback_ptr->xres - 1730.f, 100.f, 0);
+		/*
+		for (int i = 0; i < nbTrailers; i++) {
+			if (vehicle->attachedTrailers.at(i)->isStolen) {
+				vehicle->attachedTrailers.at(i)->isStolen = false;
+				nbStolenTrailers++;
+			}
+			vehicle->attachedTrailers.at(i)->isFlying = true;
+			vehicle->attachedTrailers.at(i)->isTowed = false;
+			changeRigidDynamicShape(vehicle->attachedTrailers.at(i)->rigidBody, detachedTrailerShape);
+			vehicle->attachedJoints.at(i)->release();
+		}*/
 
+		
+		int stolenIndex = -1;
+		int stolenIndexIndex = 0;
+		if (gameState->findEntity("vehicle_0")->playerProperties->stolenTrailerIndices.size() > 0) {
+			
+			stolenIndex = gameState->findEntity("vehicle_0")->playerProperties->stolenTrailerIndices[stolenIndexIndex];
+			stolenIndexIndex++;
+		}
+
+		// Drawing Pod Counter
+		for (int i = 0; i < 18; i++) {
+			int pod_count = gameState->findEntity("vehicle_0")->nbChildEntities;
+			int pod_total = 10;
+			int offset = ui_pcount_increment * i / 2;
+			int ui_pcount_halfbound = ui_pcount_lowbound + (ui_pcount_upbound - ui_pcount_lowbound) / 2;
+			
+
+			// Drawing on cargo pods
+			if (i < pod_count) {
+
+
+
+
+
+
+				// Drawing on top row
+				if (i % 2 == 0) {
+
+					// Deciding on stolen or not
+					if (i == stolenIndex) {
+						drawUI(podcounterOn, ui_bmeter_leftbound + offset, ui_pcount_halfbound, ui_bmeter_leftbound + ui_pcount_increment + offset - leewayX, ui_pcount_upbound, 1);
+						
+						// Checking if there is a next stolen pod
+						if (gameState->findEntity("vehicle_0")->playerProperties->stolenTrailerIndices.size() > stolenIndexIndex) {
+							
+							stolenIndex = gameState->findEntity("vehicle_0")->playerProperties->stolenTrailerIndices[stolenIndexIndex];
+							stolenIndexIndex++;
+						}
+					}
+
+					else
+						drawUI(podcounterPickup, ui_bmeter_leftbound + offset, ui_pcount_halfbound, ui_bmeter_leftbound + ui_pcount_increment + offset - leewayX, ui_pcount_upbound, 1);
+				}
+
+				// Drawing on bottom row
+				else {
+					if (i == stolenIndex) {
+						drawUI(podcounterOn, ui_bmeter_leftbound + offset, ui_pcount_lowbound, ui_bmeter_leftbound + ui_pcount_increment + offset - leewayX, ui_pcount_halfbound, 1);
+						
+						if (gameState->findEntity("vehicle_0")->playerProperties->stolenTrailerIndices.size() > stolenIndexIndex) {
+							
+							stolenIndex = gameState->findEntity("vehicle_0")->playerProperties->stolenTrailerIndices[stolenIndexIndex];
+							stolenIndexIndex++;
+						}
+					}
+					else 
+						drawUI(podcounterPickup, ui_bmeter_leftbound + offset, ui_pcount_lowbound, ui_bmeter_leftbound + ui_pcount_increment + offset - leewayX, ui_pcount_halfbound, 1);
+				}
+			}
+
+			// Drawing off cargo pods
+			else {
+				if (i % 2 == 0) 
+					drawUI(podcounterOff, ui_bmeter_leftbound + offset, ui_pcount_halfbound, ui_bmeter_leftbound + ui_pcount_increment + offset - leewayX, ui_pcount_upbound, 1);
+				else 
+					drawUI(podcounterOff, ui_bmeter_leftbound + offset, ui_pcount_lowbound, ui_bmeter_leftbound + ui_pcount_increment + offset - leewayX, ui_pcount_halfbound, 1);
+			}
+		}
+
+
+
+
+		// Extra score text
+		string morescore;
+		int bonus_score = gameState->calculatePoints(0, gameState->findEntity("vehicle_0")->nbChildEntities, gameState->findEntity("vehicle_0")->playerProperties->stolenTrailerIndices.size());
+		morescore = "Cargo Value: " + to_string(bonus_score);
+		RenderText(textShader, textVAO, textVBO, morescore,
+			ui_bmeter_leftbound - leewayX,
+			ui_pcount_upbound + 2 * leewayY,
+			0.8f,
+			vec3(0.93, 0.93f, 0.93f),
+			textChars);
+		
 
 		// Display game timer / countdown
 		std::string timerMins = std::to_string(abs(timer->getCountdownMins()));
@@ -423,10 +680,19 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> cbp, Gam
 			timer_xoffset = callback_ptr->xres / 2.f - 100.f;
 		}
 
+		drawUI(timerAndScore, callback_ptr->xres / 2 - 172, callback_ptr->yres - 110, callback_ptr->xres / 2 + 172, callback_ptr->yres, 1);
 		RenderText(textShader, textVAO, textVBO, timerMins + ":" + timerSeconds,
-			timer_xoffset,
-			callback_ptr->yres - 32.f, 0.6f,
-			vec3(0.2, 0.2f, 0.2f),
+			timer_xoffset - 115,
+			callback_ptr->yres - 80.f, 
+			0.8f,
+			vec3(0.93, 0.93f, 0.93f),
+			textChars);
+		string playerScoreText = to_string(gameState->findEntity("vehicle_0")->playerProperties->getScore());
+		RenderText(textShader, textVAO, textVBO, playerScoreText,
+			(callback_ptr->xres / 2 + 80) - (8 * (int)playerScoreText.size() - 1),
+			callback_ptr->yres - 80.f,
+			0.8f,
+			vec3(0.93, 0.93f, 0.93f),
 			textChars);
 
 		// Display boost meter - deprecated
@@ -439,15 +705,94 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> cbp, Gam
 		*/
 
 		// Display player scores
+		vector<pair<int, int>> scoreboard;
 		for (int i = 0; i < gameState->numVehicles; i++) {
-			string vehicleName = "vehicle_" + to_string(i);
-			string scoreText = "Salvager #" + to_string(i+1) + ": " + to_string(gameState->findEntity(vehicleName)->playerProperties->getScore());
+			scoreboard.push_back(std::make_pair(gameState->findEntity("vehicle_" + to_string(i))->playerProperties->getScore(), i));
+		}
+		sort(scoreboard.rbegin(), scoreboard.rend());
+
+		/*
+		// Text Scoreboard:
+		for (int i = 0; i < gameState->numVehicles; i++) {
+			//string vehicleName = "vehicle_" + to_string(scoreboard[i].first);
+			string scoreText = "Salvager #" + to_string(scoreboard[i].second) + ": " + to_string(scoreboard[i].first);
+
 			RenderText(textShader, textVAO, textVBO, scoreText,
 				callback_ptr->xres - (16 * (int)scoreText.size()),
 				callback_ptr->yres - 100.f - (i * 50.f),
 				0.6f,
 				vec3(0.2, 0.2f, 0.2f),
 				textChars);
+		}
+		*/
+
+
+		int ui_scoreboard_leftbound = (callback_ptr->xres * 7 / 8);
+		int ui_scoreboard_rightbound = (callback_ptr->xres * 19 / 20);
+		int ui_scoreboard_upbound = (callback_ptr->yres * 19 / 20);
+		// No lower bound, we'll just keep incrementing down
+
+		int ui_scoreboard_row_increment = (callback_ptr->yres / 40);
+		int ui_scoreboard_column_incremenent = (callback_ptr->xres / 80);
+
+		float j = 0.0f;
+
+		RenderText(textShader, textVAO, textVBO, "Score: ",
+			ui_scoreboard_leftbound,
+			ui_scoreboard_upbound + leewayY,
+			0.75f,
+			vec3(0.2f),
+			textChars);
+
+		for (int i = 0; i < gameState->numVehicles; i++) {
+			// If == player
+			if (scoreboard[i].second == 0) {
+
+				drawUI(scoreBarDark, 
+					ui_scoreboard_leftbound, 
+					ui_scoreboard_upbound - ui_scoreboard_row_increment * (j + 1.25f), 
+					ui_scoreboard_rightbound, 
+					ui_scoreboard_upbound - ui_scoreboard_row_increment * j, 
+					2);
+				drawUI(ui_playercard[0], 
+					ui_scoreboard_leftbound, 
+					ui_scoreboard_upbound - ui_scoreboard_row_increment * (j + 1.25f),
+					ui_scoreboard_leftbound + ui_scoreboard_column_incremenent * 1.25f, 
+					ui_scoreboard_upbound - ui_scoreboard_row_increment * j, 
+					1);
+				RenderText(textShader, textVAO, textVBO, ": " + to_string(scoreboard[i].first),
+					ui_scoreboard_leftbound + ui_scoreboard_column_incremenent * 1.25f,
+					ui_scoreboard_upbound - ui_scoreboard_row_increment * (j + 1.25f) + 5.0f,
+					0.75f,
+					vec3(1.0f),
+					textChars);
+
+				j = j + 1.25f;
+			}
+			else {
+
+				drawUI(scoreBar, 
+					ui_scoreboard_leftbound,
+					ui_scoreboard_upbound - ui_scoreboard_row_increment * (j + 1), 
+					ui_scoreboard_rightbound, 
+					ui_scoreboard_upbound - ui_scoreboard_row_increment * j, 
+					2);
+				drawUI(ui_player_token[scoreboard[i].second],
+					ui_scoreboard_leftbound, 
+					ui_scoreboard_upbound - ui_scoreboard_row_increment * (j + 1),
+					ui_scoreboard_leftbound + ui_scoreboard_column_incremenent, 
+					ui_scoreboard_upbound - ui_scoreboard_row_increment * j, 
+					1);
+				RenderText(textShader, textVAO, textVBO, ": " + to_string(scoreboard[i].first),
+					ui_scoreboard_leftbound + ui_scoreboard_column_incremenent,
+					ui_scoreboard_upbound - ui_scoreboard_row_increment * (j + 1) + 2.5f,
+					0.6f,
+					vec3(1.0f),
+					textChars);
+
+				j = j + 1.0f;
+
+			}
 		}
 	}
 
@@ -477,6 +822,19 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> cbp, Gam
 	ImGui::SliderFloat("Camera Target Forward", &camera_target_forward, -30.f, 30.f);
 	ImGui::SliderFloat("Camera Target Up", &camera_target_up, -30.f, 30.f);
 	ImGui::SliderFloat("Camera Target Right", &camera_target_right, -30.f, 30.f);
+
+	ImGui::Text("Particle Parameters");
+	ImGui::SliderFloat("Dirt offset x", (float*)&dirtOffset.x, -2.f, 2.f);
+	ImGui::SliderFloat("Dirt offset y", (float*)&dirtOffset.y, -2.f, 2.f);
+	ImGui::SliderFloat("Dirt offset z", (float*)&dirtOffset.z, -2.f, 2.f);
+	ImGui::SliderFloat("Boost offset x", (float*)&boostOffset.x, -2.f, 2.f);
+	ImGui::SliderFloat("Boost offset y", (float*)&boostOffset.y, -2.f, 2.f);
+	ImGui::SliderFloat("Boost offset z", (float*)&boostOffset.z, -2.f, 2.f);
+	ImGui::ColorEdit3("Portal Color", (float*)&portalColor);
+	ImGui::ColorEdit3("Dirt Color", (float*)&dirtColor);
+	ImGui::ColorEdit3("Boost Color 1", (float*)&boostColor1);
+	ImGui::ColorEdit3("Boost Color 2", (float*)&boostColor2);
+	ImGui::ColorEdit3("Boost Color 3", (float*)&boostColor3);
 	
 
 	ImGui::Text("Audio");

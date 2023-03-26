@@ -42,6 +42,10 @@ public:
 		return this->rightVector;
 	}
 
+	bool getOnGround() {
+		return this->onGround;
+	}
+
 // SETTERS
 	void setPosition(vec3 pos) {
 		this->position = pos;
@@ -58,6 +62,10 @@ public:
 		update();
 	}
 
+	void setOnGround(bool onGround) {
+		this->onGround = onGround;
+	}
+
 private:
 	// Transform
 	vec3 position;
@@ -70,6 +78,9 @@ private:
 	vec3 forwardVector;
 	vec3 upVector;
 	vec3 rightVector;
+
+	// State
+	bool onGround = false;
 
 	// Update Function
 	// Updates vectors based on position and rotation

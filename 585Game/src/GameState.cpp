@@ -52,8 +52,8 @@ void GameState::initGameState() {
 		"assets/models/platform1/platform1.obj"});
 
 	// Portal Effect
-	e = addEntity("effect_portal", PhysType::None, DrawType::Decal, new Transform(), vector<string>{
-		"assets/models/effects/effect_portal1.obj"});
+	//e = addEntity("effect_portal", PhysType::None, DrawType::Decal, new Transform(), vector<string>{
+		//"assets/models/effects/effect_portal1.obj"});
 
 	// Decals
 	e = addEntity("decal_tracks", PhysType::None, DrawType::Decal, new Transform(), vector<string>{
@@ -150,6 +150,20 @@ Entity* GameState::spawnVehicle() {
 	vehiclesSpawned++;
 }
 
+int GameState::calculatePoints(int vehicleIndex, int totalTrailers, int stolenTrailers) {
+	string name = "vehicle_" + to_string(vehicleIndex);
+	int score = 0;
+	for (int i = 0; i < totalTrailers; i++) {
+		score += 3;
+	}
+	for (int i = 0; i < stolenTrailers; i++) {
+		score += 1;
+	}
+	return score;
+
+}
+
+
 void GameState::endGame() {
 	// Give a default vehicle to compare against
 	Entity* winningVehicle = findEntity("vehicle_0");
@@ -187,5 +201,49 @@ void GameState::resetGameState(AudioManager* audio) {
 	vehiclesSpawned = 0;
 	trailersSpawned = 0;
 	initGameState();
+}
 
+void GameState::menuEventHandler(std::shared_ptr<CallbackInterface> cbp) {
+	// Only handle events when in menu
+	if (inMenu) {
+		// Navigate Right
+		if (cbp->navigateR && !showInfo) {
+			menuOptionIndex = (menuOptionIndex + 1) % nbMenuOptions;
+			cbp->navigateR = false;
+			audio_ptr->MenuClick(1, listener_position);
+		}
+		// Navigate Left
+		else if (cbp->navigateL && !showInfo) {
+			menuOptionIndex = (menuOptionIndex - 1) % nbMenuOptions;
+			cbp->navigateL = false;
+			audio_ptr->MenuClick(1, listener_position);
+		}
+		// Navigation Wrap-Around
+		if (menuOptionIndex < 0) {
+			menuOptionIndex = nbMenuOptions - 1;
+		}
+
+		// Buttons
+		if (cbp->menuConfirm) {
+			if (showInfo) {
+				showInfo = false;
+				audio_ptr->MenuClick(0, listener_position);
+			}
+			// Info
+			else if (menuOptionIndex == 0) {
+				showInfo = true;
+				audio_ptr->MenuClick(0, listener_position);
+			}
+			// Play
+			else if (menuOptionIndex == 1) {
+				loading = true;
+				audio_ptr->MenuClick(2, listener_position);
+			}
+			// Quit
+			else if (menuOptionIndex == 2) {
+				quit = true;
+			}
+			cbp->menuConfirm = false;
+		}
+	}
 }

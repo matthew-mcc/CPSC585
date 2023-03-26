@@ -9,6 +9,8 @@
 #include <GLFW/glfw3.h>
 #include <glm.hpp>				// include is here twice?
 #include <Boilerplate/Timer.h>
+#define _USE_MATH_DEFINES
+#include <math.h>
 
 GLFWwindow* initWindow();
 
@@ -66,6 +68,17 @@ public:
 	virtual void scrollCallback(double xoffset, double yoffset) {}
 	virtual void windowSizeCallback(int width, int height) { glViewport(0, 0, width, height); }
 	
+	float smallestSignedAngleBetween(float x, float y) {
+		float a = (x - y);
+		if (a > float(2 * M_PI)) a = a - float(2 * M_PI);
+		else if (a < 0.f) a = a + float(2 * M_PI);
+		float b = (y - x);
+		if (b > float(2 * M_PI)) b = b - float(2 * M_PI);
+		else if (b < 0.f) b = b + float(2 * M_PI);
+		if (a < b) return -a;
+		else return b;
+	}
+
 	// Mouse
 	float lastX = 0.f;
 	float lastY = 0.f;
@@ -76,7 +89,13 @@ public:
 	int yres = 1080;
 
 	// Main Menu
-	bool play = false;
+	bool menuConfirm = false;
+	bool menuConfirmHold = false;
+	bool navigateR = false;
+	bool navigateRHold = false;
+	bool navigateL = false;
+	bool navigateLHold = false;
+	bool backToMenu = false;
 	bool gameEnded = false;
 
 	// Vehicle Control Inputs
@@ -100,7 +119,8 @@ public:
 
 	// Camera Control
 	bool moveCamera = false;
-	float xAngle = 0.f;
+	float mouseX = M_PI;
+	float xAngle = M_PI;
 	glm::vec2 clickPos = glm::vec2(0.f, 0.f);
 
 	// Debug - Add Trailer
@@ -108,12 +128,19 @@ public:
 	bool audioTest = false;
 
 	bool clickR = false;
+	bool clickL = false;
+	bool horn1 = false;
+	bool horn2 = false;
+	bool horn3 = false;
+	bool horn4 = false;
+	bool horn5 = false;
+	bool horn6 = false;
 
 	// GAMEPAD VEHICLE INPUT
 	void XboxUpdate(XboxInput x, Timer* timer, float vehicleSpeed, bool gameEnded) {
 		this->gameEnded = gameEnded;
-    
-    // Retrive Delta Time
+
+		// Retrive Delta Time
 		float deltaTime = (float)timer->getDeltaTime();
 
 		// Update input variables
@@ -126,27 +153,50 @@ public:
 			AirRoll = -x.data.LThumb_X_direction;
 			boosterrrrr = x.data.B;
 
-			// Camera look
-			if (abs(x.data.RThumb_magnitude) != 0.f) {
-				moveCamera = true;
-				xAngle = -atan2(x.data.RThumb_X_direction, x.data.RThumb_Y_direction);
-
-			}
-			else {
-				moveCamera = false;
-			}
-
 			// Reset
 			if (x.data.Y) reset = deltaTime;
 			else reset = 0.f;
 		}
-		
-		//lastX_Controller = x.data.RThumb_magnitude;
-		if (clickR) {
+
+		// Camera Look
+		if (abs(x.data.RThumb_magnitude != 0.f) || clickL) {
 			moveCamera = true;
-			xAngle = 3.1415126;
+			float stickAngle;
+			if (clickL) {
+				stickAngle = ((lastX + 1.0f) / 2.0f) * float(2 * M_PI);
+			}
+			else {
+				stickAngle = atan2(x.data.RThumb_X_direction, x.data.RThumb_Y_direction) + M_PI;
+			}
+
+			float smallest = smallestSignedAngleBetween(stickAngle, xAngle);
+			if (abs(stickAngle - xAngle) > 0.1f) {
+				if (smallest > 0.01f) {
+					xAngle = xAngle - abs(smallest) * 6.0f * deltaTime;
+				}
+				else if (smallest < -0.01f) {
+					xAngle = xAngle + abs(smallest) * 6.0f * deltaTime;
+				}
+			}
+
 		}
-		
+		// Camera Un-Look
+		else {
+			float smallest = smallestSignedAngleBetween(M_PI, xAngle);
+			if (abs(M_PI - xAngle) > 0.01f) {
+				if (smallest > 0.01f) {
+					xAngle = xAngle - abs(smallest) * 6.0f * deltaTime;
+				}
+				else if (smallest < -0.01f) {
+					xAngle = xAngle + abs(smallest) * 6.0f * deltaTime;
+				}
+			}
+			else {
+				xAngle = M_PI;
+				moveCamera = false;
+			}
+		}
+
 		// If Steer Speed is near-zero and the steering angle isn't 0, unwind the steering input
 		if (abs(steer_target) <= 0.01f) {
 			if (steer < -0.01f) steer = steer + steer_release_speed * deltaTime;
@@ -159,11 +209,62 @@ public:
 			steer = glm::clamp(steer + steer_target * steer_activate_speed * deltaTime, -maxSteer, maxSteer);
 		}
 
-		if (!play && x.data.A) {
-			play = true;
-		}
-		else if (this->gameEnded && x.data.B) {
-			play = false;
+		// Main Menu
+		if (keys_pressed <= 0) {
+			// Menu Confirm
+			if (x.data.A) {
+				if (menuConfirmHold) {
+					menuConfirm = false;
+				}
+				else {
+					menuConfirm = true;
+					menuConfirmHold = true;
+				}
+			}
+			else {
+				menuConfirm = false;
+				menuConfirmHold = false;
+			}
+
+			// Back to Menu
+			if (x.data.BACK) {
+				if (gameEnded) {
+					backToMenu = true;
+				}
+			}
+			else {
+				backToMenu = false;
+			}
+
+			// Menu Navigate Left
+			if (x.data.LEFT) {
+				if (navigateLHold) {
+					navigateL = false;
+				}
+				else {
+					navigateL = true;
+					navigateLHold = true;
+				}
+			}
+			else {
+				navigateL = false;
+				navigateLHold = false;
+			}
+
+			// Menu Navigate Right
+			if (x.data.RIGHT) {
+				if (navigateRHold) {
+					navigateR = false;
+				}
+				else {
+					navigateR = true;
+					navigateRHold = true;
+				}
+			}
+			else {
+				navigateR = false;
+				navigateRHold = false;
+			}
 		}
 	}
 };

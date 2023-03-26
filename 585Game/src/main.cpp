@@ -15,7 +15,7 @@ int main() {
 	// Systems Creation
 	Timer* timer = &Timer::Instance();
 	GameState* gameState = new GameState();
-	RenderingSystem renderer = RenderingSystem();
+	RenderingSystem renderer = RenderingSystem(gameState);
 	PhysicsSystem physics;
 	XboxInput xInput;
 	AiController* aiController = new AiController();
@@ -33,7 +33,7 @@ int main() {
 	physics.initPhysX();
 
 	// PRIMARY GAME LOOP
-	while (!glfwWindowShouldClose(renderer.window)) {
+	while (!glfwWindowShouldClose(renderer.window) && !gameState->quit) {
 		// Loaded and not in menu (regular gameplay)
 		if (isLoaded && !gameState->inMenu) {
 			// Update Timer
@@ -54,6 +54,7 @@ int main() {
 		if (gameState->inMenu) {
 			isLoaded = false;
 			callback_ptr->XboxUpdate(xInput, timer, 0.0f, gameState->gameEnded);
+			gameState->menuEventHandler(callback_ptr);
 		}
 		else {
 			callback_ptr->XboxUpdate(xInput, timer, length(gameState->findEntity("vehicle_0")->transform->getLinearVelocity()), gameState->gameEnded);

@@ -54,46 +54,45 @@ public:
 	bool control = false;
 	// KEYBOARD VEHICLE INPUT
 	virtual void keyCallback(int key, int scancode, int action, int mods) {
+
 		// THROTTLE (W)
-		if (key == GLFW_KEY_W) {
+		if (key == GLFW_KEY_W || key == GLFW_KEY_UP) {
 			if (action == GLFW_PRESS) {
 				throttle = 1.f;
-				//AirPitch = 0.2f;
 				keys_pressed++;
 			}
 			if (action == GLFW_RELEASE) {
 				throttle = 0.f;
-				//AirPitch = 0.0f;
 				keys_pressed--;
 			}
 		}
+
 		// BRAKE (S)
-		if (key == GLFW_KEY_S) {
+		if (key == GLFW_KEY_S || key == GLFW_KEY_DOWN) {
 			if (action == GLFW_PRESS) {
 				reverse = 1.f;
 				brake = 1.f;
-				//AirPitch = -0.2f;
 				keys_pressed++;
 			}
 			if (action == GLFW_RELEASE) {
 				reverse = 0.f;
 				brake = 0.f;
-				//AirPitch = 0.0f;
 				keys_pressed--;
 			}
 		}
 
-	
 		// STEER LEFT (A)
-		if (key == GLFW_KEY_A) {
+		if (key == GLFW_KEY_A || key == GLFW_KEY_LEFT) {
 			if (action == GLFW_PRESS ) {
 				A = true;
+				navigateL = true;
 				steer_target = 1.f;
 				AirRoll = 1.f;
 				keys_pressed++;
 			}
 			if (action == GLFW_RELEASE) {
 				A = false;
+				navigateL = false;
 				if (D == true) {
 					steer_target = -1.f;
 					AirRoll = -1.f;
@@ -105,16 +104,19 @@ public:
 				keys_pressed--;
 			}
 		}
+
 		// STEER RIGHT (D)
-		if (key == GLFW_KEY_D) {
+		if (key == GLFW_KEY_D || key == GLFW_KEY_RIGHT) {
 			if (action == GLFW_PRESS ) {
 				D = true;
+				navigateR = true;
 				steer_target = -1.f;
 				AirRoll = -1.f;
 				keys_pressed++;
 			}
 			if (action == GLFW_RELEASE) {
 				D = false;
+				navigateR = false;
 				if (A == true) {
 					steer_target = 1.f;
 					AirRoll = 1.f;
@@ -188,17 +190,48 @@ public:
 			addTrailer = true;
 			audioTest = true;
 		}
+		if (key == GLFW_KEY_1 && action == GLFW_PRESS) {
+			horn1 = true;
+		}
+		if (key == GLFW_KEY_2 && action == GLFW_PRESS) {
+			horn2 = true;
+		}
+		if (key == GLFW_KEY_3 && action == GLFW_PRESS) {
+			horn3 = true;
+		}
+		if (key == GLFW_KEY_4 && action == GLFW_PRESS) {
+			horn4 = true;
+		}
+		if (key == GLFW_KEY_5 && action == GLFW_PRESS) {
+			horn5 = true;
+		}
+		if (key == GLFW_KEY_6 && action == GLFW_PRESS) {
+			horn6 = true;
+		}
 
-		// MAIN MENU - PLAY
-		if (key == GLFW_KEY_SPACE && action == GLFW_PRESS) {
-			if (!play) {
-				play = true;
+		// MAIN MENU CONFIRM
+		if (key == GLFW_KEY_ENTER) {
+			if (action == GLFW_PRESS) {
+				menuConfirm = true;
+				keys_pressed++;
+			}
+			if (action == GLFW_RELEASE) {
+				menuConfirm = false;
+				keys_pressed--;
 			}
 		}
 		
-		if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
-			if (gameEnded) {
-				play = false;
+		// BACK TO MENU
+		if (key == GLFW_KEY_ESCAPE) {
+			if (action == GLFW_PRESS) {
+				if (gameEnded) {
+					backToMenu = true;
+				}
+				keys_pressed++;
+			}
+			if (action == GLFW_RELEASE){
+				backToMenu = false;
+				keys_pressed--;
 			}
 		}
 	}
@@ -210,15 +243,14 @@ public:
 		if (io.WantCaptureMouse) return;
 		if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS) {
 			//cout << "Mouse Left clicked" << endl;
-			moveCamera = true;
+			clickL = true;
 			clickPos = cursor_pos;
 			keys_pressed++;
 		}
 		if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_RELEASE) {
 			//cout << "Mouse left released" << endl;
-			moveCamera = false;
+			clickL = false;
 			clickPos = glm::vec2(0.f, 0.f);
-			xAngle = 0.f;
 			keys_pressed--;
 		}
 
@@ -244,16 +276,8 @@ public:
 		cursor_pos.x = (float)((2.f / xres) * xpos - 1.f);
 		cursor_pos.y = (float)((2.f / yres) * ypos - 1.f);
 		cursor_pos.y *= -1.f;
-		//float xoffset = (cursor_pos.x - lastX) * 1000.f;
-		//float yoffset = (lastY - cursor_pos.y) * 1000.f;
 		lastX = cursor_pos.x;
 		lastY = cursor_pos.y;
-		//float sensitivity = 0.05f;
-		//xoffset *= sensitivity;
-		//yoffset *= sensitivity;
-		if (moveCamera) {
-			xAngle = asinf(glm::clamp((clickPos.x - lastX), -1.f, 1.f));// * atan(1) * 4.f;
-		}
 	}
 
 	// SCROLL CALLBACK

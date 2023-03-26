@@ -15,7 +15,7 @@ using namespace std;
 class RenderingSystem {
 public:
 	// Default Constructor
-	RenderingSystem();
+	RenderingSystem(GameState* gameState);
 
 	// Initialize Renderer
 	void initRenderer();
@@ -34,6 +34,9 @@ public:
 	// Window Pointer
 	GLFWwindow* window;
 
+	// GameState Pointer
+	GameState* gameState;
+
 private:
 	void setCelShaderUniforms(Shader* shader);
 	void bindTexture(int location, unsigned int texture);
@@ -44,7 +47,11 @@ private:
 	std::shared_ptr<CallbackInterface> callback_ptr;
 
 	// Particle Generators
-	ParticleSystem testParticles;
+	ParticleSystem portalParticles;
+	ParticleSystem dirtParticles;
+	std::vector<ParticleSystem> boostParticles;
+	std::vector<ParticleSystem> indicators;
+	std::vector<ParticleSystem> indicatorCounters;
 
 	// Frame buffers
 	FBuffer nearShadowMap;
@@ -59,12 +66,37 @@ private:
 	// UI Textures
 	unsigned int testTexture;
 	unsigned int orbTexture;
+	unsigned int rockTexture;
 	unsigned int boostBlue;
 	unsigned int boostOrange;
 	unsigned int boostGrey;
+	unsigned int boostBox;
+	unsigned int boostText;
+	unsigned int boostOn;
+	unsigned int boostOff;
+
+	unsigned int podsText;
 	unsigned int podcounterOn;
 	unsigned int podcounterOff;
+	unsigned int podcounterPickup;
 
+	unsigned int scoreBarDark;
+	unsigned int scoreBar;
+
+	unsigned int menuBackground;
+	unsigned int menuTitle;
+	unsigned int menuLoading;
+	unsigned int menuPlay;
+	unsigned int menuQuit;
+	unsigned int menuInfo;
+	unsigned int menuInfoDisplay;
+	unsigned int backToMenu;
+	unsigned int timerAndScore;
+
+	std::vector<unsigned int> ui_player_tracker;
+	std::vector<unsigned int> ui_score_tracker;
+	std::vector<unsigned int> ui_playercard;
+	std::vector<unsigned int> ui_player_token;
 
 	// Shaders
 	Shader textShader;
@@ -113,12 +145,22 @@ private:
 	float camera_radius = 7.5f;
 	float rad_base = 7.5f;
 
-
 	// Camera Parameters
 	float camera_lag = 5.0f;
-	float fov = 45.f;
+	float fov_rest = 45.f;
+	float fov_boost = 57.f;
+	float fov_change_speed = 400.0f;
+	float fov = fov_rest;
 
 	// Audio Parameters
 	float playerVolume = 0.5f;
 	float npcVolume = 1.0f;
+
+	vec3 dirtOffset = vec3(1.2f, -0.3f, -0.9f);
+	vec3 boostOffset = vec3(0.684f, 0.773f, -0.900f);
+	vec3 portalColor = vec3(0.26f, 0.58f, 0.89f);
+	vec3 boostColor1 = vec3(0.5f, 0.5f, 0.5f);
+	vec3 boostColor2 = vec3(0.33f, 0.33f, 0.1f);
+	vec3 boostColor3 = vec3(0.1f, 0.f, 0.f);
+	vec3 dirtColor = vec3(0.38f, 0.20f, 0.17f);
 };

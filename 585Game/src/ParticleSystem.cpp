@@ -3,8 +3,17 @@
 
 ParticleSystem::ParticleSystem(){}
 
-ParticleSystem::ParticleSystem(Shader shader, unsigned int texture, unsigned int amount)
-	: shader(shader), texture(texture), amount(amount) {
+ParticleSystem::ParticleSystem(Shader shader, unsigned int texture, unsigned int amount, float startingLife, float size, vec3 color, std::string mode)
+	: shader(shader), texture(texture), amount(amount), startingLife(startingLife), size(size), color(color), mode(mode) {
+	initPS(shader, texture, amount, startingLife, size, color, vec3(0.f), vec3(0.f), mode);
+}
+
+ParticleSystem::ParticleSystem(Shader shader, unsigned int texture, unsigned int amount, float startingLife, float size, vec3 color, vec3 color2, vec3 color3, std::string mode)
+	: shader(shader), texture(texture), amount(amount), startingLife(startingLife), size(size), color(color), color2(color2), color3(color3), mode(mode) {
+	initPS(shader, texture, amount, startingLife, size, color, color2, color3, mode);
+}
+
+void ParticleSystem::initPS(Shader shader, unsigned int texture, unsigned int amount, float startingLife, float size, vec3 color, vec3 color2, vec3 color3, std::string mode) {
 	// set up mesh and attribute properties
 	//test
 	unsigned int VBO;
@@ -32,56 +41,114 @@ ParticleSystem::ParticleSystem(Shader shader, unsigned int texture, unsigned int
 	}
 }
 
-void ParticleSystem::Update(float dt, float framerate, glm::vec3 spawnPoint, glm::vec3 spawnVelocity, glm::vec3 offset) {
+void ParticleSystem::Update(float dt, glm::vec3 spawnPoint, glm::vec3 spawnVelocity, glm::vec3 offset, glm::vec3 offset2) {
 	// add particles
-	float nP;
-	if (framerate != 0) nP = (amount / 4.f) / framerate;
-	else nP = 1;
 	int newParticles = 0;
-	while (nP > 1.f) {
+	timer += dt;
+	float increment = (startingLife + 0.1f) / (float)amount;
+	while (timer > increment) {
+		timer -= increment;
 		newParticles++;
-		nP -= 1.f;
 	}
-	if (rand() % 100 / 100.f < nP) newParticles++;
 
 	for (unsigned int i = 0; i < newParticles; ++i) {
 		int unusedParticle = firstUnusedParticle();
-		respawnParticle(particles[unusedParticle], spawnPoint, spawnVelocity, offset);
+		if (spawnVelocity != glm::vec3(0.f, 0.f, 0.f)) {
+			if (mode.compare("d") == 0) {
+				if (rand() % 2) respawnParticle(particles[unusedParticle], spawnPoint, spawnVelocity + vec3(rand() % 300 / 100.f - 1.5f, rand() % 300 / 100.f - 1.5f, rand() % 300 / 100.f - 1.5f), offset2);
+				else respawnParticle(particles[unusedParticle], spawnPoint, spawnVelocity + vec3(rand() % 300 / 100.f - 1.5f, rand() % 300 / 100.f - 1.5f, rand() % 300 / 100.f - 1.5f), offset);
+			}
+			else respawnParticle(particles[unusedParticle], spawnPoint, spawnVelocity, offset);
+		}
 	}
 	// update all particles
-	for (unsigned int i = 0; i < amount; ++i)
-	{
+	for (unsigned int i = 0; i < amount; ++i) {
+		Particle& p = particles[i];
+		if (mode.compare("i") == 0) {
+			p.position = spawnPoint + offset;
+			return;
+		}
+		p.life -= dt; // reduce life
+		if (p.life > 0.0f)
+		{	// particle is alive, thus update
+			p.position += p.velocity * dt;
+			if (p.life <= 1.f && mode.compare("b") != 0) p.color.a = p.life;
+			else if (p.life >= startingLife - 1.f) p.color.a = startingLife - p.life;
+			else p.color.a = 1.f;
+			if (mode.compare("p") == 0) p.velocity += ((spawnPoint + offset + vec3(0.f, 30.f, 0.f)) - p.position) * 0.002f;
+			else if (mode.compare("d") == 0) p.velocity += glm::vec3(0.f, -0.5f, 0.f);
+		}
+	}
+}
+
+void ParticleSystem::UpdateBoost(float dt, glm::vec3 spawnPoint, glm::vec3 forwardVector, glm::vec3 spawnVelocity, glm::vec3 offset, glm::vec3 offset2) {
+	// add particles
+	int newParticles = 0;
+	timer += dt;
+	float increment = (startingLife + 0.1f) / (float)amount;
+	while (timer > increment) {
+		timer -= increment;
+		newParticles++;
+	}
+
+	for (unsigned int i = 0; i < newParticles; ++i) {
+		int unusedParticle = firstUnusedParticle();
+		if (spawnVelocity != glm::vec3(0.f, 0.f, 0.f)) {
+			vec3 randPos, randVel;
+			do {
+				randPos = vec3(rand() % 200 / 1000.f - 0.1f, rand() % 200 / 1000.f - 0.1f, rand() % 200 / 1000.f - 0.1f);
+			} while (length(randPos) > 0.1f);
+			do {
+				randVel = vec3(rand() % 400 / 100.f - 2.f, rand() % 400 / 100.f - 2.f, rand() % 400 / 100.f - 2.f);
+			} while (length(randVel) > 1.f);
+			if (rand() % 2) respawnParticle(particles[unusedParticle], spawnPoint + randPos, spawnVelocity - (rand()%1100/100.f+25.f)*forwardVector + randVel, offset2);
+			else			respawnParticle(particles[unusedParticle], spawnPoint + randPos, spawnVelocity - (rand() % 1100 / 100.f + 25.f) * forwardVector + randVel, offset);
+		}
+	}
+	// update all particles
+	for (unsigned int i = 0; i < amount; ++i) {
 		Particle& p = particles[i];
 		p.life -= dt; // reduce life
 		if (p.life > 0.0f)
 		{	// particle is alive, thus update
-			p.position -= p.velocity * dt;
-			if (p.life <= 1.f) p.color.a = p.life;
-			else if (p.life >= 3.f) p.color.a = 4.f - p.life;
-			else p.color.a = 1.f;
-			p.velocity += (p.position - (spawnPoint + offset + vec3(0.f, 15.f, 0.f))) * 0.002f;
+			p.position += p.velocity * dt;
+			p.velocity *= 0.95f;
+			float lifetime = p.life / startingLife;
+			if (lifetime > 0.6f) {
+				float u = (lifetime - 0.6f) * 2.5f;
+				p.color = u * vec4(color, 1.f) + (1.f - u) * vec4(color2, 1.f);
+			}
+			else if (lifetime > 0.3f) {
+				float u = (lifetime - 0.3f) * 3.f;
+				p.color = u * vec4(color2, 1.f) + (1.f - u) * vec4(color3, 1.f);
+			}
+			else if (lifetime > 0.f) {
+				float u = lifetime * 3.f;
+				p.color = u * vec4(color3, 1.f) + (1.f - u) * vec4(0.f, 0.f, 0.f, 1.f);
+			}
 		}
 	}
 }
 
 void ParticleSystem::Draw(glm::mat4 view, glm::mat4 proj, glm::vec3 cameraPosition) {
 	// use additive blending to give it a 'glow' effect
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+	if (mode.compare("p") == 0 || mode.compare("b") == 0) glBlendFunc(GL_SRC_ALPHA, GL_ONE);
 	shader.use();
-	for (Particle particle : particles)
+	for (int i = 0; i < amount; i++)
 	{
-		if (particle.life > 0.0f)
+		if (particles[i].life > 0.0f)
 		{
 			glm::mat4 model = mat4(1.0f);
-			model = glm::translate(model, particle.position);
 			shader.setMat4("model", model);
 			shader.setMat4("view", view);
 			shader.setMat4("projection", proj);
-			shader.setVec4("color", particle.color);
+			shader.setVec4("color", particles[i].color);
 
-			shader.setVec3("particleCenter", particle.position);
+			shader.setVec3("particleCenter", particles[i].position);
 			shader.setVec3("camRight", glm::vec3(view[0][0], view[1][0], view[2][0]));
 			shader.setVec3("camUp", glm::vec3(view[0][1], view[1][1], view[2][1]));
+			shader.setFloat("scale", particles[i].size);
+			shader.setBool("screenSpace", mode.compare("i") == 0);
 			glActiveTexture(GL_TEXTURE1);
 			glBindTexture(GL_TEXTURE_2D, texture);
 			glActiveTexture(GL_TEXTURE0);
@@ -116,15 +183,34 @@ unsigned int ParticleSystem::firstUnusedParticle() {
 }
 
 void ParticleSystem::respawnParticle(Particle& particle, glm::vec3 spawnPoint, glm::vec3 spawnVelocity, glm::vec3 offset) {
-	float pos1, pos2, pos3;
-	do {
-		pos1 = ((rand() % 2500 - 1250) / 100.0f);
-		pos2 = 0.f;
-		pos3 = ((rand() % 2500 - 1250) / 100.0f);
-	} while (sqrt(pow(pos1,2.f)+pow(pos3,2.f)) > 2500.f);
-	particle.position = spawnPoint + glm::vec3(pos1, pos2, pos3) + offset;
-	particle.color = glm::vec4(0.5f, 0.f, 0.5f, 1.0f);
-	particle.life = 4.0f;
-	particle.velocity = glm::vec3(pos3, pos2, -pos1) * 0.2f;
+	particle.life = startingLife;
+	particle.size = size;
+	particle.color = vec4(color, 1.f);
+	if (mode.compare("p") == 0) {
+		float pos1, pos2, pos3;
+		do {
+			pos1 = ((rand() % 6000 - 3000) / 100.0f);
+			pos2 = 0.f;
+			pos3 = ((rand() % 6000 - 3000) / 100.0f);
+		} while (sqrt(pow(pos1, 2.f) + pow(pos3, 2.f)) > 30.f);
+		particle.position = spawnPoint + glm::vec3(pos1, pos2, pos3) + offset;
+		particle.velocity = glm::vec3(pos3, pos2, -pos1) * 0.2f;
+	}
+	else if (mode.compare("d") == 0) {
+		particle.position = spawnPoint + offset;
+		particle.velocity = spawnVelocity;
+	}
+	else if (mode.compare("i") == 0) {
+		particle.position = spawnPoint + offset;
+		particle.velocity = vec3(0.f);
+	}
+	else if (mode.compare("b") == 0) {
+		particle.position = spawnPoint + offset;
+		particle.velocity = spawnVelocity;
+	}
+}
+
+void ParticleSystem::updateTex(unsigned int tex) {
+	texture = tex;
 }
 

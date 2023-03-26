@@ -13,8 +13,10 @@ public:
 	Entity* findEntity(string name);
 	Entity* spawnTrailer();
 	Entity* spawnVehicle();
+	int calculatePoints(int vehicleIndex, int totalTrailers, int stolenTrailers);
 	void endGame();
 	void resetGameState(AudioManager* audio);
+	void menuEventHandler(std::shared_ptr<CallbackInterface> cbp);
 
 	// Entity Tracking
 	vector<Entity> entityList;
@@ -22,7 +24,12 @@ public:
 
 	// Flags
 	bool inMenu = true;
+	bool loading = false;
+	bool quit = false;
+	bool showInfo = false;
 	bool gameEnded = false;
+	int menuOptionIndex = 1;
+	int nbMenuOptions = 3;
 
 	// Game Parameters
 	int numVehicles = 6;
