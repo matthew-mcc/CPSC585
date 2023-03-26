@@ -65,7 +65,11 @@ void RenderingSystem::initRenderer() {
 
 	podcounterOn = generateTexture("assets/textures/UI/podcounterOn.png", false);
 	podcounterOff = generateTexture("assets/textures/UI/podCounterOff.png", false);
+	podcounterPickup = generateTexture("assets/textures/UI/podcounterPickup.png", false);
 	podsText = generateTexture("assets/textures/UI/podsText.png", false);
+
+	scoreBar = generateTexture("assets/textures/UI/boostBox.png", false);
+	scoreBarDark = generateTexture("assets/textures/UI/bar.png", false);
 
 	menuBackground = generateTexture("assets/textures/UI/menuBackground.png", false);
 	menuTitle = generateTexture("assets/textures/UI/menuTitle.png", false);
@@ -565,6 +569,18 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> cbp, Gam
 			}
 		}
 
+		/*
+		for (int i = 0; i < nbTrailers; i++) {
+			if (vehicle->attachedTrailers.at(i)->isStolen) {
+				vehicle->attachedTrailers.at(i)->isStolen = false;
+				nbStolenTrailers++;
+			}
+			vehicle->attachedTrailers.at(i)->isFlying = true;
+			vehicle->attachedTrailers.at(i)->isTowed = false;
+			changeRigidDynamicShape(vehicle->attachedTrailers.at(i)->rigidBody, detachedTrailerShape);
+			vehicle->attachedJoints.at(i)->release();
+		}*/
+
 
 		// Drawing Pod Counter
 		for (int i = 0; i < 18; i++) {
@@ -574,11 +590,12 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> cbp, Gam
 			int ui_pcount_halfbound = ui_pcount_lowbound + (ui_pcount_upbound - ui_pcount_lowbound) / 2;
 
 
+
 			if (i < pod_count) {
 				if (i % 2 == 0) 
-					drawUI(podcounterOn, ui_bmeter_leftbound + offset, ui_pcount_halfbound, ui_bmeter_leftbound + ui_pcount_increment + offset - leewayX, ui_pcount_upbound, 1);
+					drawUI(podcounterPickup, ui_bmeter_leftbound + offset, ui_pcount_halfbound, ui_bmeter_leftbound + ui_pcount_increment + offset - leewayX, ui_pcount_upbound, 1);
 				else 
-					drawUI(podcounterOn, ui_bmeter_leftbound + offset, ui_pcount_lowbound, ui_bmeter_leftbound + ui_pcount_increment + offset - leewayX, ui_pcount_halfbound, 1);
+					drawUI(podcounterPickup, ui_bmeter_leftbound + offset, ui_pcount_lowbound, ui_bmeter_leftbound + ui_pcount_increment + offset - leewayX, ui_pcount_halfbound, 1);
 			}
 			else {
 				if (i % 2 == 0) 
@@ -640,6 +657,7 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> cbp, Gam
 		*/
 
 		// Display player scores
+		/*
 		for (int i = 0; i < gameState->numVehicles; i++) {
 			string vehicleName = "vehicle_" + to_string(i);
 			string scoreText = "Salvager #" + to_string(i+1) + ": " + to_string(gameState->findEntity(vehicleName)->playerProperties->getScore());
@@ -650,6 +668,18 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> cbp, Gam
 				vec3(0.2, 0.2f, 0.2f),
 				textChars);
 		}
+		*/
+
+
+		int ui_scoreboard_leftbound = (callback_ptr->xres * 3 / 4);
+		int ui_scoreboard_rightbound = (callback_ptr->xres * 14 / 15);
+		int ui_scoreboard_upbound = (callback_ptr->yres * 11 / 12);
+		// No lower bound, we'll just keep incrementing down
+
+		int ui_scoreboard_increment = (callback_ptr->yres * 11 / 12);
+
+		drawUI(scoreBarDark, ui_scoreboard_leftbound, ui_scoreboard_upbound + ui_scoreboard_increment, ui_scoreboard_rightbound, ui_scoreboard_upbound, 1);
+
 	}
 
 	// Imgui Window

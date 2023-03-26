@@ -78,6 +78,10 @@ private:
 	unsigned int podsText;
 	unsigned int podcounterOn;
 	unsigned int podcounterOff;
+	unsigned int podcounterPickup;
+
+	unsigned int scoreBarDark;
+	unsigned int scoreBar;
 
 	unsigned int menuBackground;
 	unsigned int menuTitle;
