@@ -81,6 +81,7 @@ void RenderingSystem::initRenderer() {
 
 	backToMenu = generateTexture("assets/textures/UI/backToMenu.png", false);
 	timerAndScore = generateTexture("assets/textures/UI/timerAndScore.png", false);
+	ui_timer_box = generateTexture("assets/textures/UI/timerBox.png", false);
 
 	// Only 2 exists atm, will need to be added later like the rest
 	ui_playercard.push_back(generateTexture("assets/textures/UI/playerCard1.png", false));
@@ -585,7 +586,6 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> cbp, Gam
 		int stolenIndex = -1;
 		int stolenIndexIndex = 0;
 		if (gameState->findEntity("vehicle_0")->playerProperties->stolenTrailerIndices.size() > 0) {
-			
 			stolenIndex = gameState->findEntity("vehicle_0")->playerProperties->stolenTrailerIndices[stolenIndexIndex];
 			stolenIndexIndex++;
 		}
@@ -600,11 +600,6 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> cbp, Gam
 
 			// Drawing on cargo pods
 			if (i < pod_count) {
-
-
-
-
-
 
 				// Drawing on top row
 				if (i % 2 == 0) {
@@ -666,10 +661,11 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> cbp, Gam
 		
 
 		// Display game timer / countdown
-		std::string timerMins = std::to_string(abs(timer->getCountdownMins()));
-		std::string timerSeconds = std::to_string(abs(timer->getCountdownSecs()));
-		std::string overtime = "Overtime: ";
-		std::string zero = "0";
+		string timerMins = std::to_string(abs(timer->getCountdownMins()));
+		string timerSeconds = std::to_string(abs(timer->getCountdownSecs()));
+		string overtime = "Overtime: ";
+		string zero = "0";
+		vec3 timerColour = vec3(0.93f);
 		float timer_xoffset = callback_ptr->xres / 2.f - 10.f;
 
 		if (timerSeconds.size() < 2) {
@@ -680,13 +676,29 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> cbp, Gam
 			timer_xoffset = callback_ptr->xres / 2.f - 100.f;
 		}
 
-		drawUI(timerAndScore, callback_ptr->xres / 2 - 172, callback_ptr->yres - 110, callback_ptr->xres / 2 + 172, callback_ptr->yres, 1);
+		//drawUI(timerAndScore, callback_ptr->xres / 2 - 172, callback_ptr->yres - 110, callback_ptr->xres / 2 + 172, callback_ptr->yres, 1);
+		drawUI(ui_timer_box, callback_ptr->xres / 2 - 120, callback_ptr->yres - 80, callback_ptr->xres / 2 + 120, callback_ptr->yres, 1);
+		
+		if (timer->getCountdownMins() <= 1) {
+			timerColour = vec3(0.93f, 0.0f, 0.0f);
+		}
+		// @ Peter - changed up your timer to not display score
+		//	-Comment out below RenderText, take out the comment blocks and will revert to previous
+		RenderText(textShader, textVAO, textVBO, timerMins + ":" + timerSeconds,
+			timer_xoffset + 20,
+			callback_ptr->yres - 46.f, 
+			0.6f,
+			timerColour,
+			textChars);
+
+		/*
 		RenderText(textShader, textVAO, textVBO, timerMins + ":" + timerSeconds,
 			timer_xoffset - 115,
 			callback_ptr->yres - 80.f, 
 			0.8f,
-			vec3(0.93, 0.93f, 0.93f),
-			textChars);
+			vec3(0.93f, 0.93f, 0.93f),
+			textChars); 
+		
 		string playerScoreText = to_string(gameState->findEntity("vehicle_0")->playerProperties->getScore());
 		RenderText(textShader, textVAO, textVBO, playerScoreText,
 			(callback_ptr->xres / 2 + 80) - (8 * (int)playerScoreText.size() - 1),
@@ -694,6 +706,7 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> cbp, Gam
 			0.8f,
 			vec3(0.93, 0.93f, 0.93f),
 			textChars);
+		*/
 
 		// Display boost meter - deprecated
 		/*
@@ -712,7 +725,7 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> cbp, Gam
 		sort(scoreboard.rbegin(), scoreboard.rend());
 
 		/*
-		// Text Scoreboard:
+		// Text Scoreboard: Debugging
 		for (int i = 0; i < gameState->numVehicles; i++) {
 			//string vehicleName = "vehicle_" + to_string(scoreboard[i].first);
 			string scoreText = "Salvager #" + to_string(scoreboard[i].second) + ": " + to_string(scoreboard[i].first);
@@ -727,8 +740,8 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> cbp, Gam
 		*/
 
 
-		int ui_scoreboard_leftbound = (callback_ptr->xres * 11 / 12);
-		int ui_scoreboard_rightbound = (callback_ptr->xres * 29 / 30);
+		int ui_scoreboard_leftbound = (callback_ptr->xres * 17 / 18);
+		int ui_scoreboard_rightbound = (callback_ptr->xres * 59 / 60);
 		int ui_scoreboard_upbound = (callback_ptr->yres * 19 / 20);
 
 		int ui_scoreboard_row_increment = (callback_ptr->yres / 40);
@@ -737,9 +750,9 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> cbp, Gam
 		float j = 0.0f;
 
 		RenderText(textShader, textVAO, textVBO, "Score: ",
-			ui_scoreboard_leftbound,
+			ui_scoreboard_leftbound - ui_scoreboard_column_incremenent,
 			ui_scoreboard_upbound + leewayY,
-			0.75f,
+			callback_ptr->yres * 0.6 / 1080.0f,
 			vec3(0.2f),
 			textChars);
 
@@ -753,17 +766,20 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> cbp, Gam
 					ui_scoreboard_rightbound, 
 					ui_scoreboard_upbound - ui_scoreboard_row_increment * j, 
 					2);
+				// Maybe someday will use drawn elements, but for now it's too messy
 				drawUI(ui_playercard[0], 
-					ui_scoreboard_leftbound, 
+					ui_scoreboard_leftbound - ui_scoreboard_column_incremenent * 1.25f,
 					ui_scoreboard_upbound - ui_scoreboard_row_increment * (j + 1.25f),
-					ui_scoreboard_leftbound + ui_scoreboard_column_incremenent * 1.25f, 
+					ui_scoreboard_leftbound, 
 					ui_scoreboard_upbound - ui_scoreboard_row_increment * j, 
 					1);
+
 				RenderText(textShader, textVAO, textVBO, ": " + to_string(scoreboard[i].first),
-					ui_scoreboard_leftbound + ui_scoreboard_column_incremenent * 1.25f,
-					ui_scoreboard_upbound - ui_scoreboard_row_increment * (j + 1.25f) + 5.0f,
-					0.75f,
-					vec3(1.0f),
+					//ui_scoreboard_leftbound + ui_scoreboard_column_incremenent * 1.25f,
+					ui_scoreboard_leftbound,
+					ui_scoreboard_upbound - ui_scoreboard_row_increment * (j + 1.25f) + 0.75f * leewayY,
+					callback_ptr->yres * 0.75 / 1080.0f,
+					vec3(0.93f),
 					textChars);
 
 				j = j + 1.25f;
@@ -776,31 +792,57 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> cbp, Gam
 					ui_scoreboard_rightbound, 
 					ui_scoreboard_upbound - ui_scoreboard_row_increment * j, 
 					2);
+
 				drawUI(ui_player_token[scoreboard[i].second],
-					ui_scoreboard_leftbound, 
+					ui_scoreboard_leftbound - ui_scoreboard_column_incremenent,
 					ui_scoreboard_upbound - ui_scoreboard_row_increment * (j + 1),
-					ui_scoreboard_leftbound + ui_scoreboard_column_incremenent, 
+					ui_scoreboard_leftbound, 
 					ui_scoreboard_upbound - ui_scoreboard_row_increment * j, 
 					1);
+
 				RenderText(textShader, textVAO, textVBO, ": " + to_string(scoreboard[i].first),
-					ui_scoreboard_leftbound + ui_scoreboard_column_incremenent,
-					ui_scoreboard_upbound - ui_scoreboard_row_increment * (j + 1) + 2.5f,
-					0.6f,
-					vec3(1.0f),
+					//ui_scoreboard_leftbound + ui_scoreboard_column_incremenent,
+					ui_scoreboard_leftbound,
+					ui_scoreboard_upbound - ui_scoreboard_row_increment * (j + 1) + 0.5f * leewayY,
+					callback_ptr->yres * 0.6 / 1080.0f,
+					vec3(0.93f),
 					textChars);
 
 				j = j + 1.0f;
-
 			}
 		}
-
-
-
-
 	}
 
 	// Imgui Window
 	ImGui::Begin("Super Space Salvagers - Debug Menu");
+
+	ImGui::Text("Audio");
+	if (ImGui::SliderFloat("Music Volume", &musicVolume, 0.0f, 3.0f)) {
+		gameState->audio_ptr->setVolume("SpaceMusic2", musicVolume);
+	}
+
+	if (ImGui::SliderFloat("Player Engine Sounds", &playerEngineVolume, 0.0f, 2.0f)) {
+		gameState->audio_ptr->setVolume("vehicle_0_engine", playerEngineVolume);
+	}
+	if (ImGui::SliderFloat("Player Tire Sounds", &playerTireVolume, 0.0f, 2.0f)) {
+		gameState->audio_ptr->setVolume("vehicle_0_tire", playerTireVolume);
+	}
+
+	if (ImGui::SliderFloat("NPC Engine Sounds", &npcEngineVolume, 0.0f, 2.0f)) {
+		for (int i = 1; i < 4; i++) {
+			std::string vehicleName = "vehicle_";
+			vehicleName += to_string(i);
+			gameState->audio_ptr->setVolume(vehicleName + "_engine", npcEngineVolume);
+		}
+	}
+	if (ImGui::SliderFloat("NPC Tire Sounds", &npcTireVolume, 0.0f, 2.0f)) {
+		for (int i = 1; i < 4; i++) {
+			std::string vehicleName = "vehicle_";
+			vehicleName += to_string(i);
+			gameState->audio_ptr->setVolume(vehicleName + "_tire", npcTireVolume);
+		}
+	}
+
 	ImGui::Text("Cel Shader Parameters");
 	ImGui::SliderFloat("Light Rotation", &lightRotation, 0.f, 6.28f);
 	ImGui::SliderFloat("Light Angle", &lightAngle, 0.f, 1.57f);
@@ -840,17 +882,9 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> cbp, Gam
 	ImGui::ColorEdit3("Boost Color 3", (float*)&boostColor3);
 	
 
-	ImGui::Text("Audio");
-	if (ImGui::SliderFloat("Player ", &playerVolume, 0.0f, 2.0f)) {
-		gameState->audio_ptr->setVolume("vehicle_0_tire", playerVolume);
-	}
-	if (ImGui::SliderFloat("NPC ", &npcVolume, 0.0f, 2.0f)) {
-		for (int i = 1; i < 4; i++) {
-			std::string vehicleName = "vehicle_";
-			vehicleName += to_string(i);
-			gameState->audio_ptr->setVolume(vehicleName + "_tire", npcVolume);
-		}
-	}
+
+
+
 
 	ImGui::End();
 	ImGui::Render();

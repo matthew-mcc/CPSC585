@@ -53,9 +53,11 @@ private:
 	std::string bank_path_actions = "assets/audio/Actions.bank";
 
 	// Event GUID's
+	std::string spacemusic2GUID = "{912a0889-5a99-4ce0-9a7c-2076275b812a}";
+	std::string SpaceMusic2 = "SpaceMusic2";
 	std::string e_pod_pickup = "{18b007c8-1f2c-4417-90bb-989e3419b7f9}";
 	std::string e_dropoff = "{8152d370-812b-42ff-8376-d6cf870fa7b0}";
-	std::string e_dropoff_path = "event: / sfx / dropoff";
+	//std::string e_dropoff_path = "event: / sfx / dropoff";
 
 	// Truck
 	std::string e_tire_roll = "{7320c7ca-8c24-42ad-9aee-e1ffbe708167}";

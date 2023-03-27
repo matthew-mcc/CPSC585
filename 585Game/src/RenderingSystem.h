@@ -92,6 +92,7 @@ private:
 	unsigned int menuInfoDisplay;
 	unsigned int backToMenu;
 	unsigned int timerAndScore;
+	unsigned int ui_timer_box;
 
 	std::vector<unsigned int> ui_player_tracker;
 	std::vector<unsigned int> ui_score_tracker;
@@ -153,8 +154,11 @@ private:
 	float fov = fov_rest;
 
 	// Audio Parameters
-	float playerVolume = 0.5f;
-	float npcVolume = 1.0f;
+	float playerTireVolume = 0.5f;
+	float playerEngineVolume = 0.5f;
+	float npcTireVolume = 1.0f;
+	float npcEngineVolume = 1.0f;
+	float musicVolume = 1.0f;
 
 	vec3 dirtOffset = vec3(1.2f, -0.3f, -0.9f);
 	vec3 boostOffset = vec3(0.684f, 0.773f, -0.900f);

@@ -8,7 +8,9 @@ void AudioManager::Init(int vehicleCount) {
 	audioEngine.LoadBank(bank_path_actions, FMOD_STUDIO_LOAD_BANK_NORMAL);
 	audioEngine.LoadEvent(e_pod_pickup);
 	audioEngine.LoadEvent(e_dropoff);
+	
 	audioEngine.LoadEvent(a_hornhonk);
+
 
 	//audioEngine.LoadEvent(e_tire_roll);
 	for (int i = 0; i < vehicleCount; i++) {
@@ -20,21 +22,30 @@ void AudioManager::Init(int vehicleCount) {
 
 	}
 
+	// Loading misc sounds (not events)
 	audioEngine.LoadSound("assets/audio/ping_placeholder.flac");
 	audioEngine.LoadSound("assets/audio/Latch1.wav");
 	audioEngine.LoadSound("assets/audio/Landing1.wav");
 	audioEngine.LoadSound("assets/audio/Click1.wav");
 	audioEngine.LoadSound("assets/audio/Click2.wav");
 	audioEngine.LoadSound("assets/audio/Click3.wav");
-	audioEngine.LoadSound("assets/audio/SpaceMusic2.wav", false, true, false);
-	audioEngine.PlaySound("assets/audio/SpaceMusic2.wav", glm::vec3(0.0f), 1.0f);
 
 
-	audioEngine.SetEventVolume("vehicle_0", 0.5f);
+	// Load and play music!
+	//audioEngine.LoadSound("assets/audio/SpaceMusic2.wav", false, true, false);
+	//audioEngine.PlaySound("assets/audio/SpaceMusic2.wav", glm::vec3(0.0f), 1.0f);
+	audioEngine.LoadEventInstanced(spacemusic2GUID, SpaceMusic2);
+	audioEngine.PlayEvent("SpaceMusic2");
+
+	// Updating some parameters
+	// Debug and because it's annoying - ImGui will set it on change
+	audioEngine.SetEventVolume("vehicle_0_engine", 0.5f);
+	audioEngine.SetEventVolume("vehicle_0_tire", 0.5f);
+	audioEngine.SetEvent3dAttributes(e_dropoff, glm::vec3(1.0f, 0.5f, 33.0f), glm::vec3(0.0f), glm::vec3(0.0f), glm::vec3(0.0f));
 }
 
 void AudioManager::StartEvents(int vehicleCount) {
-
+	//audioEngine.PlayEvent("SpaceMusic2");
 	for (int i = 0; i < vehicleCount; i++) {
 		std::string vehicle = "vehicle_" + to_string(i);
 		audioEngine.PlayEvent(vehicle + "_tire");
@@ -43,20 +54,17 @@ void AudioManager::StartEvents(int vehicleCount) {
 	}
 }
 
-
-
 void AudioManager::Update(int numVehicles, bool inMenu) {
 	for (int i = 0; i < numVehicles; i++) {
 		string vehicleName = "vehicle_";
 		vehicleName += to_string(i);
-		if(inMenu) setVolume(vehicleName + "_tire", 0.f);
-		else setVolume(vehicleName + "_tire", 1.f);
 	}
 	audioEngine.Update();
 }
 
 void AudioManager::Update3DListener(const glm::vec3& pos, const glm::vec3& velocity, const glm::vec3& forward, const glm::vec3& up) {
 	audioEngine.UpdateListenerAttributes(pos, velocity, forward, up);
+	audioEngine.SetEvent3dAttributes(SpaceMusic2, pos, velocity, forward, up);
 }
 
 void AudioManager::Shutdown() {
@@ -67,7 +75,6 @@ void AudioManager::setTestFlag() {
 	testFlag = true;
 }
 
-
 void AudioManager::SFX(std::string eventName) {
 	// Huh?
 }
@@ -76,13 +83,15 @@ void AudioManager::Latch(glm::vec3 pos) {
 	audioEngine.PlaySound("assets/audio/Latch1.wav", pos, 10.0f);
 }
 
+// Does nothing atm
 void AudioManager::LatchEvent(glm::vec3 pos) {
 	audioEngine.PlayEvent("assets/audio/Latch1.wav");
 }
 
 void AudioManager::Dropoff() {
 	glm::vec3 dropoffPos = glm::vec3(1.0f, 0.5f, 33.0f);
-	audioEngine.PlaySound("assets/audio/ping_placeholder.flac", dropoffPos, 10.0f);
+	//audioEngine.PlaySound("assets/audio/ping_placeholder.flac", dropoffPos, 10.0f);
+	audioEngine.PlayEvent(e_dropoff);
 }
 
 void AudioManager::Landing(glm::vec3 pos) {
@@ -111,10 +120,6 @@ void AudioManager::UpdateTire(const std::string &strEventName, const glm::vec3 &
 	audioEngine.SetEvent3dAttributes(tireSound, pos, velocity, forward, up);
 	audioEngine.SetEventParameter(tireSound, "Speed", speed);
 	audioEngine.SetEventParameter(tireSound, "Distance", distance);
-
-	audioEngine.SetEvent3dAttributes(engineSound, pos, velocity, forward, up);
-	audioEngine.SetEventParameter(engineSound, "RPM", rpm);
-
 }
 
 void AudioManager::UpdateBoost(const std::string& strEventName, const glm::vec3& pos, const glm::vec3& velocity, const glm::vec3& forward, const glm::vec3& up, float distance, float boost) {
@@ -128,10 +133,7 @@ void AudioManager::UpdateEngine(const std::string& strEventName, const glm::vec3
 	std::string soundName = strEventName + "_engine";
 	audioEngine.SetEvent3dAttributes(soundName, pos, velocity, forward, up);
 	audioEngine.SetEventParameter(soundName, "RPM", rpm);
-
 }
-
-
 
 void AudioManager::setVolume(const std::string& strEventName, float db) {
 	audioEngine.SetEventVolume(strEventName, db);
