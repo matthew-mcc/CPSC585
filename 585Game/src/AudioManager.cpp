@@ -49,8 +49,14 @@ void AudioManager::Update(int numVehicles, bool inMenu) {
 	for (int i = 0; i < numVehicles; i++) {
 		string vehicleName = "vehicle_";
 		vehicleName += to_string(i);
-		if(inMenu) setVolume(vehicleName + "_tire", 0.f);
-		else setVolume(vehicleName + "_tire", 1.f);
+		if (inMenu) {
+			setVolume(vehicleName + "_tire", 0.f);
+			setVolume(vehicleName + "_engine", 0.f);
+		}
+		else {
+			setVolume(vehicleName + "_tire", 1.f);
+			setVolume(vehicleName + "_engine", 1.f);
+		}
 	}
 	audioEngine.Update();
 }

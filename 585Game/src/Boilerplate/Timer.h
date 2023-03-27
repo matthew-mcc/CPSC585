@@ -14,7 +14,7 @@ public:
     }
 
     void init() {
-        countdown = 300.f;
+        countdown = 5.f;
         currentTime = glfwGetTime();
         lastDeltaTime = glfwGetTime();
         lastFPSTime = glfwGetTime();
