@@ -1306,6 +1306,9 @@ void PhysicsSystem::AI_MoveTo(Vehicle* vehicle, PxVec3 destination) {
 			//cout << "boost tech" << endl;
 			AI_ApplyBoost(vehicle);
 		}
+		else {
+			vehicle->aiBoost = 0.0f;
+		}
 	}
 	if (sqrt(dot * dot) > 0.95f) {
 		vehicle->vehicle.mCommandState.steer = 0.f;
