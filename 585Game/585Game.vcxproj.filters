@@ -1455,6 +1455,9 @@
     <ClInclude Include="src\ParticleSystem.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="resource.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="src\Camera.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -1467,6 +1470,9 @@
       <Filter>Resource Files</Filter>
     </Image>
     <Image Include="assets\textures\alien.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\..\..\Game Development\Projects\585 Project\UI\Textures\icon_sss.ico">
       <Filter>Resource Files</Filter>
     </Image>
   </ItemGroup>
@@ -1483,5 +1489,10 @@
     <Text Include="src\Cel Shader\shaderCelVertex.txt" />
     <Text Include="src\Cel Shader\shaderOutlineFragment.txt" />
     <Text Include="src\Cel Shader\shaderOutlineVertex.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="585Game.rc">
+      <Filter>Resource Files</Filter>
+    </ResourceCompile>
   </ItemGroup>
 </Project>

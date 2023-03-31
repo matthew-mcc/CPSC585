@@ -28,10 +28,11 @@ public:
 	bool quit = false;
 	bool showInfo = false;
 	bool gameEnded = false;
-	int menuOptionIndex = 1;
-	int nbMenuOptions = 3;
+	int menuOptionIndex = 0;
+	int nbMenuOptions = 4;
 
 	// Game Parameters
+	int numPlayers = 1;
 	int numVehicles = 6;
 	int numTrailers = 30;
 

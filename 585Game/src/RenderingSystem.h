@@ -47,7 +47,7 @@ private:
 	std::shared_ptr<CallbackInterface> callback_ptr;
 
 	// Number of active players
-	int numPlayers = 4;
+	int numPlayers = 1;
 	vector<Entity*> playerEntities;
 	vector<Camera> playerCameras;
 
@@ -91,7 +91,8 @@ private:
 	unsigned int menuBackground;
 	unsigned int menuTitle;
 	unsigned int menuLoading;
-	unsigned int menuPlay;
+	unsigned int menuSolo;
+	unsigned int menuParty;
 	unsigned int menuQuit;
 	unsigned int menuInfo;
 	unsigned int menuInfoDisplay;

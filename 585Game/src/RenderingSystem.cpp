@@ -75,7 +75,8 @@ void RenderingSystem::initRenderer() {
 	menuBackground = generateTexture("assets/textures/UI/menuBackground.png", false);
 	menuTitle = generateTexture("assets/textures/UI/menuTitle.png", false);
 	menuLoading = generateTexture("assets/textures/UI/menuLoading.png", false);
-	menuPlay = generateTexture("assets/textures/UI/menuPlay.png", false);
+	menuSolo = generateTexture("assets/textures/UI/menuSolo.png", false);
+	menuParty = generateTexture("assets/textures/UI/menuParty.png", false);
 	menuQuit = generateTexture("assets/textures/UI/menuQuit.png", false);
 	menuInfo = generateTexture("assets/textures/UI/menuInfo.png", false);
 	menuInfoDisplay = generateTexture("assets/textures/UI/menuInfoDisplay.png", false);
@@ -102,11 +103,6 @@ void RenderingSystem::initRenderer() {
 	particleShader.setInt("sprite", 1);
 	portalParticles = ParticleSystem(particleShader, orbTexture, 500, 4.0f, 0.2f, portalColor, "p");
 	dirtParticles = ParticleSystem(particleShader, rockTexture, 500, 1.0f, 0.2f, dirtColor, "d");
-	
-	for (int i = 0; i < gameState->numVehicles; i++) {
-		if(i == 0 && numPlayers == 1) boostParticles.push_back(ParticleSystem(particleShader, rockTexture, 1000, 0.5f, 0.25f, boostColor1, boostColor2, boostColor3, "b"));
-		else boostParticles.push_back(ParticleSystem(particleShader, rockTexture, 300, 0.5f, 0.2f, boostColor1, boostColor2, boostColor3, "b"));	// Optimization: Less particles for non-player vehicles
-	}
 
 	for (int i = 0; i < 6; i++) {
 		indicators.push_back(ParticleSystem(particleShader, ui_player_tracker[i], 1.f, 300.f, 0.f, vec3(1.f), "i"));
@@ -114,26 +110,6 @@ void RenderingSystem::initRenderer() {
 	}
 
 	// FRAME BUFFER INITIALIZATIONS
-	if (numPlayers == 1) {
-		farShadowMap = FBuffer(16384, 4096, 800.f, 300.f, -700.f, 1000.f);
-		nearShadowMap.push_back(FBuffer(8192, 2048, 40.f, 10.f, -500.f, 100.f));
-		outlineMap.push_back(FBuffer(1920, 1080, "o"));
-		outlineMapNoLandscape.push_back(FBuffer(1920, 1080, "o"));
-		outlineToTexture.push_back(FBuffer(1920, 1080, "ot"));
-		celMap.push_back(FBuffer(1920, 1080, "c"));
-		blurMap.push_back(FBuffer(1920, 1080, "b"));
-		intermediateBuffer.push_back(FBuffer(1920, 1080, "i"));
-	}
-	else for (int i = 0; i < numPlayers; i++) {
-		farShadowMap = FBuffer(16384, 4096, 800.f, 300.f, -700.f, 1000.f);
-		nearShadowMap.push_back(FBuffer(4096, 1024, 40.f, 10.f, -500.f, 100.f));
-		outlineMap.push_back(FBuffer(960, 540, "o"));
-		outlineMapNoLandscape.push_back(FBuffer(960, 540, "o"));
-		outlineToTexture.push_back(FBuffer(960, 540, "ot"));
-		celMap.push_back(FBuffer(960, 540, "c"));
-		blurMap.push_back(FBuffer(960, 540, "b"));
-		intermediateBuffer.push_back(FBuffer(960, 540, "i"));
-	}
 
 	// WORLD SHADER INITIALIZATION
 	stbi_set_flip_vertically_on_load(true);
@@ -149,7 +125,48 @@ void RenderingSystem::initRenderer() {
 // Update Renderer
 void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> cbp, GameState* gameState, Timer* timer) {
 	// CALLBACK POINTER
+	numPlayers = gameState->numPlayers;
 	callback_ptr = cbp;
+
+	if (numPlayers == 1 && nearShadowMap.size() < 1) {
+		farShadowMap = FBuffer(16384, 4096, 800.f, 300.f, -700.f, 1000.f);
+		nearShadowMap.push_back(FBuffer(8192, 2048, 40.f, 10.f, -500.f, 100.f));
+		outlineMap.push_back(FBuffer(1920, 1080, "o"));
+		outlineMapNoLandscape.push_back(FBuffer(1920, 1080, "o"));
+		outlineToTexture.push_back(FBuffer(1920, 1080, "ot"));
+		celMap.push_back(FBuffer(1920, 1080, "c"));
+		blurMap.push_back(FBuffer(1920, 1080, "b"));
+		intermediateBuffer.push_back(FBuffer(1920, 1080, "i"));
+		for (int i = 0; i < gameState->numVehicles && boostParticles.size() < gameState->numVehicles; i++) {
+			if (i == 0 && numPlayers == 1) boostParticles.push_back(ParticleSystem(particleShader, rockTexture, 1000, 0.5f, 0.25f, boostColor1, boostColor2, boostColor3, "b"));
+			else boostParticles.push_back(ParticleSystem(particleShader, rockTexture, 300, 0.5f, 0.2f, boostColor1, boostColor2, boostColor3, "b"));	// Optimization: Less particles for non-player vehicles
+		}
+	}
+	else if (nearShadowMap.size() < numPlayers) {
+		nearShadowMap.pop_back();
+		outlineMap.pop_back();
+		outlineMapNoLandscape.pop_back();
+		outlineToTexture.pop_back();
+		celMap.pop_back();
+		blurMap.pop_back();
+		intermediateBuffer.pop_back();
+		for (int i = 0; i < gameState->numVehicles; i++) boostParticles.pop_back();
+		for (int i = 0; i < gameState->numVehicles && boostParticles.size() < gameState->numVehicles; i++) {
+			if (i == 0 && numPlayers == 1) boostParticles.push_back(ParticleSystem(particleShader, rockTexture, 1000, 0.5f, 0.25f, boostColor1, boostColor2, boostColor3, "b"));
+			else boostParticles.push_back(ParticleSystem(particleShader, rockTexture, 300, 0.5f, 0.2f, boostColor1, boostColor2, boostColor3, "b"));	// Optimization: Less particles for non-player vehicles
+		}
+
+		for (int i = 0; i < numPlayers; i++) {
+			farShadowMap = FBuffer(16384, 4096, 800.f, 300.f, -700.f, 1000.f);
+			nearShadowMap.push_back(FBuffer(4096, 1024, 40.f, 10.f, -500.f, 100.f));
+			outlineMap.push_back(FBuffer(960, 540, "o"));
+			outlineMapNoLandscape.push_back(FBuffer(960, 540, "o"));
+			outlineToTexture.push_back(FBuffer(960, 540, "ot"));
+			celMap.push_back(FBuffer(960, 540, "c"));
+			blurMap.push_back(FBuffer(960, 540, "b"));
+			intermediateBuffer.push_back(FBuffer(960, 540, "i"));
+		}
+	}
 
 	// BACKGROUND
 	glClearColor(skyColor.r, skyColor.g, skyColor.b, 1.0f);	// Set Background (Sky) Color
@@ -185,16 +202,20 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> cbp, Gam
 
 		// Menu Screen
 		else {
-			// Highlight Info
+			// Highlight Solo
 			if (gameState->menuOptionIndex == 0) {
+				drawUI(menuSolo, 0, 0, callback_ptr->xres, callback_ptr->yres, 1);
+			}
+			// Highlight Party
+			if (gameState->menuOptionIndex == 1) {
+				drawUI(menuParty, 0, 0, callback_ptr->xres, callback_ptr->yres, 1);
+			}
+			// Highlight Info
+			else if (gameState->menuOptionIndex == 2) {
 				drawUI(menuInfo, 0, 0, callback_ptr->xres, callback_ptr->yres, 1);
 			}
-			// Highlight Play
-			if (gameState->menuOptionIndex == 1) {
-				drawUI(menuPlay, 0, 0, callback_ptr->xres, callback_ptr->yres, 1);
-			}
 			// Highlight Quit
-			else if (gameState->menuOptionIndex == 2) {
+			else if (gameState->menuOptionIndex == 3) {
 				drawUI(menuQuit, 0, 0, callback_ptr->xres, callback_ptr->yres, 1);
 			}
 			drawUI(menuTitle, 0, 0, callback_ptr->xres, callback_ptr->yres, 0);
