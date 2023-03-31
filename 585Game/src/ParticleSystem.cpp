@@ -130,7 +130,7 @@ void ParticleSystem::UpdateBoost(float dt, glm::vec3 spawnPoint, glm::vec3 forwa
 	}
 }
 
-void ParticleSystem::Draw(glm::mat4 view, glm::mat4 proj, glm::vec3 cameraPosition) {
+void ParticleSystem::Draw(glm::mat4 view, glm::mat4 proj, glm::vec3 cameraPosition, glm::vec2 targetRes) {
 	// use additive blending to give it a 'glow' effect
 	if (mode.compare("p") == 0 || mode.compare("b") == 0) glBlendFunc(GL_SRC_ALPHA, GL_ONE);
 	shader.use();
@@ -149,6 +149,8 @@ void ParticleSystem::Draw(glm::mat4 view, glm::mat4 proj, glm::vec3 cameraPositi
 			shader.setVec3("camUp", glm::vec3(view[0][1], view[1][1], view[2][1]));
 			shader.setFloat("scale", particles[i].size);
 			shader.setBool("screenSpace", mode.compare("i") == 0);
+			shader.setFloat("xRes", targetRes.x);
+			shader.setFloat("yRes", targetRes.y);
 			glActiveTexture(GL_TEXTURE1);
 			glBindTexture(GL_TEXTURE_2D, texture);
 			glActiveTexture(GL_TEXTURE0);

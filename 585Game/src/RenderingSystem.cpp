@@ -373,13 +373,13 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> cbp, Gam
 		}
 
 		for (int i = 0; i < indicators.size(); i++) {
-			if (i != pl) indicators[i].Draw(playerCameras[pl].view, playerCameras[pl].projection, playerCameras[pl].camera_previous_position);
+			if (i != pl) indicators[i].Draw(playerCameras[pl].view, playerCameras[pl].projection, playerCameras[pl].camera_previous_position, targetRes);
 
 			int playerScore = gameState->findEntity("vehicle_" + to_string(i))->nbChildEntities;
 			if (playerScore > 0) {
 				if (playerScore > 12) playerScore = 12;
 				indicatorCounters[i].updateTex(ui_score_tracker[playerScore - 1]);
-				if (i != pl) indicatorCounters[i].Draw(playerCameras[pl].view, playerCameras[pl].projection, playerCameras[pl].camera_previous_position);
+				if (i != pl) indicatorCounters[i].Draw(playerCameras[pl].view, playerCameras[pl].projection, playerCameras[pl].camera_previous_position, targetRes);
 			}
 		}
 		glDepthMask(GL_TRUE);
