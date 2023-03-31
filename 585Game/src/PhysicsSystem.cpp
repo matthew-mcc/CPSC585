@@ -719,6 +719,7 @@ void PhysicsSystem::initVehicles(int vehicleCount) {
 					gContactReportCallback->wheelshapes.push_back(shape);
 				}*/
 			}
+			vehicles.back()->vehicle.mPhysXState.physxActor.rigidBody->setMaxAngularVelocity(4);
 		}
 		else { //AI cars 
 			for (PxU32 j = 0; j < 1; j++) {
