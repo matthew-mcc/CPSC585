@@ -389,13 +389,11 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> cbp, Gam
 		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, intermediateBuffer[pl].FBO[0]);
 		glReadBuffer(GL_COLOR_ATTACHMENT0);
 		glDrawBuffer(GL_COLOR_ATTACHMENT0);
-		if (numPlayers == 1) glBlitFramebuffer(0, 0, 1920, 1080, 0, 0, 1920, 1080, GL_COLOR_BUFFER_BIT, GL_NEAREST);
-		else glBlitFramebuffer(0, 0, 960, 540, 0, 0, 960, 540, GL_COLOR_BUFFER_BIT, GL_NEAREST);
+		glBlitFramebuffer(0, 0, targetRes.x, targetRes.y, 0, 0, targetRes.x, targetRes.y, GL_COLOR_BUFFER_BIT, GL_NEAREST);
 
 		glReadBuffer(GL_COLOR_ATTACHMENT1);
 		glDrawBuffer(GL_COLOR_ATTACHMENT1);
-		if (numPlayers == 1) glBlitFramebuffer(0, 0, 1920, 1080, 0, 0, 1920, 1080, GL_COLOR_BUFFER_BIT, GL_NEAREST);
-		else glBlitFramebuffer(0, 0, 960, 540, 0, 0, 960, 540, GL_COLOR_BUFFER_BIT, GL_NEAREST);
+		glBlitFramebuffer(0, 0, targetRes.x, targetRes.y, 0, 0, targetRes.x, targetRes.y, GL_COLOR_BUFFER_BIT, GL_NEAREST);
 
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
