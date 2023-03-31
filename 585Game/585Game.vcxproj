@@ -24,6 +24,7 @@
     <ProjectGuid>{e39b1274-d210-4d84-9313-883803df8bba}</ProjectGuid>
     <RootNamespace>My585Game</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+    <ProjectName>SuperSpaceSalvagers</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -601,6 +602,7 @@
     <ClInclude Include="libraries\physx\include\vehicle\PxVehicleUtilSetup.h" />
     <ClInclude Include="libraries\physx\include\vehicle\PxVehicleUtilTelemetry.h" />
     <ClInclude Include="libraries\physx\include\vehicle\PxVehicleWheels.h" />
+    <ClInclude Include="resource.h" />
     <ClInclude Include="snippetcommon\SnippetPrint.h" />
     <ClInclude Include="snippetcommon\SnippetPVD.h" />
     <ClInclude Include="snippetvehicle2common\base\Base.h" />
@@ -638,6 +640,7 @@
     <ClInclude Include="src\PlayerProperties.h" />
   </ItemGroup>
   <ItemGroup>
+    <Image Include="..\..\..\Game Development\Projects\585 Project\UI\Textures\icon_sss.ico" />
     <Image Include="assets\textures\alien.png" />
     <Image Include="assets\textures\container.jpg" />
     <Image Include="assets\textures\nice.jpg" />
@@ -655,6 +658,9 @@
     <Text Include="src\Cel Shader\shaderCelVertex.txt" />
     <Text Include="src\Cel Shader\shaderOutlineFragment.txt" />
     <Text Include="src\Cel Shader\shaderOutlineVertex.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="585Game.rc" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
