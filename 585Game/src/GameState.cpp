@@ -229,18 +229,22 @@ void GameState::menuEventHandler(std::shared_ptr<CallbackInterface> cbp) {
 				showInfo = false;
 				audio_ptr->MenuClick(0, listener_position);
 			}
-			// Info
+			// Solo
 			else if (menuOptionIndex == 0) {
-				showInfo = true;
-				audio_ptr->MenuClick(0, listener_position);
-			}
-			// Play
-			else if (menuOptionIndex == 1) {
 				loading = true;
 				audio_ptr->MenuClick(2, listener_position);
 			}
-			// Quit
+			// Party
+			else if (menuOptionIndex == 1) {
+				// Multiplayer load goes here
+			}
+			// Info
 			else if (menuOptionIndex == 2) {
+				showInfo = true;
+				audio_ptr->MenuClick(0, listener_position);
+			}
+			// Quit
+			else if (menuOptionIndex == 3) {
 				quit = true;
 			}
 			cbp->menuConfirm = false;

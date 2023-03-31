@@ -74,7 +74,8 @@ void RenderingSystem::initRenderer() {
 	menuBackground = generateTexture("assets/textures/UI/menuBackground.png", false);
 	menuTitle = generateTexture("assets/textures/UI/menuTitle.png", false);
 	menuLoading = generateTexture("assets/textures/UI/menuLoading.png", false);
-	menuPlay = generateTexture("assets/textures/UI/menuPlay.png", false);
+	menuSolo = generateTexture("assets/textures/UI/menuSolo.png", false);
+	menuParty = generateTexture("assets/textures/UI/menuParty.png", false);
 	menuQuit = generateTexture("assets/textures/UI/menuQuit.png", false);
 	menuInfo = generateTexture("assets/textures/UI/menuInfo.png", false);
 	menuInfoDisplay = generateTexture("assets/textures/UI/menuInfoDisplay.png", false);
@@ -185,16 +186,20 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> cbp, Gam
 
 		// Menu Screen
 		else {
-			// Highlight Info
+			// Highlight Solo
 			if (gameState->menuOptionIndex == 0) {
+				drawUI(menuSolo, 0, 0, callback_ptr->xres, callback_ptr->yres, 1);
+			}
+			// Highlight Party
+			if (gameState->menuOptionIndex == 1) {
+				drawUI(menuParty, 0, 0, callback_ptr->xres, callback_ptr->yres, 1);
+			}
+			// Highlight Info
+			else if (gameState->menuOptionIndex == 2) {
 				drawUI(menuInfo, 0, 0, callback_ptr->xres, callback_ptr->yres, 1);
 			}
-			// Highlight Play
-			if (gameState->menuOptionIndex == 1) {
-				drawUI(menuPlay, 0, 0, callback_ptr->xres, callback_ptr->yres, 1);
-			}
 			// Highlight Quit
-			else if (gameState->menuOptionIndex == 2) {
+			else if (gameState->menuOptionIndex == 3) {
 				drawUI(menuQuit, 0, 0, callback_ptr->xres, callback_ptr->yres, 1);
 			}
 			drawUI(menuTitle, 0, 0, callback_ptr->xres, callback_ptr->yres, 0);

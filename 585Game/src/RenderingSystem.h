@@ -86,7 +86,8 @@ private:
 	unsigned int menuBackground;
 	unsigned int menuTitle;
 	unsigned int menuLoading;
-	unsigned int menuPlay;
+	unsigned int menuSolo;
+	unsigned int menuParty;
 	unsigned int menuQuit;
 	unsigned int menuInfo;
 	unsigned int menuInfoDisplay;
