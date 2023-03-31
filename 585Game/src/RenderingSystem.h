@@ -53,7 +53,7 @@ private:
 
 	// Particle Generators
 	ParticleSystem portalParticles;
-	ParticleSystem dirtParticles;
+	std::vector<ParticleSystem> dirtParticles;
 	std::vector<ParticleSystem> boostParticles;
 	std::vector<ParticleSystem> indicators;
 	std::vector<ParticleSystem> indicatorCounters;

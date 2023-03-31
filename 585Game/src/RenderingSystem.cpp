@@ -102,11 +102,10 @@ void RenderingSystem::initRenderer() {
 	particleShader.use();
 	particleShader.setInt("sprite", 1);
 	portalParticles = ParticleSystem(particleShader, orbTexture, 500, 4.0f, 0.2f, portalColor, "p");
-	dirtParticles = ParticleSystem(particleShader, rockTexture, 500, 1.0f, 0.2f, dirtColor, "d");
 
 	for (int i = 0; i < 6; i++) {
-		indicators.push_back(ParticleSystem(particleShader, ui_player_tracker[i], 1.f, 300.f, 0.f, vec3(1.f), "i"));
-		indicatorCounters.push_back(ParticleSystem(particleShader, ui_player_tracker[i], 1.f, 300.f, 0.1f, vec3(1.f), "i"));
+		indicators.push_back(ParticleSystem(particleShader, ui_player_tracker[i], 1, 300.f, 0.f, vec3(1.f), "i"));
+		indicatorCounters.push_back(ParticleSystem(particleShader, ui_player_tracker[i], 1, 300.f, 0.1f, vec3(1.f), "i"));
 	}
 
 	// FRAME BUFFER INITIALIZATIONS
@@ -138,8 +137,9 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> cbp, Gam
 		blurMap.push_back(FBuffer(1920, 1080, "b"));
 		intermediateBuffer.push_back(FBuffer(1920, 1080, "i"));
 		for (int i = 0; i < gameState->numVehicles && boostParticles.size() < gameState->numVehicles; i++) {
-			if (i == 0 && numPlayers == 1) boostParticles.push_back(ParticleSystem(particleShader, rockTexture, 1000, 0.5f, 0.25f, boostColor1, boostColor2, boostColor3, "b"));
+			if (i < numPlayers) boostParticles.push_back(ParticleSystem(particleShader, rockTexture, 1000, 0.5f, 0.25f, boostColor1, boostColor2, boostColor3, "b"));
 			else boostParticles.push_back(ParticleSystem(particleShader, rockTexture, 300, 0.5f, 0.2f, boostColor1, boostColor2, boostColor3, "b"));	// Optimization: Less particles for non-player vehicles
+			dirtParticles.push_back(ParticleSystem(particleShader, rockTexture, 500, 1.0f, 0.2f, dirtColor, "d"));
 		}
 	}
 	else if (nearShadowMap.size() < numPlayers) {
@@ -150,10 +150,14 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> cbp, Gam
 		celMap.pop_back();
 		blurMap.pop_back();
 		intermediateBuffer.pop_back();
-		for (int i = 0; i < gameState->numVehicles; i++) boostParticles.pop_back();
+		portalParticles = ParticleSystem(particleShader, orbTexture, 500 / numPlayers, 4.0f, 0.2f, portalColor, "p");
+		for (int i = 0; i < gameState->numVehicles; i++) {
+			boostParticles.pop_back();
+			dirtParticles.pop_back();
+		}
 		for (int i = 0; i < gameState->numVehicles && boostParticles.size() < gameState->numVehicles; i++) {
-			if (i == 0 && numPlayers == 1) boostParticles.push_back(ParticleSystem(particleShader, rockTexture, 1000, 0.5f, 0.25f, boostColor1, boostColor2, boostColor3, "b"));
-			else boostParticles.push_back(ParticleSystem(particleShader, rockTexture, 300, 0.5f, 0.2f, boostColor1, boostColor2, boostColor3, "b"));	// Optimization: Less particles for non-player vehicles
+			boostParticles.push_back(ParticleSystem(particleShader, rockTexture, 5000 / (gameState->numVehicles * numPlayers), 0.5f, 0.25f, boostColor1, boostColor2, boostColor3, "b"));
+			dirtParticles.push_back(ParticleSystem(particleShader, rockTexture, 200 / numPlayers, 1.0f, 0.2f, dirtColor, "d"));
 		}
 
 		for (int i = 0; i < numPlayers; i++) {
@@ -264,12 +268,6 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> cbp, Gam
 		glm::vec3(1.f),
 		glm::vec3(0.f, 0.f, 31.6f));
 
-	dirtParticles.Update(timer->getDeltaTime(),
-		playerEntities[0]->transform->getPosition() + vec3(rand() % 50 / 100.f - 0.25f, rand() % 50 / 100.f - 0.25f, rand() % 50 / 100.f - 0.25f),
-		(float)playerEntities[0]->transform->getOnGround() * (float)(length(playerEntities[0]->transform->getLinearVelocity()) > 5.0f) * ((glm::vec3(0.f, 0.2f, 0.f) * length(playerEntities[0]->transform->getLinearVelocity())) + -2.f * playerEntities[0]->transform->getForwardVector() + 0.5f * playerEntities[0]->transform->getLinearVelocity()),
-		vec3(toMat4(playerEntities[0]->transform->getRotation()) * vec4(dirtOffset, 0.f)),
-		vec3(toMat4(playerEntities[0]->transform->getRotation()) * vec4(-dirtOffset.x, dirtOffset.y, dirtOffset.z, 0.f)));
-
 	for (int i = 0; i < boostParticles.size(); i++) {
 		boostParticles.at(i).color = boostColor1;
 		boostParticles.at(i).color2 = boostColor2;
@@ -281,6 +279,12 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> cbp, Gam
 			(vehicleEntity->transform->getLinearVelocity()) * float(vehicleEntity->playerProperties->boost != 0.f),
 			vec3(toMat4(vehicleEntity->transform->getRotation()) * vec4(boostOffset, 0.f)),
 			vec3(toMat4(vehicleEntity->transform->getRotation()) * vec4(-boostOffset.x, boostOffset.y, boostOffset.z, 0.f)));
+
+		dirtParticles.at(i).Update(timer->getDeltaTime(),
+			vehicleEntity->transform->getPosition() + vec3(rand() % 50 / 100.f - 0.25f, rand() % 50 / 100.f - 0.25f, rand() % 50 / 100.f - 0.25f),
+			(float)vehicleEntity->transform->getOnGround()* (float)(length(vehicleEntity->transform->getLinearVelocity()) > 5.0f)* ((glm::vec3(0.f, 0.2f, 0.f)* length(vehicleEntity->transform->getLinearVelocity())) + -2.f * vehicleEntity->transform->getForwardVector() + 0.5f * vehicleEntity->transform->getLinearVelocity()),
+			vec3(toMat4(vehicleEntity->transform->getRotation())* vec4(dirtOffset, 0.f)),
+			vec3(toMat4(vehicleEntity->transform->getRotation())* vec4(-dirtOffset.x, dirtOffset.y, dirtOffset.z, 0.f)));
 	}
 
 	for (int i = 0; i < indicators.size(); i++) {
@@ -355,7 +359,6 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> cbp, Gam
 		celMap[pl].render(gameState, "c", lightPos, targetRes);
 
 		portalParticles.color = portalColor;
-		dirtParticles.color = dirtColor;
 
 		glBindFramebuffer(GL_FRAMEBUFFER, celMap[pl].FBO[0]);
 		glDepthMask(GL_FALSE);
@@ -363,10 +366,10 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> cbp, Gam
 
 		portalParticles.Draw(playerCameras[pl].view, playerCameras[pl].projection, playerCameras[pl].camera_previous_position);
 
-		dirtParticles.Draw(playerCameras[pl].view, playerCameras[pl].projection, playerCameras[pl].camera_previous_position);
-
 		for (int i = 0; i < boostParticles.size(); i++) {
+			dirtParticles.at(i).color = dirtColor;
 			boostParticles.at(i).Draw(playerCameras[pl].view, playerCameras[pl].projection, playerCameras[pl].camera_previous_position);
+			dirtParticles.at(i).Draw(playerCameras[pl].view, playerCameras[pl].projection, playerCameras[pl].camera_previous_position);
 		}
 
 		for (int i = 0; i < indicators.size(); i++) {
