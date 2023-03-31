@@ -215,11 +215,11 @@ void FBuffer::cleanUp(std::shared_ptr<CallbackInterface> callback_ptr) {
 }
 
 // Draw framebuffer to screen for debug purposes
-void FBuffer::renderToScreen(unsigned int texture, float layer) {
+void FBuffer::renderToScreen(unsigned int texture, float layer, int quad) {
 	debugShader.use();
 	debugShader.setBool("UI", false);
 	glActiveTexture(GL_TEXTURE0);
-	renderQuad(texture, layer);
+	renderQuad(texture, layer, quad);
 }
 
 void FBuffer::ConfigureShaderAndMatrices(glm::vec3 lightPos, glm::vec3 playerPos) {
@@ -230,8 +230,12 @@ void FBuffer::ConfigureShaderAndMatrices(glm::vec3 lightPos, glm::vec3 playerPos
 	lightSpaceMatrix = lightProjection * lightView;
 }
 
-void FBuffer::renderQuad(unsigned int texture, float layer) {
-	renderQuad(texture, layer, -1.0, 1.0, 1.0, -1.0);
+void FBuffer::renderQuad(unsigned int texture, float layer, int quad) {
+	if (quad == 0) renderQuad(texture, layer, -1.0, 1.0, 1.0, -1.0);
+	else if (quad == 1) renderQuad(texture, layer, -1.0, 1.0, 0.0, 0.0);
+	else if (quad == 2) renderQuad(texture, layer, 0.0, 1.0, 1.0, 0.0);
+	else if (quad == 3) renderQuad(texture, layer, -1.0, 0.0, 0.0, -1.0);
+	else if (quad == 4) renderQuad(texture, layer, 0.0, 0.0, 1.0, -1.0);
 }
 
 void FBuffer::renderQuad(unsigned int texture, float layer, float x0, float y0, float x1, float y1) {
@@ -267,7 +271,7 @@ void FBuffer::renderQuad(unsigned int texture, float layer, float x0, float y0, 
 	glBindVertexArray(0);
 }
 
-void FBuffer::render(GameState* gameState, std::string mode, vec3 lightPos, std::shared_ptr<CallbackInterface> callback_ptr) {
+void FBuffer::render(GameState* gameState, std::string mode, vec3 lightPos, vec2 targetRes) {
 	glViewport(0, 0, WIDTH, HEIGHT);
 	int buffers = 1;
 	if (mode.compare("s") == 0) buffers++;
@@ -327,7 +331,7 @@ void FBuffer::render(GameState* gameState, std::string mode, vec3 lightPos, std:
 	}
 
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-	glViewport(0, 0, callback_ptr->xres, callback_ptr->yres);
+	glViewport(0, 0, (int)targetRes.x, (int)targetRes.y);
 	//glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 

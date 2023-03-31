@@ -8,6 +8,7 @@
 #include <gtc/matrix_transform.hpp>
 #include <Boilerplate/stb_image.h>
 #include <Boilerplate/Texture.h>
+#include <Camera.h>
 #include "imgui.h"
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_opengl3.h"
@@ -22,7 +23,7 @@ RenderingSystem::RenderingSystem(GameState* gameState) {
 }
 
 void RenderingSystem::resetRenderer() {
-	camera_previous_position = vec3(0.0f, 8.0f, -270.0f);
+	//camera_previous_position = vec3(0.0f, 8.0f, -270.0f);
 }
 
 void RenderingSystem::SetupImgui() {
@@ -103,8 +104,8 @@ void RenderingSystem::initRenderer() {
 	dirtParticles = ParticleSystem(particleShader, rockTexture, 500, 1.0f, 0.2f, dirtColor, "d");
 	
 	for (int i = 0; i < gameState->numVehicles; i++) {
-		if(i == 0) boostParticles.push_back(ParticleSystem(particleShader, rockTexture, 1000, 0.5f, 0.25f, boostColor1, boostColor2, boostColor3, "b"));
-		else boostParticles.push_back(ParticleSystem(particleShader, rockTexture, 500, 0.5f, 0.2f, boostColor1, boostColor2, boostColor3, "b"));	// Optimization: Less particles for non-player vehicles
+		if(i == 0 && numPlayers == 1) boostParticles.push_back(ParticleSystem(particleShader, rockTexture, 1000, 0.5f, 0.25f, boostColor1, boostColor2, boostColor3, "b"));
+		else boostParticles.push_back(ParticleSystem(particleShader, rockTexture, 300, 0.5f, 0.2f, boostColor1, boostColor2, boostColor3, "b"));	// Optimization: Less particles for non-player vehicles
 	}
 
 	for (int i = 0; i < 6; i++) {
@@ -113,14 +114,26 @@ void RenderingSystem::initRenderer() {
 	}
 
 	// FRAME BUFFER INITIALIZATIONS
-	nearShadowMap = FBuffer(8192, 2048, 40.f, 10.f, -500.f, 100.f);
-	farShadowMap = FBuffer(16384, 4096, 800.f, 300.f, -700.f, 1000.f);
-	outlineMap = FBuffer(1920, 1080, "o");
-	outlineMapNoLandscape = FBuffer(1920, 1080, "o");
-	outlineToTexture = FBuffer(1920, 1080, "ot");
-	celMap = FBuffer(1920, 1080, "c");
-	blurMap = FBuffer(1920, 1080, "b");
-	intermediateBuffer = FBuffer(1920, 1080, "i");
+	if (numPlayers == 1) {
+		farShadowMap = FBuffer(16384, 4096, 800.f, 300.f, -700.f, 1000.f);
+		nearShadowMap.push_back(FBuffer(8192, 2048, 40.f, 10.f, -500.f, 100.f));
+		outlineMap.push_back(FBuffer(1920, 1080, "o"));
+		outlineMapNoLandscape.push_back(FBuffer(1920, 1080, "o"));
+		outlineToTexture.push_back(FBuffer(1920, 1080, "ot"));
+		celMap.push_back(FBuffer(1920, 1080, "c"));
+		blurMap.push_back(FBuffer(1920, 1080, "b"));
+		intermediateBuffer.push_back(FBuffer(1920, 1080, "i"));
+	}
+	else for (int i = 0; i < numPlayers; i++) {
+		farShadowMap = FBuffer(16384, 4096, 800.f, 300.f, -700.f, 1000.f);
+		nearShadowMap.push_back(FBuffer(4096, 1024, 40.f, 10.f, -500.f, 100.f));
+		outlineMap.push_back(FBuffer(960, 540, "o"));
+		outlineMapNoLandscape.push_back(FBuffer(960, 540, "o"));
+		outlineToTexture.push_back(FBuffer(960, 540, "ot"));
+		celMap.push_back(FBuffer(960, 540, "c"));
+		blurMap.push_back(FBuffer(960, 540, "b"));
+		intermediateBuffer.push_back(FBuffer(960, 540, "i"));
+	}
 
 	// WORLD SHADER INITIALIZATION
 	stbi_set_flip_vertically_on_load(true);
@@ -131,19 +144,6 @@ void RenderingSystem::initRenderer() {
 	initTextVAO(&textVAO, &textVBO);
 	textShader = Shader("src/Shaders/textVertex.txt", "src/Shaders/textFragment.txt");
 	textShader.use();
-}
-
-void resetValue(float &target, float range, float desireValue,float speed,float step) {
-	if (target > desireValue)
-		target -= speed * step;
-	else if(target < desireValue)
-		target += speed * step;
-	
-	if (target > (desireValue - range) && target < (desireValue + range))
-		target = desireValue;
-}
-void RenderingSystem::updateRadius(float base, float zoom) {
-	camera_radius = base + zoom;
 }
 
 // Update Renderer
@@ -212,86 +212,12 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> cbp, Gam
 
 	// CAMERA POSITION / LAG
 	// Retrieve player direction vectors
-	Entity* playerEntity = gameState->findEntity("vehicle_0");
-	vec3 player_forward = playerEntity->transform->getForwardVector();
-	vec3 player_right = playerEntity->transform->getRightVector();
-	vec3 player_up = playerEntity->transform->getUpVector();
-	vec3 player_pos = playerEntity->transform->getPosition();
-
-	// Camera Zoom: Pull view back with increasing number of towed trailers
-	float camera_zoom_forward = clamp(1.0f + (float)playerEntity->nbChildEntities * 0.5f, 1.0f, 11.0f);
-	float camera_zoom_up = clamp(1.0f + (float)playerEntity->nbChildEntities * 0.4f, 1.0f, 11.0f);
-
-	// Chase Camera: Compute eye and target offsets
-		// Eye Offset: Camera position (world space)
-		// Target Offset: Camera focus point (world space)
-	vec3 eye_offset = (camera_position_forward * player_forward * camera_zoom_forward) + (camera_position_right * player_right) + (camera_position_up * player_up * camera_zoom_up);
-	vec3 target_offset = player_pos + (camera_target_forward * player_forward) + (camera_target_right * player_right) + (camera_target_up * player_up);
-
-	// If user is controlling camera, set view accordingly
-	vec3 ResetVec = playerEntity->transform->getRotation()*vec3(0.f,3.5f*camera_zoom_up,-7.5f*camera_zoom_forward);
-	glm::vec3 Camera_collision(0.f);
-	glm::vec3 Reset_collision(1.f);
-
-	// Camera lag: Generate target_position - prev_position creating a vector. Scale by constant factor, then add to prev and update
-	vec3 camera_target_position = player_pos + eye_offset;
-	camera_target_position.y = player_pos.y + camera_position_up + (float)playerEntity->nbChildEntities * 0.4f;
-	vec3 camera_track_vector = camera_target_position - camera_previous_position;
-	camera_track_vector = camera_track_vector * camera_lag * (float)timer->getDeltaTime();
-	camera_previous_position = vec3(translate(mat4(1.0f), camera_track_vector) * vec4(camera_previous_position, 1.0f));
-
-	// Camera Look: Orbit camera around vehicle
-	if (callback_ptr->moveCamera) {
-		vec3 lookOffset = camera_previous_position - player_pos;
-		lookOffset = vec4(lookOffset, 0.f) * glm::rotate(glm::mat4(1.f), callback_ptr->xAngle - 3.1415126f, world_up);
-		lookOffset += player_pos;
-		Camera_collision = PhysicsSystem::CameraRaycasting(camera_previous_position, camera_radius, 1.f);
-		view = lookAt(lookOffset, target_offset, world_up);
+	for (int i = 0; i < numPlayers && playerEntities.size() < numPlayers; i++) {
+		playerEntities.push_back(gameState->findEntity("vehicle_" + to_string(i)));
+		playerCameras.push_back(Camera(playerEntities[i]));
 	}
-	else {
-		Camera_collision = PhysicsSystem::CameraRaycasting(camera_previous_position, camera_radius, 1.f);
-		Reset_collision = PhysicsSystem::CameraRaycasting(player_pos + ResetVec, camera_radius, 1.f);
-		view = lookAt(camera_previous_position, target_offset, world_up);
-	}
-
-	// Set view matrix
-	//view = lookAt(camera_previous_position, target_offset, world_up);
-
-	// For audio - probably need to change later
-	gameState->listener_position = camera_previous_position;
-
-	if (Camera_collision.x != 0.f && Camera_collision.y != 0 && Camera_collision.z != 0) {//not sure which one to use XD
-		camera_position_forward += Camera_collision.z;//* (float)timer->getDeltaTime();//camera_previous_position.z += 1.f; //* (float)timer->getDeltaTime();//cout << "???" << endl;
-		camera_position_up = clamp(camera_position_up+Camera_collision.y,3.5f,100.f);
-		camera_position_right -= Camera_collision.x;
-		rad_base = clamp(rad_base - sqrtf(Camera_collision.z * Camera_collision.z + Camera_collision.x * Camera_collision.x),0.5f,7.5f);
-		//timeTorset = 0.f;
-	}
-	else {
-		if (Reset_collision.x == 0.f && Reset_collision.y == 0 && Reset_collision.z == 0 && !PhysicsSystem::CameraIntercetionRaycasting(player_pos + ResetVec)) { //lag to reset the camera
-			float reset_speed = 50.f; // the speed to rset the camera
-			float step_time = (float)timer->getDeltaTime();
-			float step_range = step_time * reset_speed;
-			resetValue(camera_position_forward, step_range, -7.5f, reset_speed, step_time);
-			resetValue(camera_position_up, step_range, 3.5f, reset_speed, step_time);
-			resetValue(camera_position_right, step_range, 0.f, reset_speed, step_time);
-			resetValue(rad_base, step_range, 7.5f, reset_speed, step_time);
-		}
-		//timeTorset += (float)timer->getDeltaTime();
-	}
-	updateRadius(rad_base,camera_zoom_forward);
-	// Set projection and view matrices
-	if (playerEntity->playerProperties->boost != 0) {
-		if (fov < fov_boost) {
-			fov = fov + ((fov_boost - fov) / fov_boost) * fov_change_speed * (float)timer->getDeltaTime();
-		}
-		projection = perspective(radians(fov), (float)callback_ptr->xres / (float)callback_ptr->yres, 0.1f, 10000.0f);
-	}
-	else {
-		if (fov > fov_rest) {
-			fov = fov - ((fov - fov_rest) / fov) * (fov_change_speed / 2.f) * (float)timer->getDeltaTime();
-		}
-		projection = perspective(radians(fov), (float)callback_ptr->xres / (float)callback_ptr->yres, 0.1f, 10000.0f);
+	for (int i = 0; i < numPlayers; i++) {
+		playerCameras[i].updateCamera((float)timer->getDeltaTime(), callback_ptr);
 	}
 
 
@@ -301,84 +227,27 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> cbp, Gam
 	vec3 rot(0.0f, 0.3f * timer->getDeltaTime(), 0.0f);
 	portalEntity->localTransforms.at(0)->setRotation(normalize(portalEntity->localTransforms.at(0)->getRotation() * quat(rot)));
 
+	vec2 targetRes;
+	if (numPlayers == 1) targetRes = vec2(callback_ptr->xres, callback_ptr->yres);
+	else targetRes = vec2(callback_ptr->xres / 2.f, callback_ptr->yres / 2.f);
+
+	gameState->listener_position = playerCameras[0].camera_previous_position;
 
 	// FAR SHADOWMAP RENDER
 	lightPos = vec3(sin(lightRotation) * cos(lightAngle), sin(lightAngle), cos(lightRotation) * cos(lightAngle)) * 200.f;
 	farShadowMap.update(lightPos, vec3(0.f));
-	farShadowMap.render(gameState, "s", lightPos, callback_ptr);
-
-	// NEAR SHADOWMAP RENDER
-	lightPos = vec3(sin(lightRotation) * cos(lightAngle), sin(lightAngle), cos(lightRotation) * cos(lightAngle)) * 40.f;
-	nearShadowMap.update(lightPos, player_pos);
-	nearShadowMap.render(gameState, "s", lightPos, callback_ptr);
-
-	// TOON OUTLINE (Landscape)
-	if (outlineMap.getWidth() != callback_ptr->xres || outlineMap.getHeight() != callback_ptr->yres) {
-		outlineMap = FBuffer(callback_ptr->xres, callback_ptr->yres, "o");
-	}
-	outlineMap.update(projection, view);
-	outlineMap.render(gameState, "t", lightPos, callback_ptr);
-
-	// TOON OUTLINE (Objects)
-	if (outlineMapNoLandscape.getWidth() != callback_ptr->xres || outlineMapNoLandscape.getHeight() != callback_ptr->yres) {
-		outlineMapNoLandscape = FBuffer(callback_ptr->xres, callback_ptr->yres, "o");
-	}
-	outlineMapNoLandscape.update(projection, view);
-	outlineMapNoLandscape.render(gameState, "l", lightPos, callback_ptr);
-
-	// OUTLINE TO TEXTURE
-	if (outlineToTexture.getWidth() != callback_ptr->xres || outlineToTexture.getHeight() != callback_ptr->yres) {
-		outlineToTexture = FBuffer(callback_ptr->xres, callback_ptr->yres, "ot");
-	}
-
-	outlineToTexture.shader.use();
-	outlineToTexture.shader.setInt("outline1", 1);
-	outlineToTexture.shader.setInt("outline2", 2);
-	outlineToTexture.shader.setMat4("projMatrixInv", glm::inverse(projection));
-	outlineToTexture.shader.setMat4("viewMatrixInv", glm::inverse(view));
-	outlineToTexture.shader.setFloat("outlineSensitivity", outlineSensitivity);
-	outlineToTexture.shader.setFloat("fogDepth", fogDepth);
-	outlineToTexture.shader.setVec3("fogColor", fogColor);
-	glBindFramebuffer(GL_FRAMEBUFFER, outlineToTexture.FBO[0]);
-	glDisable(GL_BLEND);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	bindTexture(1, outlineMap.fbTextures[0]);
-	bindTexture(2, outlineMapNoLandscape.fbTextures[0]);
-	outlineToTexture.renderQuad(outlineToTexture.fbTextures[0], 0.1f);
-	glEnable(GL_BLEND);
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-	//outlineToTexture.renderToScreen(outlineToTexture.fbTextures[0]);
-
-	// SCENE TO TEXTURE
-	celMap.update(projection, view);
-	bindTexture(1, nearShadowMap.fbTextures[0]);
-	bindTexture(2, farShadowMap.fbTextures[0]);
-	bindTexture(3, outlineMap.fbTextures[0]);
-	bindTexture(4, outlineMapNoLandscape.fbTextures[0]);
-	bindTexture(5, nearShadowMap.fbTextures[1]);
-	bindTexture(6, farShadowMap.fbTextures[1]);
-	setCelShaderUniforms(&celMap.shader);
-	celMap.render(gameState, "c", lightPos, callback_ptr);
-	
-	portalParticles.color = portalColor;
-	dirtParticles.color = dirtColor;
-
-	glBindFramebuffer(GL_FRAMEBUFFER, celMap.FBO[0]);
-	glDepthMask(GL_FALSE);
-	glViewport(0, 0, 1920, 1080);
+	farShadowMap.render(gameState, "s", lightPos, targetRes);
 
 	portalParticles.Update(timer->getDeltaTime(),
 		gameState->findEntity("platform_center")->transform->getPosition(),
 		glm::vec3(1.f),
 		glm::vec3(0.f, 0.f, 31.6f));
-	portalParticles.Draw(view, projection, camera_previous_position);
 
 	dirtParticles.Update(timer->getDeltaTime(),
-		playerEntity->transform->getPosition() + vec3(rand() % 50 / 100.f - 0.25f, rand() % 50 / 100.f - 0.25f, rand() % 50 / 100.f - 0.25f),
-		(float)playerEntity->transform->getOnGround() * (float)(length(playerEntity->transform->getLinearVelocity()) > 5.0f) * ((glm::vec3(0.f, 0.2f, 0.f) * length(playerEntity->transform->getLinearVelocity())) + -2.f * playerEntity->transform->getForwardVector() + 0.5f * playerEntity->transform->getLinearVelocity()),
-		vec3(toMat4(playerEntity->transform->getRotation())*vec4(dirtOffset, 0.f)),
-		vec3(toMat4(playerEntity->transform->getRotation())*vec4(-dirtOffset.x, dirtOffset.y, dirtOffset.z, 0.f)));
-	dirtParticles.Draw(view, projection, camera_previous_position);
+		playerEntities[0]->transform->getPosition() + vec3(rand() % 50 / 100.f - 0.25f, rand() % 50 / 100.f - 0.25f, rand() % 50 / 100.f - 0.25f),
+		(float)playerEntities[0]->transform->getOnGround() * (float)(length(playerEntities[0]->transform->getLinearVelocity()) > 5.0f) * ((glm::vec3(0.f, 0.2f, 0.f) * length(playerEntities[0]->transform->getLinearVelocity())) + -2.f * playerEntities[0]->transform->getForwardVector() + 0.5f * playerEntities[0]->transform->getLinearVelocity()),
+		vec3(toMat4(playerEntities[0]->transform->getRotation()) * vec4(dirtOffset, 0.f)),
+		vec3(toMat4(playerEntities[0]->transform->getRotation()) * vec4(-dirtOffset.x, dirtOffset.y, dirtOffset.z, 0.f)));
 
 	for (int i = 0; i < boostParticles.size(); i++) {
 		boostParticles.at(i).color = boostColor1;
@@ -389,82 +258,165 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> cbp, Gam
 			vehicleEntity->transform->getPosition() + vec3(0.f, 0.f, 0.f),
 			vehicleEntity->transform->getForwardVector(),
 			(vehicleEntity->transform->getLinearVelocity()) * float(vehicleEntity->playerProperties->boost != 0.f),
-			vec3(toMat4(vehicleEntity->transform->getRotation())* vec4(boostOffset, 0.f)),
-			vec3(toMat4(vehicleEntity->transform->getRotation())* vec4(-boostOffset.x, boostOffset.y, boostOffset.z, 0.f)));
-		boostParticles.at(i).Draw(view, projection, camera_previous_position);
+			vec3(toMat4(vehicleEntity->transform->getRotation()) * vec4(boostOffset, 0.f)),
+			vec3(toMat4(vehicleEntity->transform->getRotation()) * vec4(-boostOffset.x, boostOffset.y, boostOffset.z, 0.f)));
 	}
 
 	for (int i = 0; i < indicators.size(); i++) {
-		indicators[i].Update(timer->getDeltaTime(), 
+		indicators[i].Update(timer->getDeltaTime(),
 			gameState->findEntity("vehicle_" + to_string(i))->transform->getPosition(),
 			vec3(1.f),
 			vec3(0.f, 3.f, 0.f));
-		if (i != 0) indicators[i].Draw(view, projection, camera_previous_position);
+		indicatorCounters[i].Update(timer->getDeltaTime(),
+			gameState->findEntity("vehicle_" + to_string(i))->transform->getPosition(),
+			vec3(1.f),
+			vec3(0.f, 3.f, 0.f));
+	}
 
-		int playerScore = gameState->findEntity("vehicle_" + to_string(i))->nbChildEntities;
-		if (playerScore > 0) {
-			if (playerScore > 12) playerScore = 12;
-			indicatorCounters[i].updateTex(ui_score_tracker[playerScore-1]);
-			indicatorCounters[i].Update(timer->getDeltaTime(),
-				gameState->findEntity("vehicle_" + to_string(i))->transform->getPosition(),
-				vec3(1.f),
-				vec3(0.f, 3.f, 0.f));
-			if (i != 0) indicatorCounters[i].Draw(view, projection, camera_previous_position);
+	for (int pl = 0; pl < numPlayers; pl++) {
+		// NEAR SHADOWMAP RENDER
+		lightPos = vec3(sin(lightRotation) * cos(lightAngle), sin(lightAngle), cos(lightRotation) * cos(lightAngle)) * 40.f;
+		nearShadowMap[pl].update(lightPos, playerEntities[pl]->transform->getPosition());
+		nearShadowMap[pl].render(gameState, "s", lightPos, targetRes);
+
+		if (intermediateBuffer[pl].getWidth() != (int)targetRes.x || intermediateBuffer[pl].getHeight() != (int)targetRes.y) {
+			intermediateBuffer[pl] = FBuffer((int)targetRes.x, (int)targetRes.y, "i");
 		}
+		// TOON OUTLINE (Landscape)
+		if (outlineMap[pl].getWidth() != (int)targetRes.x || outlineMap[pl].getHeight() != (int)targetRes.y) {
+			outlineMap[pl] = FBuffer((int)targetRes.x, (int)targetRes.y, "o");
+		}
+		outlineMap[pl].update(playerCameras[pl].projection, playerCameras[pl].view);
+		outlineMap[pl].render(gameState, "t", lightPos, targetRes);
+
+		// TOON OUTLINE (Objects)
+		if (outlineMapNoLandscape[pl].getWidth() != (int)targetRes.x || outlineMapNoLandscape[pl].getHeight() != (int)targetRes.y) {
+			outlineMapNoLandscape[pl] = FBuffer((int)targetRes.x, (int)targetRes.y, "o");
+		}
+		outlineMapNoLandscape[pl].update(playerCameras[pl].projection, playerCameras[pl].view);
+		outlineMapNoLandscape[pl].render(gameState, "l", lightPos, targetRes);
+
+		// OUTLINE TO TEXTURE
+		if (outlineToTexture[pl].getWidth() != (int)targetRes.x || outlineToTexture[pl].getHeight() != (int)targetRes.y) {
+			outlineToTexture[pl] = FBuffer((int)targetRes.x, (int)targetRes.y, "ot");
+		}
+
+		outlineToTexture[pl].shader.use();
+		outlineToTexture[pl].shader.setInt("outline1", 1);
+		outlineToTexture[pl].shader.setInt("outline2", 2);
+		outlineToTexture[pl].shader.setMat4("projMatrixInv", glm::inverse(playerCameras[pl].projection));
+		outlineToTexture[pl].shader.setMat4("viewMatrixInv", glm::inverse(playerCameras[pl].view));
+		outlineToTexture[pl].shader.setFloat("outlineSensitivity", outlineSensitivity);
+		outlineToTexture[pl].shader.setFloat("fogDepth", fogDepth);
+		outlineToTexture[pl].shader.setVec3("fogColor", fogColor);
+		glBindFramebuffer(GL_FRAMEBUFFER, outlineToTexture[pl].FBO[0]);
+		glDisable(GL_BLEND);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		bindTexture(1, outlineMap[pl].fbTextures[0]);
+		bindTexture(2, outlineMapNoLandscape[pl].fbTextures[0]);
+		outlineToTexture[pl].renderQuad(outlineToTexture[pl].fbTextures[0], 0.1f);
+		glEnable(GL_BLEND);
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		//outlineToTexture.renderToScreen(outlineToTexture.fbTextures[0]);
+
+		// SCENE TO TEXTURE
+		if (celMap[pl].getWidth() != (int)targetRes.x || celMap[pl].getHeight() != (int)targetRes.y) {
+			celMap[pl] = FBuffer((int)targetRes.x, (int)targetRes.y, "c");
+		}
+		celMap[pl].update(playerCameras[pl].projection, playerCameras[pl].view);
+		bindTexture(1, nearShadowMap[pl].fbTextures[0]);
+		bindTexture(2, farShadowMap.fbTextures[0]);
+		bindTexture(3, outlineMap[pl].fbTextures[0]);
+		bindTexture(4, outlineMapNoLandscape[pl].fbTextures[0]);
+		bindTexture(5, nearShadowMap[pl].fbTextures[1]);
+		bindTexture(6, farShadowMap.fbTextures[1]);
+		setCelShaderUniforms(&celMap[pl].shader, pl);
+		celMap[pl].render(gameState, "c", lightPos, targetRes);
+
+		portalParticles.color = portalColor;
+		dirtParticles.color = dirtColor;
+
+		glBindFramebuffer(GL_FRAMEBUFFER, celMap[pl].FBO[0]);
+		glDepthMask(GL_FALSE);
+		glViewport(0, 0, (int)targetRes.x, (int)targetRes.y);
+
+		portalParticles.Draw(playerCameras[pl].view, playerCameras[pl].projection, playerCameras[pl].camera_previous_position);
+
+		dirtParticles.Draw(playerCameras[pl].view, playerCameras[pl].projection, playerCameras[pl].camera_previous_position);
+
+		for (int i = 0; i < boostParticles.size(); i++) {
+			boostParticles.at(i).Draw(playerCameras[pl].view, playerCameras[pl].projection, playerCameras[pl].camera_previous_position);
+		}
+
+		for (int i = 0; i < indicators.size(); i++) {
+			if (i != pl) indicators[i].Draw(playerCameras[pl].view, playerCameras[pl].projection, playerCameras[pl].camera_previous_position);
+
+			int playerScore = gameState->findEntity("vehicle_" + to_string(i))->nbChildEntities;
+			if (playerScore > 0) {
+				if (playerScore > 12) playerScore = 12;
+				indicatorCounters[i].updateTex(ui_score_tracker[playerScore - 1]);
+				if (i != pl) indicatorCounters[i].Draw(playerCameras[pl].view, playerCameras[pl].projection, playerCameras[pl].camera_previous_position);
+			}
+		}
+		glDepthMask(GL_TRUE);
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+		glBindFramebuffer(GL_READ_FRAMEBUFFER, celMap[pl].FBO[0]);
+		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, intermediateBuffer[pl].FBO[0]);
+		glReadBuffer(GL_COLOR_ATTACHMENT0);
+		glDrawBuffer(GL_COLOR_ATTACHMENT0);
+		if (numPlayers == 1) glBlitFramebuffer(0, 0, 1920, 1080, 0, 0, 1920, 1080, GL_COLOR_BUFFER_BIT, GL_NEAREST);
+		else glBlitFramebuffer(0, 0, 960, 540, 0, 0, 960, 540, GL_COLOR_BUFFER_BIT, GL_NEAREST);
+
+		glReadBuffer(GL_COLOR_ATTACHMENT1);
+		glDrawBuffer(GL_COLOR_ATTACHMENT1);
+		if (numPlayers == 1) glBlitFramebuffer(0, 0, 1920, 1080, 0, 0, 1920, 1080, GL_COLOR_BUFFER_BIT, GL_NEAREST);
+		else glBlitFramebuffer(0, 0, 960, 540, 0, 0, 960, 540, GL_COLOR_BUFFER_BIT, GL_NEAREST);
+
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+		//farShadowMap.renderToScreen();		//Uncomment to see the far shadow map (light's perspective, near the car)
+		//nearShadowMap.renderToScreen();		//Uncomment to see the near shadow map (light's perspective, the entire map)
+		//outlineMap.renderToScreen();			//Uncomment to see the outline map (camera's position, just a depth map)
+		//outlineMapNoLandscape.renderToScreen();
+		
+		// BLUR IMAGE FOR BLOOM
+		if (blurMap[pl].getWidth() != (int)targetRes.x || blurMap[pl].getHeight() != (int)targetRes.y) {
+			blurMap[pl] = FBuffer((int)targetRes.x, (int)targetRes.y, "b");
+		}
+
+		bool horizontal = true, first_iteration = true;
+		int amount;
+		if (numPlayers == 1) amount = 10;
+		else amount = 2;
+		blurMap[pl].shader.use();
+		blurMap[pl].shader.setInt("image", 1);
+		for (unsigned int i = 0; i < amount; i++)
+		{
+			blurMap[pl].shader.use();
+			glBindFramebuffer(GL_FRAMEBUFFER, blurMap[pl].FBO[horizontal]);
+			blurMap[pl].shader.setInt("horizontal", horizontal);
+			bindTexture(1, first_iteration ? intermediateBuffer[pl].fbTextures[1] : blurMap[pl].fbTextures[!horizontal]);
+			blurMap[pl].renderQuad(blurMap[pl].fbTextures[0], 0.1f, 0);
+			horizontal = !horizontal;
+			if (first_iteration)
+				first_iteration = false;
+		}
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		glViewport(0, 0, callback_ptr->xres, callback_ptr->yres);
+
+		bindTexture(1, intermediateBuffer[pl].fbTextures[0]);
+		bindTexture(2, blurMap[pl].fbTextures[0]);
+		bindTexture(3, outlineToTexture[pl].fbTextures[0]);
+
+		celMap[pl].debugShader.use();
+		celMap[pl].debugShader.setFloat("outlineTransparency", outlineTransparency);
+		celMap[pl].debugShader.setFloat("outlineBlur", outlineBlur);
+		if (numPlayers == 1) celMap[pl].renderToScreen(intermediateBuffer[pl].fbTextures[0], 0.99f, 0);
+		else celMap[pl].renderToScreen(intermediateBuffer[pl].fbTextures[0], 0.99f, pl+1);
+		//blurMap.renderToScreen();
+		//outlineMap.renderToScreen();
 	}
-	glViewport(0, 0, callback_ptr->xres, callback_ptr->yres);
-	glDepthMask(GL_TRUE);
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-	glBindFramebuffer(GL_READ_FRAMEBUFFER, celMap.FBO[0]);
-	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, intermediateBuffer.FBO[0]);
-	glReadBuffer(GL_COLOR_ATTACHMENT0);
-	glDrawBuffer(GL_COLOR_ATTACHMENT0);
-	glBlitFramebuffer(0, 0, 1920, 1080, 0, 0, 1920, 1080, GL_COLOR_BUFFER_BIT, GL_NEAREST);
-
-	glReadBuffer(GL_COLOR_ATTACHMENT1);
-	glDrawBuffer(GL_COLOR_ATTACHMENT1);
-	glBlitFramebuffer(0, 0, 1920, 1080, 0, 0, 1920, 1080, GL_COLOR_BUFFER_BIT, GL_NEAREST);
-
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-	//farShadowMap.renderToScreen();		//Uncomment to see the far shadow map (light's perspective, near the car)
-	//nearShadowMap.renderToScreen();		//Uncomment to see the near shadow map (light's perspective, the entire map)
-	//outlineMap.renderToScreen();			//Uncomment to see the outline map (camera's position, just a depth map)
-	//outlineMapNoLandscape.renderToScreen();
-
-	// BLUR IMAGE FOR BLOOM
-	if (blurMap.getWidth() != callback_ptr->xres || blurMap.getHeight() != callback_ptr->yres) {
-		blurMap = FBuffer(callback_ptr->xres, callback_ptr->yres, "b");
-	}
-
-	bool horizontal = true, first_iteration = true;
-	int amount = 10;
-	blurMap.shader.use();
-	blurMap.shader.setInt("image", 1);
-	for (unsigned int i = 0; i < amount; i++)
-	{
-		blurMap.shader.use();
-		glBindFramebuffer(GL_FRAMEBUFFER, blurMap.FBO[horizontal]);
-		blurMap.shader.setInt("horizontal", horizontal);
-		bindTexture(1, first_iteration ? intermediateBuffer.fbTextures[1] : blurMap.fbTextures[!horizontal]);
-		blurMap.renderQuad(blurMap.fbTextures[0], 0.1f);
-		horizontal = !horizontal;
-		if (first_iteration)
-			first_iteration = false;
-	}
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-	
-	bindTexture(1, intermediateBuffer.fbTextures[0]);
-	bindTexture(2, blurMap.fbTextures[0]);
-	bindTexture(3, outlineToTexture.fbTextures[0]);
-
-	celMap.debugShader.use();
-	celMap.debugShader.setFloat("outlineTransparency", outlineTransparency);
-	celMap.debugShader.setFloat("outlineBlur", outlineBlur);
-	celMap.renderToScreen(intermediateBuffer.fbTextures[0], 0.99f);
-	//blurMap.renderToScreen();
-	//outlineMap.renderToScreen();
 
 	// SIXTH PASS: GUI RENDER
 	textShader.use();
@@ -710,7 +662,7 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> cbp, Gam
 
 		// Display boost meter - deprecated
 		/*
-		RenderText(textShader, textVAO, textVBO, "Boost Meter: " + to_string((int)playerEntity->playerProperties->boost_meter),
+		RenderText(textShader, textVAO, textVBO, "Boost Meter: " + to_string((int)playerEntities[0]->playerProperties->boost_meter),
 			20,
 			40, 0.6f,
 			vec3(0.2, 0.2f, 0.2f),
@@ -861,12 +813,12 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> cbp, Gam
 	ImGui::SliderFloat("Max bias", &maxBias, 0.0f, 0.5f);
 
 	ImGui::Text("Camera Parameters");
-	ImGui::SliderFloat("Camera Position Forward", &camera_position_forward, -200.f, 200.f);
+	/*ImGui::SliderFloat("Camera Position Forward", &camera_position_forward, -200.f, 200.f);
 	ImGui::SliderFloat("Camera Position Up", &camera_position_up, -200.f, 200.f);
 	ImGui::SliderFloat("Camera Position Right", &camera_position_right, -30.f, 30.f);
 	ImGui::SliderFloat("Camera Target Forward", &camera_target_forward, -30.f, 30.f);
 	ImGui::SliderFloat("Camera Target Up", &camera_target_up, -30.f, 30.f);
-	ImGui::SliderFloat("Camera Target Right", &camera_target_right, -30.f, 30.f);
+	ImGui::SliderFloat("Camera Target Right", &camera_target_right, -30.f, 30.f);*/
 
 	ImGui::Text("Particle Parameters");
 	ImGui::SliderFloat("Dirt offset x", (float*)&dirtOffset.x, -2.f, 2.f);
@@ -906,13 +858,13 @@ void RenderingSystem::shutdownImgui() {
 }
 
 
-void RenderingSystem::setCelShaderUniforms(Shader* shader) {
+void RenderingSystem::setCelShaderUniforms(Shader* shader, int pl) {
 	(*shader).setMat4("model", model);
-	(*shader).setMat4("view", view);
-	(*shader).setMat4("projection", projection);
-	(*shader).setMat4("nearLightSpaceMatrix", nearShadowMap.lightSpaceMatrix);
+	(*shader).setMat4("view", playerCameras[pl].view);
+	(*shader).setMat4("projection", playerCameras[pl].projection);
+	(*shader).setMat4("nearLightSpaceMatrix", nearShadowMap[pl].lightSpaceMatrix);
 	(*shader).setMat4("farLightSpaceMatrix", farShadowMap.lightSpaceMatrix);
-	(*shader).setMat4("outlineSpaceMatrix", outlineMap.lightSpaceMatrix);
+	(*shader).setMat4("outlineSpaceMatrix", outlineMap[pl].lightSpaceMatrix);
 	(*shader).setInt("nearShadowMap", 1);
 	(*shader).setInt("farShadowMap", 2);
 	(*shader).setInt("outlineMap", 3);
@@ -928,7 +880,8 @@ void RenderingSystem::setCelShaderUniforms(Shader* shader) {
 	(*shader).setFloat("band", band);
 	(*shader).setFloat("gradient", gradient);
 	(*shader).setFloat("shift", shift);
-	(*shader).setFloat("minBias", minBias);
+	if (numPlayers > 1) (*shader).setFloat("minBias", 0.006f);
+	else (*shader).setFloat("minBias", minBias);
 	(*shader).setFloat("maxBias", maxBias);
 	(*shader).setFloat("outlineTransparency", outlineTransparency);
 	(*shader).setFloat("outlineSensitivity", outlineSensitivity);
@@ -940,14 +893,14 @@ void RenderingSystem::bindTexture(int location, unsigned int texture) {
 	glActiveTexture(GL_TEXTURE0);
 }
 
-void RenderingSystem::drawUI(unsigned int texture, float x0, float y0, float x1, float y1, int l) {
+void RenderingSystem::drawUI(unsigned int texture, float x0, float y0, float x1, float y1, int l, int pl) {
 	float layer = 0.05f + ((float)l / 10.f);
 	x0 /= callback_ptr->xres; x0 *= 2.f; x0 -= 1.f;
 	y0 /= callback_ptr->yres; y0 *= 2.f; y0 -= 1.f;
 	x1 /= callback_ptr->xres; x1 *= 2.f; x1 -= 1.f;
 	y1 /= callback_ptr->yres; y1 *= 2.f; y1 -= 1.f;
-	celMap.debugShader.use();
-	celMap.debugShader.setBool("UI", true);
+	celMap[pl].debugShader.use();
+	celMap[pl].debugShader.setBool("UI", true);
 	bindTexture(1, texture);
-	celMap.renderQuad(texture, layer, x0, y0, x1, y1);
+	celMap[pl].renderQuad(texture, layer, x0, y0, x1, y1);
 }

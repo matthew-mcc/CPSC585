@@ -5,6 +5,7 @@
 #include <Boilerplate/Model.h>
 #include <Boilerplate/Timer.h>
 #include <Boilerplate/FBuffer.h>
+#include <Camera.h>
 #include <GameState.h>
 #include <ParticleSystem.h>
 //#include <Boilerplate/Input.h>
@@ -38,13 +39,17 @@ public:
 	GameState* gameState;
 
 private:
-	void setCelShaderUniforms(Shader* shader);
+	void setCelShaderUniforms(Shader* shader, int pl);
 	void bindTexture(int location, unsigned int texture);
 
-	void drawUI(unsigned int texture, float x0, float y0, float x1, float y1, int l = 0);
-	void updateRadius(float base,float zoom);
+	void drawUI(unsigned int texture, float x0, float y0, float x1, float y1, int l = 0, int pl = 0);
   
 	std::shared_ptr<CallbackInterface> callback_ptr;
+
+	// Number of active players
+	int numPlayers = 4;
+	vector<Entity*> playerEntities;
+	vector<Camera> playerCameras;
 
 	// Particle Generators
 	ParticleSystem portalParticles;
@@ -54,14 +59,14 @@ private:
 	std::vector<ParticleSystem> indicatorCounters;
 
 	// Frame buffers
-	FBuffer nearShadowMap;
+	vector<FBuffer> nearShadowMap;
 	FBuffer farShadowMap;
-	FBuffer outlineMap;
-	FBuffer outlineMapNoLandscape;
-	FBuffer outlineToTexture;
-	FBuffer celMap;
-	FBuffer blurMap;
-	FBuffer intermediateBuffer;
+	vector<FBuffer> outlineMap;
+	vector<FBuffer> outlineMapNoLandscape;
+	vector<FBuffer> outlineToTexture;
+	vector<FBuffer> celMap;
+	vector<FBuffer> blurMap;
+	vector<FBuffer> intermediateBuffer;
 
 	// UI Textures
 	unsigned int testTexture;
@@ -106,8 +111,6 @@ private:
 
 	// Coordinate Transformations
 	mat4 model = mat4(1.0f);
-	mat4 view = mat4(1.0f);
-	mat4 projection = mat4(1.0f);
 
 	// Shader Parameters
 	float minBias = 0.001f;
@@ -135,23 +138,8 @@ private:
 	int fps;
 
 	// Camera Position / Orientation
-	float camera_position_forward = -7.5f;
-	float camera_position_up = 3.5f;
-	float camera_position_right = 0.0f;
-	float camera_target_forward = 0.0f;
-	float camera_target_up = 1.5f;
-	float camera_target_right = 0.0f;
-	vec3 world_up = vec3(0.0f, 1.0f, 0.0f);
-	vec3 camera_previous_position = vec3(0.0f, 8.0f, -270.0f);
-	float camera_radius = 7.5f;
-	float rad_base = 7.5f;
 
 	// Camera Parameters
-	float camera_lag = 5.0f;
-	float fov_rest = 45.f;
-	float fov_boost = 57.f;
-	float fov_change_speed = 400.0f;
-	float fov = fov_rest;
 
 	// Audio Parameters
 	float playerTireVolume = 0.5f;

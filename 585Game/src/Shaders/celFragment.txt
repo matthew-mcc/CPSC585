@@ -60,7 +60,6 @@ float ShadowCalculation(vec4 nearFragPosLightSpace, vec4 farFragPosLightSpace) {
         projCoords.y <= 1.0 && projCoords.y >= 0.0 &&
         projCoords.z <= 1.0 && projCoords.z >= 0.0) {
      
-        //if (texture(nearShadowMap, projCoords.xy).r == texture(nearShadowMap2, projCoords.xy).r) inShadowOfLand = false;
         if (texture(nearShadowMap2, projCoords.xy).r < 1.0) inShadowOfLand = false;
 
         float currentDepth = projCoords.z;                                  // get depth of current fragment from light's perspective
