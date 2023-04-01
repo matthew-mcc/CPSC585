@@ -32,6 +32,6 @@ void main()
     else {
         gl_Position = projection * view * model * vec4(particleCenter, 1.0);
         gl_Position /= gl_Position.w;
-        gl_Position.xy += vec2(0.0, scale) + aPos.xy * vec2(-0.03 * (1920.0 / xRes), 0.05 * (1080 / yRes));
+        gl_Position.xy += vec2(0.0, scale * (1080 / yRes)) + aPos.xy * vec2(-0.03 * (1920.0 / xRes), 0.05 * (1080 / yRes));
     }
 }

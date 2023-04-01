@@ -33,6 +33,7 @@ public:
     void respawnParticle(Particle& particle, glm::vec3 spawnPoint, glm::vec3 spawnVelocity, glm::vec3 offset = glm::vec3(0.0f, 0.0f, 0.f));
     void updateTex(unsigned int tex);
     vec3 color, color2, color3;
+    float size = 0.2f;
 
 private:
     void initPS(Shader shader, unsigned int texture, unsigned int amount, float startingLife, float size, vec3 color, vec3 color2, vec3 color3, string mode);
@@ -42,7 +43,6 @@ private:
     unsigned int texture;
     unsigned int amount;
     float startingLife;
-    float size = 0.2f;
 
     string mode;
     float timer = (startingLife + 0.1f) / (float)amount;

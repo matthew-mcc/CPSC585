@@ -364,6 +364,8 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> cbp, Gam
 		glDepthMask(GL_FALSE);
 		glViewport(0, 0, (int)targetRes.x, (int)targetRes.y);
 
+		particleShader.use();
+
 		portalParticles.Draw(playerCameras[pl].view, playerCameras[pl].projection, playerCameras[pl].camera_previous_position);
 
 		for (int i = 0; i < boostParticles.size(); i++) {
