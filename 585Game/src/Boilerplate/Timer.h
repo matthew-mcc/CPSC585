@@ -14,7 +14,8 @@ public:
     }
 
     void init() {
-        countdown = 300.f;
+        startTime = 300.f;
+        countdown = 306.f;
         currentTime = glfwGetTime();
         lastDeltaTime = glfwGetTime();
         lastFPSTime = glfwGetTime();
@@ -76,6 +77,12 @@ public:
         return (int)countdown % 60;
     }
 
+    // Get Start Time
+    // Returns start time as pure seconds
+    int getStartTime() {
+        return (int)startTime;
+    }
+
 
 private:
     Timer() {};
@@ -87,6 +94,7 @@ private:
     double currentTime;
     double lastDeltaTime;
     double lastFPSTime;
-    double countdown = 300.f;
+    double countdown;
+    double startTime;
 
 };

@@ -38,7 +38,7 @@ PxRaycastBuffer TrailerBuffer;
 // Vehicles
 vector<Vehicle*> vehicles;
 vector<PxVec3> vehicleStartPositions = vector<PxVec3>{
-	PxVec3(0.0f, 8.0f, -250.0f),
+	PxVec3(0.0f, 8.0f, -245.0f),
 	PxVec3(-250.0f, 8.0f, 0.0f),
 	PxVec3(0.0f, 8.0f, 250.0f),
 	PxVec3(250.0f, 8.0f, 0.0f),
@@ -858,7 +858,10 @@ void PhysicsSystem::stepPhysics(shared_ptr<CallbackInterface> callback_ptr, Time
 				
 			}
 		}
-		
+
+		bool disableInput = false;
+		if (timer->getCountdown() > timer->getStartTime()) disableInput = true;
+
 		// PLAYER VEHICLE INPUT
 		if (i == 0) {
 			// On Ground
@@ -869,73 +872,81 @@ void PhysicsSystem::stepPhysics(shared_ptr<CallbackInterface> callback_ptr, Time
 				if (vehicles.at(i)->onGround == false) vehicles.at(i)->landed = true;
 				vehicles.at(i)->onGround = true;
 
-				// Forward Drive
-				if ((forwardSpeed > -1.0f && player->playerProperties->throttle > player->playerProperties->brake) || 
-					forwardSpeed > 0.5f) {
-					// Give vehicle a help in getting moving by instantly putting into 1st when close to stationary
-					if (forwardSpeed < 0.5) {
-						vehicles.at(i)->vehicle.mEngineDriveState.gearboxState.currentGear = 2;
+				// Check if input is disabled
+				if (!disableInput) {
+					// Forward Drive
+					if ((forwardSpeed > -1.0f && player->playerProperties->throttle > player->playerProperties->brake) ||
+						forwardSpeed > 0.5f) {
+						// Give vehicle a help in getting moving by instantly putting into 1st when close to stationary
+						if (forwardSpeed < 0.5) {
+							vehicles.at(i)->vehicle.mEngineDriveState.gearboxState.currentGear = 2;
+						}
+						// Set inputs for forward driving
+						vehicles.at(i)->vehicle.mCommandState.throttle = player->playerProperties->throttle;
+						vehicles.at(i)->vehicle.mCommandState.brakes[0] = player->playerProperties->brake;
+						vehicles.at(i)->vehicle.mCommandState.nbBrakes = 1;
 					}
-					// Set inputs for forward driving
-					vehicles.at(i)->vehicle.mCommandState.throttle = player->playerProperties->throttle;
-					vehicles.at(i)->vehicle.mCommandState.brakes[0] = player->playerProperties->brake;
-					vehicles.at(i)->vehicle.mCommandState.nbBrakes = 1;
+
+					// Reverse Drive
+					else {
+						// Set inputs for reverse driving
+						vehicles.at(i)->vehicle.mEngineDriveState.gearboxState.currentGear = 0;
+						vehicles.at(i)->vehicle.mCommandState.throttle = player->playerProperties->brake;
+						vehicles.at(i)->vehicle.mCommandState.brakes[0] = player->playerProperties->throttle;
+						vehicles.at(i)->vehicle.mCommandState.nbBrakes = 1;
+					}
+
+					// Steering Input
+					vehicles.at(i)->vehicle.mCommandState.steer = player->playerProperties->steer;
 				}
 
-				// Reverse Drive
+				// Input is disabled
 				else {
-					// Set inputs for reverse driving
-					vehicles.at(i)->vehicle.mEngineDriveState.gearboxState.currentGear = 0;
-					vehicles.at(i)->vehicle.mCommandState.throttle = player->playerProperties->brake;
-					vehicles.at(i)->vehicle.mCommandState.brakes[0] = player->playerProperties->throttle;
-					vehicles.at(i)->vehicle.mCommandState.nbBrakes = 1;
+					vehicles.at(i)->vehicle.mCommandState.brakes[0] = 1;
 				}
-
-				// Steering Input
-				vehicles.at(i)->vehicle.mCommandState.steer = player->playerProperties->steer;
 			}
 
 			// In Air
 			else { 
 				// Update ground flag
 				vehicles.at(i)->onGround = false;
-
+				
 				// Set Rotation based on air controls
-				if(gScene->raycast(vehicle_transform.p+ vehicle_transform.rotate(PxVec3(0.f, 2.f, 0.f)), vehicle_transform.rotate(PxVec3(0.f, -1.f, 0.f)), 1.f, AircontrolBuffer,PxHitFlag::eMESH_BOTH_SIDES) && AircontrolBuffer.block.shape->getSimulationFilterData().word0 == COLLISION_FLAG_GROUND) //if totally upside down
-					vehicles.at(i)->vehicle.mPhysXState.physxActor.rigidBody->addTorque(vehicle_transform.rotate(PxVec3(0, 0, -player->playerProperties->AirRoll)), PxForceMode().eVELOCITY_CHANGE);
-				else
-					vehicles.at(i)->vehicle.mPhysXState.physxActor.rigidBody->addTorque(vehicle_transform.rotate(PxVec3(player->playerProperties->AirPitch * 2.5f, player->playerProperties->AirRoll * 1.0f, player->playerProperties->AirRoll * -3.0f) * timestep), PxForceMode().eVELOCITY_CHANGE);
-			}
-
-			// Audio Flag for ground contact
-			// gameState->audio_ptr->contact = vehicles.at(i)->onGround;
-
-			// Boost
-			if (vehicles.at(i)->vehicle.mPhysXState.physxActor.rigidBody->getLinearVelocity().magnitude() < player->playerProperties->boost_max_velocity) {
-				vehicles.at(i)->vehicle.mPhysXState.physxActor.rigidBody->addForce(vehicle_transform.rotate(PxVec3(0.f, 0.f, player->playerProperties->boost) * timestep), PxForceMode().eVELOCITY_CHANGE);
-			}
-
-			// Reset
-			if (length(player->transform->getLinearVelocity()) < 5.0f) {
-				if (player->playerProperties->reset > player->playerProperties->reset_max) {
-					if (vehicles.at(i)->attachedTrailers.size() > 0) {
-						detachTrailer(vehicles.at(i)->attachedTrailers.at(0), vehicles.at(i), NULL);
-					}
-					PxVec3 oldPos = vehicles.at(i)->vehicle.mPhysXState.physxActor.rigidBody->getGlobalPose().p;
-					PxQuat oldRot = vehicles.at(i)->vehicle.mPhysXState.physxActor.rigidBody->getGlobalPose().q;
-					vehicles.at(i)->vehicle.mPhysXState.physxActor.rigidBody->setGlobalPose(PxTransform(PxVec3(oldPos.x, 10.f, oldPos.z)));
-					player->playerProperties->reset = 0.f;
+				if (!disableInput) {
+					if(gScene->raycast(vehicle_transform.p+ vehicle_transform.rotate(PxVec3(0.f, 2.f, 0.f)), vehicle_transform.rotate(PxVec3(0.f, -1.f, 0.f)), 1.f, AircontrolBuffer,PxHitFlag::eMESH_BOTH_SIDES) && AircontrolBuffer.block.shape->getSimulationFilterData().word0 == COLLISION_FLAG_GROUND) //if totally upside down
+						vehicles.at(i)->vehicle.mPhysXState.physxActor.rigidBody->addTorque(vehicle_transform.rotate(PxVec3(0, 0, -player->playerProperties->AirRoll)), PxForceMode().eVELOCITY_CHANGE);
+					else
+						vehicles.at(i)->vehicle.mPhysXState.physxActor.rigidBody->addTorque(vehicle_transform.rotate(PxVec3(player->playerProperties->AirPitch * 2.5f, player->playerProperties->AirRoll * 1.0f, player->playerProperties->AirRoll * -3.0f) * timestep), PxForceMode().eVELOCITY_CHANGE);
 				}
 			}
-			else {
-				player->playerProperties->reset = 0.f;
+
+			// Non-Air-Dependent Inputs
+			if (!disableInput) {
+				// Boost
+				if (vehicles.at(i)->vehicle.mPhysXState.physxActor.rigidBody->getLinearVelocity().magnitude() < player->playerProperties->boost_max_velocity) {
+					vehicles.at(i)->vehicle.mPhysXState.physxActor.rigidBody->addForce(vehicle_transform.rotate(PxVec3(0.f, 0.f, player->playerProperties->boost) * timestep), PxForceMode().eVELOCITY_CHANGE);
+				}
+
+				// Reset
+				if (length(player->transform->getLinearVelocity()) < 5.0f) {
+					if (player->playerProperties->reset > player->playerProperties->reset_max) {
+						if (vehicles.at(i)->attachedTrailers.size() > 0) {
+							detachTrailer(vehicles.at(i)->attachedTrailers.at(0), vehicles.at(i), NULL);
+						}
+						PxVec3 oldPos = vehicles.at(i)->vehicle.mPhysXState.physxActor.rigidBody->getGlobalPose().p;
+						PxQuat oldRot = vehicles.at(i)->vehicle.mPhysXState.physxActor.rigidBody->getGlobalPose().q;
+						vehicles.at(i)->vehicle.mPhysXState.physxActor.rigidBody->setGlobalPose(PxTransform(PxVec3(oldPos.x, 10.f, oldPos.z)));
+						player->playerProperties->reset = 0.f;
+					}
+				}
+				else {
+					player->playerProperties->reset = 0.f;
+				}
 			}
 		}
 
 		// AI VEHICLE INPUT
 		else {
-			// Set previous pos
-			//vehicles.at(i)->AI_PrevPos = vehicles.at(i)->vehicle.mPhysXState.physxActor.rigidBody->getGlobalPose().p;
 			// Update ground flag
 			if (gScene->raycast(vehicle_transform.p, vehicle_transform.rotate(PxVec3(0.f, -1.f, 0.f)), 0.7f, AircontrolBuffer)
 				&& AircontrolBuffer.block.shape->getSimulationFilterData().word0 == COLLISION_FLAG_GROUND) {
@@ -947,7 +958,7 @@ void PhysicsSystem::stepPhysics(shared_ptr<CallbackInterface> callback_ptr, Time
 			}
 
 			// AI State Control
-			AI_StateController(vehicles.at(i), timestep);
+			if(!disableInput) AI_StateController(vehicles.at(i), timestep);
 		}
 	}
 

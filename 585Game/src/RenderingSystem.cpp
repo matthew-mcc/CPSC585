@@ -82,6 +82,11 @@ void RenderingSystem::initRenderer() {
 	menuInfoDisplay = generateTexture("assets/textures/UI/menuInfoDisplay.png", false);
 
 	backToMenu = generateTexture("assets/textures/UI/backToMenu.png", false);
+	startCountdown5 = generateTexture("assets/textures/UI/startCountdown5.png", false);
+	startCountdown4 = generateTexture("assets/textures/UI/startCountdown4.png", false);
+	startCountdown3 = generateTexture("assets/textures/UI/startCountdown3.png", false);
+	startCountdown2 = generateTexture("assets/textures/UI/startCountdown2.png", false);
+	startCountdown1 = generateTexture("assets/textures/UI/startCountdown1.png", false);
 	timerAndScore = generateTexture("assets/textures/UI/timerAndScore.png", false);
 	ui_timer_box = generateTexture("assets/textures/UI/timerBox.png", false);
 
@@ -469,6 +474,28 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> cbp, Gam
 			textChars);
 	}
 
+	// Pre-Game Countdown
+	else if (timer->getCountdown() > timer->getStartTime()) {
+		int startCountdown = timer->getCountdown() - timer->getStartTime();
+		switch (startCountdown) {
+			case 5:	
+				drawUI(startCountdown5, callback_ptr->xres / 2 - 176, callback_ptr->yres / 2 + 158, callback_ptr->xres / 2 + 176, callback_ptr->yres / 2 + 415, 1);
+				break;
+			case 4:
+				drawUI(startCountdown4, callback_ptr->xres / 2 - 176, callback_ptr->yres / 2 + 158, callback_ptr->xres / 2 + 176, callback_ptr->yres / 2 + 415, 1);
+				break;
+			case 3:
+				drawUI(startCountdown3, callback_ptr->xres / 2 - 176, callback_ptr->yres / 2 + 158, callback_ptr->xres / 2 + 176, callback_ptr->yres / 2 + 415, 1);
+				break;
+			case 2:
+				drawUI(startCountdown2, callback_ptr->xres / 2 - 176, callback_ptr->yres / 2 + 158, callback_ptr->xres / 2 + 176, callback_ptr->yres / 2 + 415, 1);
+				break;
+			case 1:
+				drawUI(startCountdown1, callback_ptr->xres / 2 - 176, callback_ptr->yres / 2 + 158, callback_ptr->xres / 2 + 176, callback_ptr->yres / 2 + 415, 1);
+				break;
+		}
+	}
+
 	// Normal Gameplay Screen
 	else {
 		// Ayyylien
@@ -621,9 +648,6 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> cbp, Gam
 			}
 		}
 
-
-
-
 		// Extra score text
 		string morescore;
 		int bonus_score = gameState->calculatePoints(0, gameState->findEntity("vehicle_0")->nbChildEntities, gameState->findEntity("vehicle_0")->playerProperties->stolenTrailerIndices.size());
@@ -635,7 +659,6 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> cbp, Gam
 			vec3(0.93, 0.93f, 0.93f),
 			textChars);
 		
-
 		// Display game timer / countdown
 		string timerMins = std::to_string(abs(timer->getCountdownMins()));
 		string timerSeconds = std::to_string(abs(timer->getCountdownSecs()));

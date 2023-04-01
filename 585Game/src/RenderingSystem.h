@@ -97,6 +97,11 @@ private:
 	unsigned int menuInfo;
 	unsigned int menuInfoDisplay;
 	unsigned int backToMenu;
+	unsigned int startCountdown5;
+	unsigned int startCountdown4;
+	unsigned int startCountdown3;
+	unsigned int startCountdown2;
+	unsigned int startCountdown1;
 	unsigned int timerAndScore;
 	unsigned int ui_timer_box;
 
