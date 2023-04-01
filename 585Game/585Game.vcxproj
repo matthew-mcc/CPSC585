@@ -642,9 +642,9 @@
     <ClInclude Include="src\PlayerProperties.h" />
   </ItemGroup>
   <ItemGroup>
-    <Image Include="..\..\..\Game Development\Projects\585 Project\UI\Textures\icon_sss.ico" />
     <Image Include="assets\textures\alien.png" />
     <Image Include="assets\textures\container.jpg" />
+    <Image Include="assets\textures\icon_sss.ico" />
     <Image Include="assets\textures\nice.jpg" />
   </ItemGroup>
   <ItemGroup>

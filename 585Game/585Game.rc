@@ -52,7 +52,7 @@ END
 
 // Icon with lowest ID value placed first to ensure application icon
 // remains consistent on all systems.
-//IDI_ICON1               ICON                    "C:\\Users\\mrnoo\\Desktop\\Game Development\\Projects\\585 Project\\UI\\Textures\\icon_sss.ico"
+IDI_ICON1               ICON                    "assets\\textures\\icon_sss.ico"
 
 #endif    // English (United States) resources
 /////////////////////////////////////////////////////////////////////////////
