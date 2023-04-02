@@ -469,6 +469,9 @@ void RenderingSystem::updateRenderer(vector<std::shared_ptr<CallbackInterface>> 
 	if (fpsTest != NULL) fps = fpsTest;				// Set fps if fpsTest isn't null
 	RenderText(textShader, textVAO, textVBO, "FPS: " + std::to_string(fps), 10.f, callback_ptrs[0]->yres - 26.f, 0.45f, vec3(0.2, 0.2f, 0.2f), textChars);
 
+	// Fetch player entity
+	Entity* playerEntity = gameState->findEntity("vehicle_0");
+
 	// Game Ended Screen
 	if (gameState->gameEnded) {
 		string winnerText = "Tie Game!";
@@ -495,17 +498,38 @@ void RenderingSystem::updateRenderer(vector<std::shared_ptr<CallbackInterface>> 
 				break;
 			case 4:
 				drawUI(startCountdown4, callback_ptrs[0]->xres / 2 - 176, callback_ptrs[0]->yres / 2 + 158, callback_ptrs[0]->xres / 2 + 176, callback_ptrs[0]->yres / 2 + 415, 1);
+				if (gameState->audio_ptr->lastBeep != 4) {
+					gameState->audio_ptr->CountdownBeep(0, playerEntity->transform->getPosition());
+					gameState->audio_ptr->lastBeep = 4;
+				}
 				break;
 			case 3:
 				drawUI(startCountdown3, callback_ptrs[0]->xres / 2 - 176, callback_ptrs[0]->yres / 2 + 158, callback_ptrs[0]->xres / 2 + 176, callback_ptrs[0]->yres / 2 + 415, 1);
+				if (gameState->audio_ptr->lastBeep != 3) {
+					gameState->audio_ptr->CountdownBeep(1, playerEntity->transform->getPosition());
+					gameState->audio_ptr->lastBeep = 3;
+				}
 				break;
 			case 2:
 				drawUI(startCountdown2, callback_ptrs[0]->xres / 2 - 176, callback_ptrs[0]->yres / 2 + 158, callback_ptrs[0]->xres / 2 + 176, callback_ptrs[0]->yres / 2 + 415, 1);
+				if (gameState->audio_ptr->lastBeep != 2) {
+					gameState->audio_ptr->CountdownBeep(2, playerEntity->transform->getPosition());
+					gameState->audio_ptr->lastBeep = 2;
+				}
 				break;
 			case 1:
 				drawUI(startCountdown1, callback_ptrs[0]->xres / 2 - 176, callback_ptrs[0]->yres / 2 + 158, callback_ptrs[0]->xres / 2 + 176, callback_ptrs[0]->yres / 2 + 415, 1);
+				if (gameState->audio_ptr->lastBeep != 1) {
+					gameState->audio_ptr->CountdownBeep(3, playerEntity->transform->getPosition());
+					gameState->audio_ptr->lastBeep = 1;
+				}
 				break;
 		}
+	}
+
+	else if (gameState->audio_ptr->lastBeep == 1) {
+		gameState->audio_ptr->CountdownBeep(4, playerEntity->transform->getPosition());
+		gameState->audio_ptr->lastBeep = 0;
 	}
 
 	// Normal Gameplay Screen
