@@ -57,6 +57,7 @@ DWORD WINAPI update_controller_thread(LPVOID lpParameter) {
 	int time_before = 0;
 	int time_after = 0;
 	int time_diff = 0;
+	bool connected = false;
 	while (flag) {
 		//check if the controller is connected or not
 		//DWORD dwResult;
@@ -65,17 +66,21 @@ DWORD WINAPI update_controller_thread(LPVOID lpParameter) {
 		//SecureZeroMemory(&state, sizeof(XINPUT_STATE));
 
 		// Simply get the state of the controller from XInput.
-		DWORD dwResult = XInputGetState(value, &state); //assume only one Xbox controller is connected
+		DWORD dwResult;
+		if (connected) dwResult = XInputGetState(value, &state); //assume only one Xbox controller is connected
 		time_diff = time_after - time_before;
 		if (time_diff >= 5) {  // CHECK IF controller is connected every 5 seconds ?
+			if (!connected) dwResult = XInputGetState(value, &state);
 			time_before = static_cast<int>(time(NULL));
 
 			if (dwResult == ERROR_SUCCESS)
 			{
+				connected = true;
 				std::cout << "Controller " << value << " connected" << std::endl;
 			}
 			else
 			{
+				connected = false;
 				std::cout << "Controller " << value << " disconnected!" << std::endl;
 			}
 			//}
@@ -85,7 +90,7 @@ DWORD WINAPI update_controller_thread(LPVOID lpParameter) {
 		else {
 			time_after = static_cast<int>(time(NULL));
 		}
-		if (dwResult == ERROR_SUCCESS) {
+		if (connected) {
 			checkLeftThumbBar(state, value);
 			checkRightThumbBar(state, value);
 			checkButtons(state, value);

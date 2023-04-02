@@ -371,11 +371,11 @@ bool PhysicsSystem::CameraIntercetionRaycasting(glm::vec3 campos) {
 	//}
 	//return glm::vec3(moving_vector.x, moving_vector.y, moving_vector.z);
 }
-glm::vec3 PhysicsSystem::CameraRaycasting(glm::vec3 campos,float side,float down_back) {
+glm::vec3 PhysicsSystem::CameraRaycasting(glm::vec3 campos,float side,float down_back, int playerNo) {
 	PxRaycastBuffer cameraRayBuffer(0, 0);
 	PxVec3 cam = PxVec3(campos.x, campos.y, campos.z); //where the ray shoots, the origin 
-	PxVec3 start = vehicles.at(0)->vehicle.mPhysXState.physxActor.rigidBody->getGlobalPose().p;
-	PxTransform vehicle_trans = vehicles.at(0)->vehicle.mPhysXState.physxActor.rigidBody->getGlobalPose();
+	PxVec3 start = vehicles.at(playerNo)->vehicle.mPhysXState.physxActor.rigidBody->getGlobalPose().p;
+	PxTransform vehicle_trans = vehicles.at(playerNo)->vehicle.mPhysXState.physxActor.rigidBody->getGlobalPose();
 	PxVec3 dir =  start-cam; // we need the ray shoot from vehicle to camera, which then can detect the ground mesh. direction should base on global map
 	PxVec3 backward = cam-start;
 	backward.y = 0.f;

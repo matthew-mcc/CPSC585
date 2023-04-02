@@ -94,7 +94,7 @@ public:
 	//void stepPhysics(std::shared_ptr<CallbackInterface> callback_ptr, Timer* timer);
 	void stepPhysics(vector<shared_ptr<CallbackInterface>> callback_ptrs, Timer* timer);
 	
-	static glm::vec3 CameraRaycasting( glm::vec3 camposd,float side,float down_back );
+	static glm::vec3 CameraRaycasting( glm::vec3 camposd,float side,float down_back, int playerNo);
 	static bool CameraIntercetionRaycasting(glm::vec3 campos);
 
 private:

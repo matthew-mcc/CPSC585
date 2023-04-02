@@ -5,11 +5,21 @@ using namespace std;
 
 Camera::Camera() {}
 
-Camera::Camera(Entity* p) {
+Camera::Camera(Entity* p, int pn) {
 	player = p;
+	playerNo = pn;
 }
 
 void Camera::updateCamera(float dt, shared_ptr<CallbackInterface> cptr, int numPlayers) {
+	if (player->name.compare("vehicle_1") == 0) {
+		for (int i = 0; i < 4; i++) {
+			for (int j = 0; j < 4; j++) {
+				printf("%4.2f, ", view[i][j]);
+			}
+			printf("\n");
+		}
+		printf("\n");
+	}
 	player_forward = player->transform->getForwardVector();
 	player_right = player->transform->getRightVector();
 	player_up = player->transform->getUpVector();
@@ -35,12 +45,12 @@ void Camera::updateCamera(float dt, shared_ptr<CallbackInterface> cptr, int numP
 		vec3 lookOffset = camera_previous_position - player_pos;
 		lookOffset = vec4(lookOffset, 0.f) * glm::rotate(glm::mat4(1.f), cptr->xAngle - 3.1415126f, world_up);
 		lookOffset += player_pos;
-		Camera_collision = PhysicsSystem::CameraRaycasting(camera_previous_position, camera_radius, 1.f);
+		Camera_collision = PhysicsSystem::CameraRaycasting(camera_previous_position, camera_radius, 1.f, playerNo);
 		view = lookAt(lookOffset, target_offset, world_up);
 	}
 	else {
-		Camera_collision = PhysicsSystem::CameraRaycasting(camera_previous_position, camera_radius, 1.f);
-		Reset_collision = PhysicsSystem::CameraRaycasting(player_pos + ResetVec, camera_radius, 1.f);
+		Camera_collision = PhysicsSystem::CameraRaycasting(camera_previous_position, camera_radius, 1.f, playerNo);
+		Reset_collision = PhysicsSystem::CameraRaycasting(player_pos + ResetVec, camera_radius, 1.f, playerNo);
 		view = lookAt(camera_previous_position, target_offset, world_up);
 	}
 

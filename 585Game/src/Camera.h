@@ -9,7 +9,7 @@ class Camera {
 
 public:
 	Camera();
-	Camera(Entity* p);
+	Camera(Entity* p, int pn);
 	void updateCamera(float dt, shared_ptr<CallbackInterface> cptr, int numPlayers);
 
 	mat4 view = mat4(1.0f);
@@ -22,6 +22,7 @@ private:
 	void updateRadius(float base, float zoom);
 
 	Entity* player;
+	int playerNo;
 
 	vec3 player_forward;
 	vec3 player_right;
