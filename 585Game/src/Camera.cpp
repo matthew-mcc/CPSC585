@@ -11,15 +11,6 @@ Camera::Camera(Entity* p, int pn) {
 }
 
 void Camera::updateCamera(float dt, shared_ptr<CallbackInterface> cptr, int numPlayers) {
-	if (player->name.compare("vehicle_1") == 0) {
-		for (int i = 0; i < 4; i++) {
-			for (int j = 0; j < 4; j++) {
-				printf("%4.2f, ", view[i][j]);
-			}
-			printf("\n");
-		}
-		printf("\n");
-	}
 	player_forward = player->transform->getForwardVector();
 	player_right = player->transform->getRightVector();
 	player_up = player->transform->getUpVector();
