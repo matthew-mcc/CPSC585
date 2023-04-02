@@ -206,29 +206,64 @@ void GameState::resetGameState(AudioManager* audio) {
 void GameState::menuEventHandler(vector<std::shared_ptr<CallbackInterface>> cbps) {
 	// Only handle events when in menu
 	if (inMenu) {
-		// Navigate Right
-		if (cbps[0]->navigateR && !showInfo) {
-			menuOptionIndex = (menuOptionIndex + 1) % nbMenuOptions;
-			cbps[0]->navigateR = false;
-			audio_ptr->MenuClick(1, listener_position);
+		// Party Player Increment / Decrement
+		if (showPlayerSelect) {
+			// Increase Player Count
+			if (cbps[0]->navigateR && playerSelectIndex < 4) {
+				playerSelectIndex++;
+				cbps[0]->navigateR = false;
+				audio_ptr->MenuClick(1, listener_position);
+			}
+			// Decrease Player Count (or show back option)
+			else if (cbps[0]->navigateL && playerSelectIndex > 1) {
+				playerSelectIndex--;
+				cbps[0]->navigateL = false;
+				audio_ptr->MenuClick(1, listener_position);
+			}
 		}
-		// Navigate Left
-		else if (cbps[0]->navigateL && !showInfo) {
-			menuOptionIndex = (menuOptionIndex - 1) % nbMenuOptions;
-			cbps[0]->navigateL = false;
-			audio_ptr->MenuClick(1, listener_position);
-		}
-		// Navigation Wrap-Around
-		if (menuOptionIndex < 0) {
-			menuOptionIndex = nbMenuOptions - 1;
+		// Menu Navigation
+		else {
+			// Navigate Right
+			if (cbps[0]->navigateR && !showInfo) {
+				menuOptionIndex = (menuOptionIndex + 1) % nbMenuOptions;
+				cbps[0]->navigateR = false;
+				audio_ptr->MenuClick(1, listener_position);
+			}
+			// Navigate Left
+			else if (cbps[0]->navigateL && !showInfo) {
+				menuOptionIndex = (menuOptionIndex - 1) % nbMenuOptions;
+				cbps[0]->navigateL = false;
+				audio_ptr->MenuClick(1, listener_position);
+			}
+			// Navigation Wrap-Around
+			if (menuOptionIndex < 0) {
+				menuOptionIndex = nbMenuOptions - 1;
+			}
 		}
 
 		// Buttons
 		if (cbps[0]->menuConfirm) {
+		// SUB-MENUS
+			// Info Back
 			if (showInfo) {
 				showInfo = false;
 				audio_ptr->MenuClick(0, listener_position);
 			}
+			// Player Select Confirm Options
+			else if (showPlayerSelect) {
+				// Player Select Back
+				if (playerSelectIndex == 1) {
+					showPlayerSelect = false;
+					audio_ptr->MenuClick(0, listener_position);
+				}
+				// Party Play
+				else {
+					numPlayers = playerSelectIndex;
+					loading = true;
+					audio_ptr->MenuClick(2, listener_position);
+				}
+			}
+		// MAIN OPTIONS
 			// Solo
 			else if (menuOptionIndex == 0) {
 				numPlayers = 1;
@@ -237,10 +272,9 @@ void GameState::menuEventHandler(vector<std::shared_ptr<CallbackInterface>> cbps
 			}
 			// Party
 			else if (menuOptionIndex == 1) {
-				// Multiplayer load goes here
-				numPlayers = 2;
-				loading = true;
-				audio_ptr->MenuClick(2, listener_position);
+				playerSelectIndex = 2;
+				showPlayerSelect = true;
+				audio_ptr->MenuClick(0, listener_position);
 			}
 			// Info
 			else if (menuOptionIndex == 2) {

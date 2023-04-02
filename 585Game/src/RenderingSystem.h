@@ -97,6 +97,10 @@ private:
 	unsigned int menuInfo;
 	unsigned int menuInfoDisplay;
 	unsigned int backToMenu;
+	unsigned int menuPlayerSelect2;
+	unsigned int menuPlayerSelect3;
+	unsigned int menuPlayerSelect4;
+	unsigned int menuPlayerSelectBack;
 	unsigned int startCountdown5;
 	unsigned int startCountdown4;
 	unsigned int startCountdown3;

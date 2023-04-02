@@ -80,6 +80,10 @@ void RenderingSystem::initRenderer() {
 	menuQuit = generateTexture("assets/textures/UI/menuQuit.png", false);
 	menuInfo = generateTexture("assets/textures/UI/menuInfo.png", false);
 	menuInfoDisplay = generateTexture("assets/textures/UI/menuInfoDisplay.png", false);
+	menuPlayerSelect2 = generateTexture("assets/textures/UI/playerSelect2.png", false);
+	menuPlayerSelect3 = generateTexture("assets/textures/UI/playerSelect3.png", false);
+	menuPlayerSelect4 = generateTexture("assets/textures/UI/playerSelect4.png", false);
+	menuPlayerSelectBack = generateTexture("assets/textures/UI/playerSelectBack.png", false);
 
 	backToMenu = generateTexture("assets/textures/UI/backToMenu.png", false);
 	startCountdown5 = generateTexture("assets/textures/UI/startCountdown5.png", false);
@@ -209,6 +213,12 @@ void RenderingSystem::updateRenderer(vector<std::shared_ptr<CallbackInterface>> 
 			drawUI(menuInfoDisplay, 0, 0, callback_ptrs[0]->xres, callback_ptrs[0]->yres, 1);
 		}
 
+		// Player Select Screen
+		else if (gameState->showPlayerSelect && gameState->playerSelectIndex == 1) drawUI(menuPlayerSelectBack, 0, 0, callback_ptrs[0]->xres, callback_ptrs[0]->yres, 1);
+		else if (gameState->showPlayerSelect && gameState->playerSelectIndex == 2) drawUI(menuPlayerSelect2, 0, 0, callback_ptrs[0]->xres, callback_ptrs[0]->yres, 1);
+		else if (gameState->showPlayerSelect && gameState->playerSelectIndex == 3) drawUI(menuPlayerSelect3, 0, 0, callback_ptrs[0]->xres, callback_ptrs[0]->yres, 1);
+		else if (gameState->showPlayerSelect && gameState->playerSelectIndex == 4) drawUI(menuPlayerSelect4, 0, 0, callback_ptrs[0]->xres, callback_ptrs[0]->yres, 1);
+		
 		// Menu Screen
 		else {
 			// Highlight Solo

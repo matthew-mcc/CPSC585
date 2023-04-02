@@ -27,7 +27,9 @@ public:
 	bool loading = false;
 	bool quit = false;
 	bool showInfo = false;
+	bool showPlayerSelect = false;
 	bool gameEnded = false;
+	int playerSelectIndex = 2;
 	int menuOptionIndex = 0;
 	int nbMenuOptions = 4;
 
