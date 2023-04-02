@@ -184,7 +184,7 @@ void RenderingSystem::updateRenderer(vector<std::shared_ptr<CallbackInterface>> 
 	// BACKGROUND
 	glClearColor(skyColor.r, skyColor.g, skyColor.b, 1.0f);	// Set Background (Sky) Color
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
+	
 	// RETURN TO MENU
 	if (gameState->gameEnded && callback_ptrs[0]->backToMenu) {
 		gameState->inMenu = true;
