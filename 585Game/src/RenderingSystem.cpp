@@ -809,7 +809,7 @@ void RenderingSystem::updateRenderer(vector<std::shared_ptr<CallbackInterface>> 
 
 			for (int i = 0; i < gameState->numVehicles; i++) {
 				// If == player
-				if (scoreboard[i].second == 0) {
+				if (scoreboard[i].second == player) {
 
 					drawUI(scoreBarDark,
 						ui_scoreboard_leftbound + xOffset,
@@ -818,7 +818,7 @@ void RenderingSystem::updateRenderer(vector<std::shared_ptr<CallbackInterface>> 
 						ui_scoreboard_upbound - ui_scoreboard_row_increment * j + yOffset,
 						2);
 					// Maybe someday will use drawn elements, but for now it's too messy
-					drawUI(ui_playercard[0],
+					drawUI(ui_playercard[test],
 						ui_scoreboard_leftbound - ui_scoreboard_column_incremenent * 1.25f + xOffset,
 						ui_scoreboard_upbound - ui_scoreboard_row_increment * (j + 1.25f) + yOffset,
 						ui_scoreboard_leftbound + xOffset,

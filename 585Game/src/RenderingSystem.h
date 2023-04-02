@@ -138,7 +138,7 @@ private:
 	float fogDepth = 0.00125f;
 
 	float outlineSensitivity = 20.f;
-	float outlineTransparency = 0.4f;
+	float outlineTransparency = 0.5f;
 	float outlineBlur = 0.1f;
 
 	// Text
