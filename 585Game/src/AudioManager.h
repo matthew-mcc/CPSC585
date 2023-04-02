@@ -35,6 +35,7 @@ public:
 	void LatchEvent(glm::vec3 pos);
 	void Dropoff();
 	void Landing(glm::vec3 pos);
+	void CountdownBeep(int type, glm::vec3 pos);
 	void MenuClick(int type, glm::vec3 pos);
 
 	void UpdateTire(const std::string& strEventName, const glm::vec3 &pos, const glm::vec3 &velocity, const glm::vec3 &forward, const glm::vec3 &up, float distance, bool contact);
@@ -46,6 +47,8 @@ public:
 
 	CAudioEngine audioEngine;
 	CAudioEngine* audioEnginePtr;
+
+	int lastBeep = 0;
 
 private:
 	// Bank paths
@@ -70,7 +73,6 @@ private:
 	std::string p_distance = "{a535cf27-0d8c-4dc4-8a7d-386ac746bd99}";
 
 	bool testFlag = false;
-
 };
 
 
