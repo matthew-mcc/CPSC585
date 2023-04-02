@@ -3,6 +3,7 @@
 #include "imgui.h"
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_opengl3.h"
+#include <vector>
 
 using namespace std;
 
@@ -298,39 +299,40 @@ public:
 };
 
 
-std::shared_ptr<CallbackInterface> callbacks = std::make_shared<KeyCallbacks>();
+std::vector<std::shared_ptr<CallbackInterface>> callbacks;
 void keyMetaCallback(GLFWwindow* window, int key, int scancode, int action, int mods) {
 	//CallbackInterface* callbacks = static_cast<CallbackInterface*>(glfwGetWindowUserPointer(window));
-	callbacks->keyCallback(key, scancode, action, mods);
+	for (int i = 0; i < callbacks.size(); i++) callbacks[i]->keyCallback(key, scancode, action, mods);
 }
 
 
 void mouseButtonMetaCallback(GLFWwindow* window, int button, int action, int mods) {
 	//CallbackInterface* callbacks = static_cast<CallbackInterface*>(glfwGetWindowUserPointer(window));
-	callbacks->mouseButtonCallback(button, action, mods);
+	for (int i = 0; i < callbacks.size(); i++) callbacks[i]->mouseButtonCallback(button, action, mods);
 }
 
 
 void cursorPosMetaCallback(GLFWwindow* window, double xpos, double ypos) {
 	//CallbackInterface* callbacks = static_cast<CallbackInterface*>(glfwGetWindowUserPointer(window));
-	callbacks->cursorPosCallback(xpos, ypos);
+	for (int i = 0; i < callbacks.size(); i++) callbacks[i]->cursorPosCallback(xpos, ypos);
 }
 
 
 void scrollMetaCallback(GLFWwindow* window, double xoffset, double yoffset) {
 	//CallbackInterface* callbacks = static_cast<CallbackInterface*>(glfwGetWindowUserPointer(window));
-	callbacks->scrollCallback(xoffset, yoffset);
+	for (int i = 0; i < callbacks.size(); i++) callbacks[i]->scrollCallback(xoffset, yoffset);
 }
 
 
 void windowSizeMetaCallback(GLFWwindow* window, int width, int height) {
 	//CallbackInterface* callbacks = static_cast<CallbackInterface*>(glfwGetWindowUserPointer(window));
-	callbacks->windowSizeCallback(width, height);
+	for (int i = 0; i < callbacks.size(); i++) callbacks[i]->windowSizeCallback(width, height);
 }
 
 // Process Input
 	// Handles GLFW window inputs
 std::shared_ptr<CallbackInterface> processInput(GLFWwindow* window) {
+	callbacks.push_back(std::make_shared<KeyCallbacks>());
 	//glfwSetWindowUserPointer(window, callbacks_.get());
 	glfwSetKeyCallback(window, keyMetaCallback);
 	glfwSetMouseButtonCallback(window, mouseButtonMetaCallback);	
@@ -339,7 +341,7 @@ std::shared_ptr<CallbackInterface> processInput(GLFWwindow* window) {
 	glfwSetScrollCallback(window, scrollMetaCallback);
 	glfwSetWindowSizeCallback(window, windowSizeMetaCallback);
 
-	return callbacks;
+	return callbacks[callbacks.size() - 1];
 	//if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
 		//glfwSetWindowShouldClose(window, true);
 }

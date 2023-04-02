@@ -203,19 +203,19 @@ void GameState::resetGameState(AudioManager* audio) {
 	initGameState();
 }
 
-void GameState::menuEventHandler(std::shared_ptr<CallbackInterface> cbp) {
+void GameState::menuEventHandler(vector<std::shared_ptr<CallbackInterface>> cbps) {
 	// Only handle events when in menu
 	if (inMenu) {
 		// Navigate Right
-		if (cbp->navigateR && !showInfo) {
+		if (cbps[0]->navigateR && !showInfo) {
 			menuOptionIndex = (menuOptionIndex + 1) % nbMenuOptions;
-			cbp->navigateR = false;
+			cbps[0]->navigateR = false;
 			audio_ptr->MenuClick(1, listener_position);
 		}
 		// Navigate Left
-		else if (cbp->navigateL && !showInfo) {
+		else if (cbps[0]->navigateL && !showInfo) {
 			menuOptionIndex = (menuOptionIndex - 1) % nbMenuOptions;
-			cbp->navigateL = false;
+			cbps[0]->navigateL = false;
 			audio_ptr->MenuClick(1, listener_position);
 		}
 		// Navigation Wrap-Around
@@ -224,7 +224,7 @@ void GameState::menuEventHandler(std::shared_ptr<CallbackInterface> cbp) {
 		}
 
 		// Buttons
-		if (cbp->menuConfirm) {
+		if (cbps[0]->menuConfirm) {
 			if (showInfo) {
 				showInfo = false;
 				audio_ptr->MenuClick(0, listener_position);
@@ -238,7 +238,7 @@ void GameState::menuEventHandler(std::shared_ptr<CallbackInterface> cbp) {
 			// Party
 			else if (menuOptionIndex == 1) {
 				// Multiplayer load goes here
-				numPlayers = 4;
+				numPlayers = 2;
 				loading = true;
 				audio_ptr->MenuClick(2, listener_position);
 			}
@@ -251,7 +251,7 @@ void GameState::menuEventHandler(std::shared_ptr<CallbackInterface> cbp) {
 			else if (menuOptionIndex == 3) {
 				quit = true;
 			}
-			cbp->menuConfirm = false;
+			cbps[0]->menuConfirm = false;
 		}
 	}
 }

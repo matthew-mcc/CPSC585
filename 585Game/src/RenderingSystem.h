@@ -24,7 +24,7 @@ public:
 	void SetupImgui();
 
 	// Update Renderer
-	void updateRenderer(shared_ptr<CallbackInterface> callback_ptr, GameState* gameState, Timer* timer);
+	void updateRenderer(vector<std::shared_ptr<CallbackInterface>> cbps, GameState* gameState, Timer* timer);
 
 	// Shutdown IMGUI Instance
 	void shutdownImgui();
@@ -44,7 +44,7 @@ private:
 
 	void drawUI(unsigned int texture, float x0, float y0, float x1, float y1, int l = 0, int pl = 0);
   
-	std::shared_ptr<CallbackInterface> callback_ptr;
+	vector<std::shared_ptr<CallbackInterface>> callback_ptrs;
 
 	// Number of active players
 	int numPlayers = 1;

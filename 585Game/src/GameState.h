@@ -16,7 +16,7 @@ public:
 	int calculatePoints(int vehicleIndex, int totalTrailers, int stolenTrailers);
 	void endGame();
 	void resetGameState(AudioManager* audio);
-	void menuEventHandler(std::shared_ptr<CallbackInterface> cbp);
+	void menuEventHandler(vector<std::shared_ptr<CallbackInterface>> cbps);
 
 	// Entity Tracking
 	vector<Entity> entityList;

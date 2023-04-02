@@ -1,5 +1,5 @@
 #pragma once
-#pragma comment(linker, "/SUBSYSTEM:windows /ENTRY:mainCRTStartup")		// Comment out to keep debug terminal window
+//#pragma comment(linker, "/SUBSYSTEM:windows /ENTRY:mainCRTStartup")		// Comment out to keep debug terminal window
 #include <RenderingSystem.h>
 #include <PhysicsSystem.h>
 #include <GameState.h>
@@ -29,7 +29,8 @@ int main() {
 	// Initialize Systems
 	xInput.run();
 	audio.Init(gameState->numVehicles);	// Remember to change this if we ever find a better way to keep track of vehicle count
-	std::shared_ptr<CallbackInterface> callback_ptr = processInput(renderer.window);
+	vector<std::shared_ptr<CallbackInterface>> callback_ptrs;
+	callback_ptrs.push_back(processInput(renderer.window));
 	renderer.SetupImgui();
 	physics.initPhysX();
 
@@ -46,7 +47,7 @@ int main() {
 			}
 
 			// Update Physics System
-			physics.stepPhysics(callback_ptr, timer);
+			physics.stepPhysics(callback_ptrs, timer);
 			aiController->StateController();
 		}
 
@@ -54,18 +55,18 @@ int main() {
 		xInput.update();
 		if (gameState->inMenu) {
 			isLoaded = false;
-			callback_ptr->XboxUpdate(xInput, timer, 0.0f, gameState->gameEnded);
-			gameState->menuEventHandler(callback_ptr);
+			for (int i = 0; i < callback_ptrs.size(); i++) callback_ptrs[i]->XboxUpdate(xInput, timer, 0.0f, gameState->gameEnded, i);
+			gameState->menuEventHandler(callback_ptrs);
 		}
 		else {
-			callback_ptr->XboxUpdate(xInput, timer, length(gameState->findEntity("vehicle_0")->transform->getLinearVelocity()), gameState->gameEnded);
+			for (int i = 0; i < callback_ptrs.size(); i++) callback_ptrs[i]->XboxUpdate(xInput, timer, length(gameState->findEntity("vehicle_" + to_string(i))->transform->getLinearVelocity()), gameState->gameEnded, i);
 		}
 
 		// Update Audio Manager
 		audio.Update(gameState->numVehicles, gameState->inMenu);
 
 		// Update Rendering System
-		renderer.updateRenderer(callback_ptr, gameState, timer);
+		renderer.updateRenderer(callback_ptrs, gameState, timer);
 
 		// Menu to Game Loading
 		if (!isLoaded && !gameState->inMenu) {
@@ -76,6 +77,8 @@ int main() {
 			timer->init();
 			renderer.resetRenderer();
 			audio.StartEvents(gameState->numVehicles);
+			xInput.run(gameState->numPlayers);
+			for (int i = 1; i < gameState->numPlayers; i++) callback_ptrs.push_back(processInput(renderer.window));
 			isLoaded = true;
 		}
 

@@ -1,84 +1,100 @@
 #pragma once
 #include <Boilerplate/Window.h>
+#include <vector>
 #define INPUT_DEADZONE 7849
 
-ConStruct controller_data;
+std::vector<ConStruct> controller_data;
 
 
 int button_array[14]= { 1,2,4,8,16,32,64,128,256,512,4096,8192,16384,32768 };
 bool flag = true;
-DWORD threadid;
-HANDLE threadhandle;
+DWORD threadids[4];
+std::vector<HANDLE> threadhandles;
 XboxInput::XboxInput() {
 	
 }
 
-
 void XboxInput::run()
 {
+	controller_data.push_back(ConStruct());
+	int p0;
+	p0 = 0;
+	threadhandles.push_back(CreateThread(NULL, 0, update_controller_thread, &p0, NULL, &threadids[0]));
+}
+
+void XboxInput::run(int numPlayers)
+{
+	int p1, p2, p3;
+	p1 = 1; p2 = 2; p3 = 3;
 	//std::thread controller_input_thread(update_controller_thread,NULL);
-	threadhandle = CreateThread(0,0,update_controller_thread,0,0,&threadid);
+	for (int i = 1; i < numPlayers; i++) {
+		controller_data.push_back(ConStruct());
+		if (i == 1) threadhandles.push_back(CreateThread(NULL, 0, update_controller_thread, &p1, NULL, &threadids[1]));
+		else if (i == 2) threadhandles.push_back(CreateThread(NULL, 0, update_controller_thread, &p2, NULL, &threadids[2]));
+		else if (i == 3) threadhandles.push_back(CreateThread(NULL, 0, update_controller_thread, &p3, NULL, &threadids[3]));
+	}
 }
 
 void XboxInput::stop() {
 	flag = false;
-	WaitForSingleObject(threadhandle, INFINITE);
-	CloseHandle(threadhandle);
+	for (int i = 0; i < threadhandles.size(); i++) {
+		WaitForSingleObject(threadhandles[i], INFINITE);
+		CloseHandle(threadhandles[i]);
+	}
 }
 
 void XboxInput::update() {
-	data = controller_data;
+	for (int i = 0; i < controller_data.size(); i++) {
+		data[i] = controller_data[i];
+	}
 }
 
 
 
 
 DWORD WINAPI update_controller_thread(LPVOID lpParameter) {
+	int value = *(int*)lpParameter;
 	int time_before = 0;
 	int time_after = 0;
 	int time_diff = 0;
 	while (flag) {
 		//check if the controller is connected or not
-		DWORD dwResult;
-
-		//for (DWORD i = 0; i < XUSER_MAX_COUNT; i++)  -----this will be useful when multi controller connected
-		//{
-
+		//DWORD dwResult;
+		//for (DWORD i = 0; i < XUSER_MAX_COUNT; i++) {  //-----this will be useful when multi controller connected
 		XINPUT_STATE state;
 		//SecureZeroMemory(&state, sizeof(XINPUT_STATE));
 
 		// Simply get the state of the controller from XInput.
-		dwResult = XInputGetState(0, &state); //assume only one Xbox controller is connected
-
+		DWORD dwResult = XInputGetState(value, &state); //assume only one Xbox controller is connected
 		time_diff = time_after - time_before;
 		if (time_diff >= 5) {  // CHECK IF controller is connected every 5 seconds ?
-			time_before = static_cast<int>( time(NULL) );
+			time_before = static_cast<int>(time(NULL));
 
 			if (dwResult == ERROR_SUCCESS)
 			{
-				std::cout << "Controller connected" << std::endl;
+				std::cout << "Controller " << value << " connected" << std::endl;
 			}
 			else
 			{
-				std::cout << "Controller disconnected!" << std::endl;
+				std::cout << "Controller " << value << " disconnected!" << std::endl;
 			}
 			//}
 
-			time_after = static_cast<int>( time(NULL) );
+			time_after = static_cast<int>(time(NULL));
 		}
 		else {
-			time_after = static_cast<int>( time(NULL) );
+			time_after = static_cast<int>(time(NULL));
 		}
-
 		if (dwResult == ERROR_SUCCESS) {
-			checkLeftThumbBar(state);
-			checkRightThumbBar(state);
-			checkButtons(state);
+			checkLeftThumbBar(state, value);
+			checkRightThumbBar(state, value);
+			checkButtons(state, value);
 		}
+		//}
 	}
 	return 0;
 }
-void checkLeftThumbBar(XINPUT_STATE state) {
+void checkLeftThumbBar(XINPUT_STATE state, int cNum) {
 	float LX = state.Gamepad.sThumbLX; //this one is checking for left thumb bar
 	float LY = state.Gamepad.sThumbLY;
 
@@ -111,9 +127,9 @@ void checkLeftThumbBar(XINPUT_STATE state) {
 		normalizedLX = 0.0; // each controller has different initial setting, and seems not to be 0
 		normalizedLY = 0.0; // since user doesn't push the bar, we just manually set it to 0.
 	}
-	controller_data.LThumb_magnitude = normalizedMagnitude;
-	controller_data.LThumb_X_direction = normalizedLX;
-	controller_data.LThumb_Y_direction = normalizedLY;
+	controller_data[cNum].LThumb_magnitude = normalizedMagnitude;
+	controller_data[cNum].LThumb_X_direction = normalizedLX;
+	controller_data[cNum].LThumb_Y_direction = normalizedLY;
 	if (normalizedMagnitude > 0) { // FOR debug use, only shows the status when we push the bar
 		//std::cout << "magnitude is:" << normalizedMagnitude << std::endl;
 		//std::cout << "left bar direction in x axis is:" << normalizedLX << std::endl;
@@ -122,7 +138,7 @@ void checkLeftThumbBar(XINPUT_STATE state) {
 	}
 
 }
-void checkRightThumbBar(XINPUT_STATE state) {
+void checkRightThumbBar(XINPUT_STATE state, int cNum) {
 	float RX = state.Gamepad.sThumbRX; //this one is checking for left thumb bar
 	float RY = state.Gamepad.sThumbRY;
 
@@ -155,9 +171,9 @@ void checkRightThumbBar(XINPUT_STATE state) {
 		normalizedRX = 0.0; // each controller has different initial setting, and seems not to be 0
 		normalizedRY = 0.0; // since user doesn't push the bar, we just manually set it to 0.
 	}
-	controller_data.RThumb_magnitude = normalizedMagnitude;
-	controller_data.RThumb_X_direction = normalizedRX;
-	controller_data.RThumb_Y_direction = normalizedRY;
+	controller_data[cNum].RThumb_magnitude = normalizedMagnitude;
+	controller_data[cNum].RThumb_X_direction = normalizedRX;
+	controller_data[cNum].RThumb_Y_direction = normalizedRY;
 	if (normalizedMagnitude > 0) { // FOR debug use, only shows the status when we push the bar
 		//std::cout << "right magnitude is:" << normalizedMagnitude << std::endl;
 		//std::cout << "right bar direction in x axis is:" << normalizedRX << std::endl;
@@ -165,136 +181,136 @@ void checkRightThumbBar(XINPUT_STATE state) {
 		//repeat for right thumb stick
 	}
 }
-void checkButtons(XINPUT_STATE state) {
-	controller_data.LT = state.Gamepad.bLeftTrigger; // this trigger has a numbebr in range 0-255;
-	controller_data.RT = state.Gamepad.bRightTrigger; // we can indicate how much force does the user trigger it
+void checkButtons(XINPUT_STATE state, int cNum) {
+	controller_data[cNum].LT = state.Gamepad.bLeftTrigger; // this trigger has a numbebr in range 0-255;
+	controller_data[cNum].RT = state.Gamepad.bRightTrigger; // we can indicate how much force does the user trigger it
 
 	int x = state.Gamepad.wButtons;
 
 	//Y
 	if (x >= button_array[13]) {
-		controller_data.Y = true;
+		controller_data[cNum].Y = true;
 		x -= button_array[13];
 	}
 	else {
-		controller_data.Y = false;
+		controller_data[cNum].Y = false;
 	}
 
 	//X
 	if (x >= button_array[12]) {
-		controller_data.X = true;
+		controller_data[cNum].X = true;
 		x -= button_array[12];
 	}
 	else {
-		controller_data.X = false;
+		controller_data[cNum].X = false;
 	}
 	
 	//B
 	if (x >= button_array[11]) {
-		controller_data.B = true;
+		controller_data[cNum].B = true;
 		x -= button_array[11];
 	}
 	else {
-		controller_data.B = false;
+		controller_data[cNum].B = false;
 	}
 	
 	//A
 	if (x >= button_array[10]) {
-		controller_data.A = true;
+		controller_data[cNum].A = true;
 		x -= button_array[10];
 	}
 	else {
-		controller_data.A = false;
+		controller_data[cNum].A = false;
 	}
 
 	//RB
 	if (x >= button_array[9]) {
-		controller_data.RB = true;
+		controller_data[cNum].RB = true;
 		x -= button_array[9];
 	}
 	else {
-		controller_data.RB = false;
+		controller_data[cNum].RB = false;
 	}
 
 	//LB
 	if (x >= button_array[8]) {
-		controller_data.LB = true;
+		controller_data[cNum].LB = true;
 		x -= button_array[8];
 	}
 	else {
-		controller_data.LB = false;
+		controller_data[cNum].LB = false;
 	}
 
 	//R3
 	if (x >= button_array[7]) {
-		controller_data.R3 = true;
+		controller_data[cNum].R3 = true;
 		x -= button_array[7];
 	}
 	else {
-		controller_data.R3 = false;
+		controller_data[cNum].R3 = false;
 	}
 
 	//L3
 	if (x >= button_array[6]) {
-		controller_data.L3 = true;
+		controller_data[cNum].L3 = true;
 		x -= button_array[6];
 	}
 	else {
-		controller_data.L3 = false;
+		controller_data[cNum].L3 = false;
 	}
 
 	//BACK
 	if (x >= button_array[5]) {
-		controller_data.BACK = true;
+		controller_data[cNum].BACK = true;
 		x -= button_array[5];
 	}
 	else {
-		controller_data.BACK = false;
+		controller_data[cNum].BACK = false;
 	}
 	
 	//START
 	if (x >= button_array[4]) {
-		controller_data.START = true;
+		controller_data[cNum].START = true;
 		x -= button_array[4];
 	}
 	else {
-		controller_data.START = false;
+		controller_data[cNum].START = false;
 	}
 
 	//RIGHT
 	if (x >= button_array[3]) {
-		controller_data.RIGHT = true;
+		controller_data[cNum].RIGHT = true;
 		x -= button_array[3];
 	}
 	else {
-		controller_data.RIGHT = false;
+		controller_data[cNum].RIGHT = false;
 	}
 
 	//LEFT
 	if (x >= button_array[2]) {
-		controller_data.LEFT = true;
+		controller_data[cNum].LEFT = true;
 		x -= button_array[2];
 	}
 	else {
-		controller_data.LEFT = false;
+		controller_data[cNum].LEFT = false;
 	}
 
 	//DOWN
 	if (x >= button_array[1]) {
-		controller_data.DOWN = true;
+		controller_data[cNum].DOWN = true;
 		x -= button_array[1];
 	}
 	else {
-		controller_data.DOWN = false;
+		controller_data[cNum].DOWN = false;
 	}
 
 	//UP
 	if (x >= button_array[0]) { 
-		controller_data.UP = true;
+		controller_data[cNum].UP = true;
 		x -= button_array[0];
 	}
 	else {
-		controller_data.UP = false;
+		controller_data[cNum].UP = false;
 	}
 
 }

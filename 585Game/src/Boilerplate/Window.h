@@ -16,9 +16,9 @@ GLFWwindow* initWindow();
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 DWORD WINAPI update_controller_thread(LPVOID lpParameter);
-void checkLeftThumbBar(XINPUT_STATE state);
-void checkRightThumbBar(XINPUT_STATE state);
-void checkButtons(XINPUT_STATE state);
+void checkLeftThumbBar(XINPUT_STATE state, int cNum);
+void checkRightThumbBar(XINPUT_STATE state, int cNum);
+void checkButtons(XINPUT_STATE state, int cNum);
 
 struct ConStruct
 {
@@ -52,9 +52,10 @@ struct ConStruct
 
 class XboxInput {
 public:
-	ConStruct data;
+	ConStruct data[4] = {ConStruct(), ConStruct(), ConStruct(), ConStruct()};
 	XboxInput();
 	void run();
+	void run(int numPlayers);
 	void stop();
 	void update();
 };
@@ -137,7 +138,7 @@ public:
 	bool horn6 = false;
 
 	// GAMEPAD VEHICLE INPUT
-	void XboxUpdate(XboxInput x, Timer* timer, float vehicleSpeed, bool gameEnded) {
+	void XboxUpdate(XboxInput x, Timer* timer, float vehicleSpeed, bool gameEnded, int cNum) {
 		this->gameEnded = gameEnded;
 
 		// Retrive Delta Time
@@ -145,28 +146,28 @@ public:
 
 		// Update input variables
 		if (keys_pressed <= 0) {
-			throttle = x.data.RT / 255.f;
-			brake = x.data.LT / 255.f;
-			steer_target = -x.data.LThumb_X_direction * x.data.LThumb_magnitude;
-			reverse = x.data.LT / 255.f;
-			AirPitch = x.data.LThumb_Y_direction;
-			AirRoll = -x.data.LThumb_X_direction;
-			boosterrrrr = x.data.B;
+			throttle = x.data[cNum].RT / 255.f;
+			brake = x.data[cNum].LT / 255.f;
+			steer_target = -x.data[cNum].LThumb_X_direction * x.data[cNum].LThumb_magnitude;
+			reverse = x.data[cNum].LT / 255.f;
+			AirPitch = x.data[cNum].LThumb_Y_direction;
+			AirRoll = -x.data[cNum].LThumb_X_direction;
+			boosterrrrr = x.data[cNum].B;
 
 			// Reset
-			if (x.data.Y) reset = deltaTime;
+			if (x.data[cNum].Y) reset = deltaTime;
 			else reset = 0.f;
 		}
 
 		// Camera Look
-		if (abs(x.data.RThumb_magnitude != 0.f) || clickL) {
+		if (abs(x.data[cNum].RThumb_magnitude != 0.f) || clickL) {
 			moveCamera = true;
 			float stickAngle;
 			if (clickL) {
 				stickAngle = ((lastX + 1.0f) / 2.0f) * float(2 * M_PI);
 			}
 			else {
-				stickAngle = atan2(x.data.RThumb_X_direction, x.data.RThumb_Y_direction) + M_PI;
+				stickAngle = atan2(x.data[cNum].RThumb_X_direction, x.data[cNum].RThumb_Y_direction) + M_PI;
 			}
 
 			float smallest = smallestSignedAngleBetween(stickAngle, xAngle);
@@ -212,7 +213,7 @@ public:
 		// Main Menu
 		if (keys_pressed <= 0) {
 			// Menu Confirm
-			if (x.data.A) {
+			if (x.data[cNum].A) {
 				if (menuConfirmHold) {
 					menuConfirm = false;
 				}
@@ -227,7 +228,7 @@ public:
 			}
 
 			// Back to Menu
-			if (x.data.BACK) {
+			if (x.data[cNum].BACK) {
 				if (gameEnded) {
 					backToMenu = true;
 				}
@@ -237,7 +238,7 @@ public:
 			}
 
 			// Menu Navigate Left
-			if (x.data.LEFT) {
+			if (x.data[cNum].LEFT) {
 				if (navigateLHold) {
 					navigateL = false;
 				}
@@ -252,7 +253,7 @@ public:
 			}
 
 			// Menu Navigate Right
-			if (x.data.RIGHT) {
+			if (x.data[cNum].RIGHT) {
 				if (navigateRHold) {
 					navigateR = false;
 				}

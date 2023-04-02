@@ -127,10 +127,10 @@ void RenderingSystem::initRenderer() {
 }
 
 // Update Renderer
-void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> cbp, GameState* gameState, Timer* timer) {
+void RenderingSystem::updateRenderer(vector<std::shared_ptr<CallbackInterface>> cbps, GameState* gameState, Timer* timer) {
 	// CALLBACK POINTER
 	numPlayers = gameState->numPlayers;
-	callback_ptr = cbp;
+	callback_ptrs = cbps;
 
 	if (numPlayers == 1 && nearShadowMap.size() < 1) {
 		farShadowMap = FBuffer(16384, 4096, 800.f, 300.f, -700.f, 1000.f);
@@ -182,7 +182,7 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> cbp, Gam
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	// RETURN TO MENU
-	if (gameState->gameEnded && callback_ptr->backToMenu) {
+	if (gameState->gameEnded && callback_ptrs[0]->backToMenu) {
 		gameState->inMenu = true;
 		gameState->gameEnded = false;
 	}
@@ -191,43 +191,43 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> cbp, Gam
 	if (gameState->inMenu) {
 		// Use Text Shader
 		textShader.use();
-		mat4 textProjection = ortho(0.0f, static_cast<float>(callback_ptr->xres), 0.0f, static_cast<float>(callback_ptr->yres));
+		mat4 textProjection = ortho(0.0f, static_cast<float>(callback_ptrs[0]->xres), 0.0f, static_cast<float>(callback_ptrs[0]->yres));
 		textShader.setMat4("projection", textProjection);
 
 		// Draw Background
-		drawUI(menuBackground, 0, 0, callback_ptr->xres, callback_ptr->yres, 2);
+		drawUI(menuBackground, 0, 0, callback_ptrs[0]->xres, callback_ptrs[0]->yres, 2);
 
 		// Load Screen
 		if (gameState->loading) {
-			drawUI(menuLoading, 0, 0, callback_ptr->xres, callback_ptr->yres, 1);
+			drawUI(menuLoading, 0, 0, callback_ptrs[0]->xres, callback_ptrs[0]->yres, 1);
 			gameState->inMenu = false;
 			gameState->loading = false;
 		}
 
 		// Info Screen
 		else if (gameState->showInfo) {
-			drawUI(menuInfoDisplay, 0, 0, callback_ptr->xres, callback_ptr->yres, 1);
+			drawUI(menuInfoDisplay, 0, 0, callback_ptrs[0]->xres, callback_ptrs[0]->yres, 1);
 		}
 
 		// Menu Screen
 		else {
 			// Highlight Solo
 			if (gameState->menuOptionIndex == 0) {
-				drawUI(menuSolo, 0, 0, callback_ptr->xres, callback_ptr->yres, 1);
+				drawUI(menuSolo, 0, 0, callback_ptrs[0]->xres, callback_ptrs[0]->yres, 1);
 			}
 			// Highlight Party
 			if (gameState->menuOptionIndex == 1) {
-				drawUI(menuParty, 0, 0, callback_ptr->xres, callback_ptr->yres, 1);
+				drawUI(menuParty, 0, 0, callback_ptrs[0]->xres, callback_ptrs[0]->yres, 1);
 			}
 			// Highlight Info
 			else if (gameState->menuOptionIndex == 2) {
-				drawUI(menuInfo, 0, 0, callback_ptr->xres, callback_ptr->yres, 1);
+				drawUI(menuInfo, 0, 0, callback_ptrs[0]->xres, callback_ptrs[0]->yres, 1);
 			}
 			// Highlight Quit
 			else if (gameState->menuOptionIndex == 3) {
-				drawUI(menuQuit, 0, 0, callback_ptr->xres, callback_ptr->yres, 1);
+				drawUI(menuQuit, 0, 0, callback_ptrs[0]->xres, callback_ptrs[0]->yres, 1);
 			}
-			drawUI(menuTitle, 0, 0, callback_ptr->xres, callback_ptr->yres, 0);
+			drawUI(menuTitle, 0, 0, callback_ptrs[0]->xres, callback_ptrs[0]->yres, 0);
 		}
 
 		glfwSwapBuffers(window);
@@ -247,7 +247,7 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> cbp, Gam
 		playerCameras.push_back(Camera(playerEntities[i]));
 	}
 	for (int i = 0; i < numPlayers; i++) {
-		playerCameras[i].updateCamera((float)timer->getDeltaTime(), callback_ptr);
+		playerCameras[i].updateCamera((float)timer->getDeltaTime(), callback_ptrs[i]);
 	}
 
 
@@ -258,8 +258,8 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> cbp, Gam
 	portalEntity->localTransforms.at(0)->setRotation(normalize(portalEntity->localTransforms.at(0)->getRotation() * quat(rot)));
 
 	vec2 targetRes;
-	if (numPlayers == 1) targetRes = vec2(callback_ptr->xres, callback_ptr->yres);
-	else targetRes = vec2(callback_ptr->xres / 2.f, callback_ptr->yres / 2.f);
+	if (numPlayers == 1) targetRes = vec2(callback_ptrs[0]->xres, callback_ptrs[0]->yres);
+	else targetRes = vec2(callback_ptrs[0]->xres / 2.f, callback_ptrs[0]->yres / 2.f);
 
 	gameState->listener_position = playerCameras[0].camera_previous_position;
 
@@ -432,7 +432,7 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> cbp, Gam
 				first_iteration = false;
 		}
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
-		glViewport(0, 0, callback_ptr->xres, callback_ptr->yres);
+		glViewport(0, 0, callback_ptrs[0]->xres, callback_ptrs[0]->yres);
 
 		bindTexture(1, intermediateBuffer[pl].fbTextures[0]);
 		bindTexture(2, blurMap[pl].fbTextures[0]);
@@ -449,13 +449,13 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> cbp, Gam
 
 	// SIXTH PASS: GUI RENDER
 	textShader.use();
-	mat4 textProjection = ortho(0.0f, static_cast<float>(callback_ptr->xres), 0.0f, static_cast<float>(callback_ptr->yres));
+	mat4 textProjection = ortho(0.0f, static_cast<float>(callback_ptrs[0]->xres), 0.0f, static_cast<float>(callback_ptrs[0]->yres));
 	textShader.setMat4("projection", textProjection);
 
 	// Fetch and display FPS
 	int fpsTest = timer->getFPS(0.5);				// Get fps (WARNING: can be NULL!)
 	if (fpsTest != NULL) fps = fpsTest;				// Set fps if fpsTest isn't null
-	RenderText(textShader, textVAO, textVBO, "FPS: " + std::to_string(fps), 10.f, callback_ptr->yres - 26.f, 0.45f, vec3(0.2, 0.2f, 0.2f), textChars);
+	RenderText(textShader, textVAO, textVBO, "FPS: " + std::to_string(fps), 10.f, callback_ptrs[0]->yres - 26.f, 0.45f, vec3(0.2, 0.2f, 0.2f), textChars);
 
 	// Game Ended Screen
 	if (gameState->gameEnded) {
@@ -465,10 +465,10 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> cbp, Gam
 			winnerNum = to_string(stoi(winnerNum) + 1);
 			winnerText = "Salvager #" + winnerNum + " Wins!";
 		}
-		drawUI(backToMenu, callback_ptr->xres / 2 - 387, callback_ptr->yres / 2 + 158, callback_ptr->xres / 2 + 387, callback_ptr->yres / 2 + 415, 1);
+		drawUI(backToMenu, callback_ptrs[0]->xres / 2 - 387, callback_ptrs[0]->yres / 2 + 158, callback_ptrs[0]->xres / 2 + 387, callback_ptrs[0]->yres / 2 + 415, 1);
 		RenderText(textShader, textVAO, textVBO, winnerText,
-			callback_ptr->xres / 2 - (16 * winnerText.length()),
-			callback_ptr->yres / 2 + 328,
+			callback_ptrs[0]->xres / 2 - (16 * winnerText.length()),
+			callback_ptrs[0]->yres / 2 + 328,
 			1.25f,
 			vec3(0.94, 0.94f, 0.94f),
 			textChars);
@@ -479,19 +479,19 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> cbp, Gam
 		int startCountdown = timer->getCountdown() - timer->getStartTime();
 		switch (startCountdown) {
 			case 5:	
-				drawUI(startCountdown5, callback_ptr->xres / 2 - 176, callback_ptr->yres / 2 + 158, callback_ptr->xres / 2 + 176, callback_ptr->yres / 2 + 415, 1);
+				drawUI(startCountdown5, callback_ptrs[0]->xres / 2 - 176, callback_ptrs[0]->yres / 2 + 158, callback_ptrs[0]->xres / 2 + 176, callback_ptrs[0]->yres / 2 + 415, 1);
 				break;
 			case 4:
-				drawUI(startCountdown4, callback_ptr->xres / 2 - 176, callback_ptr->yres / 2 + 158, callback_ptr->xres / 2 + 176, callback_ptr->yres / 2 + 415, 1);
+				drawUI(startCountdown4, callback_ptrs[0]->xres / 2 - 176, callback_ptrs[0]->yres / 2 + 158, callback_ptrs[0]->xres / 2 + 176, callback_ptrs[0]->yres / 2 + 415, 1);
 				break;
 			case 3:
-				drawUI(startCountdown3, callback_ptr->xres / 2 - 176, callback_ptr->yres / 2 + 158, callback_ptr->xres / 2 + 176, callback_ptr->yres / 2 + 415, 1);
+				drawUI(startCountdown3, callback_ptrs[0]->xres / 2 - 176, callback_ptrs[0]->yres / 2 + 158, callback_ptrs[0]->xres / 2 + 176, callback_ptrs[0]->yres / 2 + 415, 1);
 				break;
 			case 2:
-				drawUI(startCountdown2, callback_ptr->xres / 2 - 176, callback_ptr->yres / 2 + 158, callback_ptr->xres / 2 + 176, callback_ptr->yres / 2 + 415, 1);
+				drawUI(startCountdown2, callback_ptrs[0]->xres / 2 - 176, callback_ptrs[0]->yres / 2 + 158, callback_ptrs[0]->xres / 2 + 176, callback_ptrs[0]->yres / 2 + 415, 1);
 				break;
 			case 1:
-				drawUI(startCountdown1, callback_ptr->xres / 2 - 176, callback_ptr->yres / 2 + 158, callback_ptr->xres / 2 + 176, callback_ptr->yres / 2 + 415, 1);
+				drawUI(startCountdown1, callback_ptrs[0]->xres / 2 - 176, callback_ptrs[0]->yres / 2 + 158, callback_ptrs[0]->xres / 2 + 176, callback_ptrs[0]->yres / 2 + 415, 1);
 				break;
 		}
 	}
@@ -499,7 +499,7 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> cbp, Gam
 	// Normal Gameplay Screen
 	else {
 		// Ayyylien
-		//drawUI(testTexture, callback_ptr->xres - 300.f, 30.f, callback_ptr->xres - 30.f, 300.f, 0);
+		//drawUI(testTexture, callback_ptrs[0]->xres - 300.f, 30.f, callback_ptrs[0]->xres - 30.f, 300.f, 0);
 
 		// Boost Meter
 		/*for (int i = 0; i < 10; i++) {
@@ -524,14 +524,14 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> cbp, Gam
 		// So lets set some bounds for the entire scaling factor
 		// Which will be our box
 		// We want it in the bottom left quadrant, ... so divide by 4?
-		int leewayX = callback_ptr->xres / 200;
-		int leewayY = callback_ptr->yres / 150;
+		int leewayX = callback_ptrs[0]->xres / 200;
+		int leewayY = callback_ptrs[0]->yres / 150;
 		
 		int ui_bmeter_count = 30;	// Total number of columns the meter has
-		int ui_bmeter_leftbound = (callback_ptr->xres / 15);
-		int ui_bmeter_rightbound = (callback_ptr->xres / 4);
-		int ui_bmeter_upbound = (callback_ptr->yres / 12);
-		int ui_bmeter_lowbound = (callback_ptr->yres / 20);
+		int ui_bmeter_leftbound = (callback_ptrs[0]->xres / 15);
+		int ui_bmeter_rightbound = (callback_ptrs[0]->xres / 4);
+		int ui_bmeter_upbound = (callback_ptrs[0]->yres / 12);
+		int ui_bmeter_lowbound = (callback_ptrs[0]->yres / 20);
 
 		int ui_pcount_upbound = (ui_bmeter_upbound - ui_bmeter_lowbound + 2 * leewayY) + ui_bmeter_upbound + 2 * leewayY;
 		int ui_pcount_lowbound = ui_bmeter_upbound + 2 * leewayY;
@@ -549,7 +549,7 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> cbp, Gam
 		
 		drawUI(ui_playercard[0],
 			ui_bmeter_leftbound / 5, ui_pcount_upbound + 2 * leewayY,
-			ui_bmeter_leftbound - 2 * leewayX, callback_ptr->yres / 4, 2);
+			ui_bmeter_leftbound - 2 * leewayX, callback_ptrs[0]->yres / 4, 2);
 
 		drawUI(boostBox,
 			ui_bmeter_leftbound - (leewayX * 2 / 3 ), ui_bmeter_lowbound - leewayY,
@@ -665,18 +665,18 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> cbp, Gam
 		string overtime = "Overtime: ";
 		string zero = "0";
 		vec3 timerColour = vec3(0.93f);
-		float timer_xoffset = callback_ptr->xres / 2.f - 10.f;
+		float timer_xoffset = callback_ptrs[0]->xres / 2.f - 10.f;
 
 		if (timerSeconds.size() < 2) {
 			timerSeconds.insert(0, zero);
 		}
 		if (timer->getCountdown() < 0) {
 			timerMins.insert(0, overtime);
-			timer_xoffset = callback_ptr->xres / 2.f - 100.f;
+			timer_xoffset = callback_ptrs[0]->xres / 2.f - 100.f;
 		}
 
-		//drawUI(timerAndScore, callback_ptr->xres / 2 - 172, callback_ptr->yres - 110, callback_ptr->xres / 2 + 172, callback_ptr->yres, 1);
-		drawUI(ui_timer_box, callback_ptr->xres / 2 - 120, callback_ptr->yres - 80, callback_ptr->xres / 2 + 120, callback_ptr->yres, 1);
+		//drawUI(timerAndScore, callback_ptrs[0]->xres / 2 - 172, callback_ptrs[0]->yres - 110, callback_ptrs[0]->xres / 2 + 172, callback_ptrs[0]->yres, 1);
+		drawUI(ui_timer_box, callback_ptrs[0]->xres / 2 - 120, callback_ptrs[0]->yres - 80, callback_ptrs[0]->xres / 2 + 120, callback_ptrs[0]->yres, 1);
 		
 		if (timer->getCountdownMins() <= 1) {
 			timerColour = vec3(0.93f, 0.0f, 0.0f);
@@ -685,7 +685,7 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> cbp, Gam
 		//	-Comment out below RenderText, take out the comment blocks and will revert to previous
 		RenderText(textShader, textVAO, textVBO, timerMins + ":" + timerSeconds,
 			timer_xoffset + 20,
-			callback_ptr->yres - 46.f, 
+			callback_ptrs[0]->yres - 46.f, 
 			0.6f,
 			timerColour,
 			textChars);
@@ -693,15 +693,15 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> cbp, Gam
 		/*
 		RenderText(textShader, textVAO, textVBO, timerMins + ":" + timerSeconds,
 			timer_xoffset - 115,
-			callback_ptr->yres - 80.f, 
+			callback_ptrs[0]->yres - 80.f, 
 			0.8f,
 			vec3(0.93f, 0.93f, 0.93f),
 			textChars); 
 		
 		string playerScoreText = to_string(gameState->findEntity("vehicle_0")->playerProperties->getScore());
 		RenderText(textShader, textVAO, textVBO, playerScoreText,
-			(callback_ptr->xres / 2 + 80) - (8 * (int)playerScoreText.size() - 1),
-			callback_ptr->yres - 80.f,
+			(callback_ptrs[0]->xres / 2 + 80) - (8 * (int)playerScoreText.size() - 1),
+			callback_ptrs[0]->yres - 80.f,
 			0.8f,
 			vec3(0.93, 0.93f, 0.93f),
 			textChars);
@@ -730,8 +730,8 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> cbp, Gam
 			string scoreText = "Salvager #" + to_string(scoreboard[i].second) + ": " + to_string(scoreboard[i].first);
 
 			RenderText(textShader, textVAO, textVBO, scoreText,
-				callback_ptr->xres - (16 * (int)scoreText.size()),
-				callback_ptr->yres - 100.f - (i * 50.f),
+				callback_ptrs[0]->xres - (16 * (int)scoreText.size()),
+				callback_ptrs[0]->yres - 100.f - (i * 50.f),
 				0.6f,
 				vec3(0.2, 0.2f, 0.2f),
 				textChars);
@@ -739,19 +739,19 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> cbp, Gam
 		*/
 
 
-		int ui_scoreboard_leftbound = (callback_ptr->xres * 17 / 18);
-		int ui_scoreboard_rightbound = (callback_ptr->xres * 59 / 60);
-		int ui_scoreboard_upbound = (callback_ptr->yres * 19 / 20);
+		int ui_scoreboard_leftbound = (callback_ptrs[0]->xres * 17 / 18);
+		int ui_scoreboard_rightbound = (callback_ptrs[0]->xres * 59 / 60);
+		int ui_scoreboard_upbound = (callback_ptrs[0]->yres * 19 / 20);
 
-		int ui_scoreboard_row_increment = (callback_ptr->yres / 40);
-		int ui_scoreboard_column_incremenent = (callback_ptr->xres / 80);
+		int ui_scoreboard_row_increment = (callback_ptrs[0]->yres / 40);
+		int ui_scoreboard_column_incremenent = (callback_ptrs[0]->xres / 80);
 
 		float j = 0.0f;
 
 		RenderText(textShader, textVAO, textVBO, "Score: ",
 			ui_scoreboard_leftbound - ui_scoreboard_column_incremenent,
 			ui_scoreboard_upbound + leewayY,
-			callback_ptr->yres * 0.6 / 1080.0f,
+			callback_ptrs[0]->yres * 0.6 / 1080.0f,
 			vec3(0.2f),
 			textChars);
 
@@ -777,7 +777,7 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> cbp, Gam
 					//ui_scoreboard_leftbound + ui_scoreboard_column_incremenent * 1.25f,
 					ui_scoreboard_leftbound,
 					ui_scoreboard_upbound - ui_scoreboard_row_increment * (j + 1.25f) + 0.75f * leewayY,
-					callback_ptr->yres * 0.75 / 1080.0f,
+					callback_ptrs[0]->yres * 0.75 / 1080.0f,
 					vec3(0.93f),
 					textChars);
 
@@ -803,7 +803,7 @@ void RenderingSystem::updateRenderer(std::shared_ptr<CallbackInterface> cbp, Gam
 					//ui_scoreboard_leftbound + ui_scoreboard_column_incremenent,
 					ui_scoreboard_leftbound,
 					ui_scoreboard_upbound - ui_scoreboard_row_increment * (j + 1) + 0.5f * leewayY,
-					callback_ptr->yres * 0.6 / 1080.0f,
+					callback_ptrs[0]->yres * 0.6 / 1080.0f,
 					vec3(0.93f),
 					textChars);
 
@@ -942,10 +942,10 @@ void RenderingSystem::bindTexture(int location, unsigned int texture) {
 
 void RenderingSystem::drawUI(unsigned int texture, float x0, float y0, float x1, float y1, int l, int pl) {
 	float layer = 0.05f + ((float)l / 10.f);
-	x0 /= callback_ptr->xres; x0 *= 2.f; x0 -= 1.f;
-	y0 /= callback_ptr->yres; y0 *= 2.f; y0 -= 1.f;
-	x1 /= callback_ptr->xres; x1 *= 2.f; x1 -= 1.f;
-	y1 /= callback_ptr->yres; y1 *= 2.f; y1 -= 1.f;
+	x0 /= callback_ptrs[0]->xres; x0 *= 2.f; x0 -= 1.f;
+	y0 /= callback_ptrs[0]->yres; y0 *= 2.f; y0 -= 1.f;
+	x1 /= callback_ptrs[0]->xres; x1 *= 2.f; x1 -= 1.f;
+	y1 /= callback_ptrs[0]->yres; y1 *= 2.f; y1 -= 1.f;
 	celMap[pl].debugShader.use();
 	celMap[pl].debugShader.setBool("UI", true);
 	bindTexture(1, texture);
