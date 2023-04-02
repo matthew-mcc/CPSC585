@@ -247,7 +247,7 @@ void RenderingSystem::updateRenderer(vector<std::shared_ptr<CallbackInterface>> 
 		playerCameras.push_back(Camera(playerEntities[i]));
 	}
 	for (int i = 0; i < numPlayers; i++) {
-		playerCameras[i].updateCamera((float)timer->getDeltaTime(), callback_ptrs[i]);
+		playerCameras[i].updateCamera((float)timer->getDeltaTime(), callback_ptrs[i], gameState->numPlayers);
 	}
 
 
@@ -259,6 +259,7 @@ void RenderingSystem::updateRenderer(vector<std::shared_ptr<CallbackInterface>> 
 
 	vec2 targetRes;
 	if (numPlayers == 1) targetRes = vec2(callback_ptrs[0]->xres, callback_ptrs[0]->yres);
+	else if (numPlayers == 2) targetRes = vec2(callback_ptrs[0]->xres, callback_ptrs[0]->yres / 2.f);
 	else targetRes = vec2(callback_ptrs[0]->xres / 2.f, callback_ptrs[0]->yres / 2.f);
 
 	gameState->listener_position = playerCameras[0].camera_previous_position;
@@ -442,6 +443,7 @@ void RenderingSystem::updateRenderer(vector<std::shared_ptr<CallbackInterface>> 
 		celMap[pl].debugShader.setFloat("outlineTransparency", outlineTransparency);
 		celMap[pl].debugShader.setFloat("outlineBlur", outlineBlur);
 		if (numPlayers == 1) celMap[pl].renderToScreen(intermediateBuffer[pl].fbTextures[0], 0.99f, 0);
+		else if (numPlayers == 2) celMap[pl].renderToScreen(intermediateBuffer[pl].fbTextures[0], 0.99f, pl+5);
 		else celMap[pl].renderToScreen(intermediateBuffer[pl].fbTextures[0], 0.99f, pl+1);
 		//blurMap.renderToScreen();
 		//outlineMap.renderToScreen();

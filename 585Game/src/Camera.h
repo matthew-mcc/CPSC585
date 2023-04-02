@@ -10,7 +10,7 @@ class Camera {
 public:
 	Camera();
 	Camera(Entity* p);
-	void updateCamera(float dt, shared_ptr<CallbackInterface> cptr);
+	void updateCamera(float dt, shared_ptr<CallbackInterface> cptr, int numPlayers);
 
 	mat4 view = mat4(1.0f);
 	mat4 projection = mat4(1.0f);

@@ -9,7 +9,7 @@ Camera::Camera(Entity* p) {
 	player = p;
 }
 
-void Camera::updateCamera(float dt, shared_ptr<CallbackInterface> cptr) {
+void Camera::updateCamera(float dt, shared_ptr<CallbackInterface> cptr, int numPlayers) {
 	player_forward = player->transform->getForwardVector();
 	player_right = player->transform->getRightVector();
 	player_up = player->transform->getUpVector();
@@ -68,14 +68,14 @@ void Camera::updateCamera(float dt, shared_ptr<CallbackInterface> cptr) {
 		if (fov < fov_boost) {
 			fov = fov + ((fov_boost - fov) / fov_boost) * fov_change_speed * dt;
 		}
-		projection = perspective(radians(fov), (float)cptr->xres / (float)cptr->yres, 0.1f, 10000.0f);
 	}
 	else {
 		if (fov > fov_rest) {
 			fov = fov - ((fov - fov_rest) / fov) * (fov_change_speed / 2.f) * dt;
 		}
-		projection = perspective(radians(fov), (float)cptr->xres / (float)cptr->yres, 0.1f, 10000.0f);
 	}
+	if (numPlayers == 2) projection = perspective(radians(fov), (float)cptr->xres / ((float)cptr->yres / 2.f), 0.1f, 10000.0f);
+	else projection = perspective(radians(fov), (float)cptr->xres / (float)cptr->yres, 0.1f, 10000.0f);
 }
 
 void Camera::resetValue(float& target, float range, float desireValue, float speed, float step) {

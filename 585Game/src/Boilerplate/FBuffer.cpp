@@ -236,6 +236,8 @@ void FBuffer::renderQuad(unsigned int texture, float layer, int quad) {
 	else if (quad == 2) renderQuad(texture, layer, 0.0, 1.0, 1.0, 0.0);
 	else if (quad == 3) renderQuad(texture, layer, -1.0, 0.0, 0.0, -1.0);
 	else if (quad == 4) renderQuad(texture, layer, 0.0, 0.0, 1.0, -1.0);
+	else if (quad == 5) renderQuad(texture, layer, -1.0, 1.0, 1.0, 0.0);
+	else if (quad == 6) renderQuad(texture, layer, -1.0, 0.0, 1.0, -1.0);
 }
 
 void FBuffer::renderQuad(unsigned int texture, float layer, float x0, float y0, float x1, float y1) {
