@@ -35,7 +35,7 @@ public:
 
 	// Game Parameters
 	int numPlayers = 1;
-	int numVehicles = 6;
+	int numVehicles = 3;
 	int numTrailers = 30;
 
 	// Audio 

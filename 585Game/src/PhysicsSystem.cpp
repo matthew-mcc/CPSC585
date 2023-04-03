@@ -742,9 +742,9 @@ void PhysicsSystem::initVehicles(int vehicleCount) {
 
 
 	// Init AI Vehicle Personality
-	vehicles.at(1)->AI_Personality = "Defensive";
+	/*vehicles.at(1)->AI_Personality = "Defensive";
 	vehicles.at(2)->AI_Personality = "Aggressive";
-	vehicles.at(3)->AI_Personality = "Aggressive";
+	vehicles.at(3)->AI_Personality = "Aggressive";*/
 	
 }
 
@@ -1140,6 +1140,13 @@ void PhysicsSystem::AI_StateController(Vehicle* vehicle, PxReal timestep) {
 	//cout << vehicles.at(1)->vehicle.mEngineDriveState.gearboxState.currentGear << endl;
 	AI_Stuck(vehicle);
 
+	
+	if (!vehicle->AI_IsBoosting) {
+		if (vehicle->AI_BoostMeter < 100) {
+			vehicle->AI_BoostMeter += timer->getDeltaTime() * 15.f;
+		}
+	}
+
 	if (vehicle->AI_IsStuck) {
 		/*vehicle->vehicle.mEngineDriveState.gearboxState.targetGear = 0;
 		vehicle->vehicle.mEngineDriveState.gearboxState.currentGear = 0;
@@ -1317,10 +1324,32 @@ void PhysicsSystem::AI_MoveTo(Vehicle* vehicle, PxVec3 destination) {
 
 		PxReal distanceSq = delta.x * delta.x + delta.z * delta.z;
 
-		if (distanceSq < 9000 && sqrt(dot * dot) > 0.95f) {
+
+		// If player comes up behind them while they dropping off
+		PxVec3 delta_player = vehicles.at(0)->vehicle.mPhysXState.physxActor.rigidBody->getGlobalPose().p - vehicle->vehicle.mPhysXState.physxActor.rigidBody->getGlobalPose().p;
+		PxReal distanceSq_player = delta_player.x * delta_player.x + delta_player.z * delta_player.z;
+		PxVec3 objectDirection = (vehicles.at(0)->vehicle.mPhysXState.physxActor.rigidBody->getGlobalPose().p - vehicle->vehicle.mPhysXState.physxActor.rigidBody->getGlobalPose().p).getNormalized();
+		PxReal dotProduct = objectDirection.dot(vehicle->vehicle.mPhysXState.physxActor.rigidBody->getGlobalPose().q.rotate(PxVec3(1, 0, 0)));
+
+		PxReal dotProductFront = delta_player.dot(vehicle->vehicle.mPhysXState.physxActor.rigidBody->getGlobalPose().q.rotate(PxVec3(0, 0, 1)));
+
+
+		if (distanceSq < 11000 && sqrt(dot * dot) > 0.95f) {
 			//cout << "boost tech" << endl;
 			AI_ApplyBoost(vehicle);
 		}
+		
+		else if (distanceSq_player < 1000.f) {
+			if (dotProductFront <= 0) {
+				AI_ApplyBoost(vehicle);
+
+			}
+		}
+
+		
+
+
+
 		else {
 			vehicle->aiBoost = 0.0f;
 		}
@@ -1345,9 +1374,9 @@ void PhysicsSystem::AI_FindTrailer(Vehicle* vehicle) {
 	Timer* timer = &Timer::Instance();
 	PxReal closestDistanceSq = PX_MAX_REAL;
 	vehicle->AI_IsBoosting = false;
-	if (!vehicle->AI_IsBoosting && !vehicle->AI_BoostMeter > 100.f) {
-		vehicle->AI_BoostMeter += 20.f * timer->getDeltaTime();
-	}
+	/*if (!vehicle->AI_IsBoosting && !vehicle->AI_BoostMeter > 100.f) {
+		vehicle->AI_BoostMeter += 25.f * timer->getDeltaTime();
+	}*/
 	
 	for (int i = 0; i < trailers.size(); i++) {
 
@@ -1436,6 +1465,9 @@ void PhysicsSystem::AI_CollectTrailer(Vehicle* vehicle, PxReal timestep) {
 		AI_DefensiveManeuvers(vehicle, vehicles.at(0), timestep);
 	}
 
+
+
+
 	
 	// Calculating Attack Patterns
 	PxVec3 delta = vehicles.at(0)->vehicle.mPhysXState.physxActor.rigidBody->getGlobalPose().p - vehicle->vehicle.mPhysXState.physxActor.rigidBody->getGlobalPose().p;
@@ -1455,6 +1487,9 @@ void PhysicsSystem::AI_CollectTrailer(Vehicle* vehicle, PxReal timestep) {
 			cout << "Defensive bot dropping off!" << endl;
 		}
 	}
+
+	
+
 	else {
 		if(vehicle->attachedTrailers.size() > 4){
 			vehicle->AI_State = 1;
@@ -1555,8 +1590,12 @@ void PhysicsSystem::AI_DetermineAttackPatterns(Vehicle* vehicle, Vehicle* target
 	float attackDistanceModifier = 0;
 	float attackAngleModifier = 0.f;
 	if (vehicle->AI_Personality == "Aggressive") {
-		attackDistanceModifier = 2000.f;
+		attackDistanceModifier = 3000.f;
 		attackAngleModifier = -0.5f;
+	}
+	if (vehicle->AI_Personality == "Default") {
+		attackDistanceModifier = 1500.f;
+		attackAngleModifier = -0.3f;
 	}
 
 	if (dotProductPlayer > 0 + attackAngleModifier && vehicle->AI_Personality!="Defensive") {
@@ -1565,6 +1604,9 @@ void PhysicsSystem::AI_DetermineAttackPatterns(Vehicle* vehicle, Vehicle* target
 			//cout << "ATTACK!" << endl;
 
 		}
+		
+	
+	
 	}
 }
 
