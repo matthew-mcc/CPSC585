@@ -1,0 +1,13 @@
+# Blender 3.1.0 MTL File: 'Props.blend'
+# www.blender.org
+
+newmtl platform1_2
+Ns 59.358681
+Ka 1.000000 1.000000 1.000000
+Kd 0.434154 0.219526 0.043735
+Ks 0.522727 0.522727 0.522727
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+map_Kd  platform1_2_diffuse.png

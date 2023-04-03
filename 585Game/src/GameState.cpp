@@ -49,7 +49,10 @@ void GameState::initGameState() {
 
 	// Center Platform
 	e = addEntity("platform_center", PhysType::None, DrawType::Mesh, new Transform(), vector<string>{
-		"assets/models/platform1/platform1.obj"});
+		"assets/models/platform1/platform1_1.obj",
+		"assets/models/platform1/platform1_2.obj"});
+	e = addEntity("platform_collision", PhysType::StaticMesh, DrawType::Invisible, new Transform(), vector<string>{
+		"assets/models/platform1/platform1_collision.obj"});
 
 	// Portal Effect
 	//e = addEntity("effect_portal", PhysType::None, DrawType::Decal, new Transform(), vector<string>{
