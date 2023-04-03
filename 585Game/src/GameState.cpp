@@ -31,8 +31,8 @@ void GameState::initGameState() {
 		"assets/models/rock_net1/rock_net2.obj"});
 
 	// Sky Sphere
-	//e = addEntity("sky_sphere", PhysType::None, DrawType::Decal, new Transform(), vector<string>{
-		//"assets/models/sky_sphere1/sky_sphere1.obj"});
+	e = addEntity("sky_sphere", PhysType::None, DrawType::Decal, new Transform(), vector<string>{
+		"assets/models/sky_sphere1/sky_sphere1.obj"});
 
 	// Map Border (Invisible Wall)
 	e = addEntity("map_border", PhysType::StaticMesh, DrawType::Invisible, new Transform(), vector<string>{

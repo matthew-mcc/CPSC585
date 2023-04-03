@@ -137,7 +137,7 @@ private:
 	vec3 fogColor = vec3(1.f, 0.728f, 0.681f);
 	float fogDepth = 0.00125f;
 
-	float outlineSensitivity = 20.f;
+	float outlineSensitivity = 22.f;
 	float outlineTransparency = 0.5f;
 	float outlineBlur = 0.1f;
 

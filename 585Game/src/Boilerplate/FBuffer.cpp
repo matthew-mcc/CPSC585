@@ -287,7 +287,7 @@ void FBuffer::render(GameState* gameState, std::string mode, vec3 lightPos, vec2
 			//if (gameState->entityList.at(i).name.compare("sky_sphere") == 0) continue;
 			if (gameState->entityList.at(i).drawType == DrawType::Invisible) continue;
 			if (gameState->entityList.at(i).drawType == DrawType::Decal && mode.compare("c") != 0) continue;
-			if (mode.compare("l") == 0 && gameState->entityList.at(i).name.compare("landscape") == 0) continue;
+			if (mode.compare("l") == 0 && (gameState->entityList.at(i).name.compare("landscape") == 0 || gameState->entityList.at(i).name.compare("sky_sphere") == 0)) continue;
 			if (mode.compare("s") == 0 && fbo == 1 && (gameState->entityList.at(i).name.compare("landscape") == 0 || gameState->entityList.at(i).name.compare("landscape_background") == 0 || gameState->entityList.at(i).name.compare("oil_rigs") == 0)) continue;
 
 			vec3 position = gameState->entityList.at(i).transform->getPosition();
@@ -326,7 +326,10 @@ void FBuffer::render(GameState* gameState, std::string mode, vec3 lightPos, vec2
 				}
 
 				// Draw model's meshes
+				if (mode.compare("c") == 0 && gameState->entityList.at(i).name.compare("sky_sphere") == 0) shader.setBool("doFog", false);
+				else shader.setBool("doFog", true);
 				gameState->entityList.at(i).model->meshes.at(j).Draw(shader);
+				shader.setBool("doFog", true);
 			}
 		}
 		glCullFace(GL_BACK);

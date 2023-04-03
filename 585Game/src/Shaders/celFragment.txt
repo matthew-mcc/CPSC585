@@ -22,6 +22,7 @@ uniform sampler2D outlineMap;
 uniform sampler2D outlineMapNoLandscape;
 
 uniform bool renderingLand;
+uniform bool doFog;
 
 uniform vec3 lightColor;
 uniform vec3 shadowColor;
@@ -51,6 +52,7 @@ vec3 WorldPos(float depthPos, vec2 TexCoord) {
 }
 
 float ShadowCalculation(vec4 nearFragPosLightSpace, vec4 farFragPosLightSpace) {
+    if (!doFog) return 0.0;
     bool inShadowOfLand = true;
 
     float shadow = 0.0;
@@ -99,6 +101,7 @@ float ShadowCalculation(vec4 nearFragPosLightSpace, vec4 farFragPosLightSpace) {
 }
 
 vec3 LightCalculation(float shadow) {
+    if (!doFog) return vec3(1.0, 1.0, 1.0);
     bool complexShadows = renderingLand;
     if (shadow < 0.0) {
         shadow *= -1.0;
@@ -149,9 +152,9 @@ vec3 LightCalculation(float shadow) {
 void main(){
     float shadow = ShadowCalculation(NearFragPosLightSpace, FarFragPosLightSpace);      // Calculate if point is in shadow
     vec3 light = LightCalculation(shadow);                                              // Calculate light color
-
+    
     FragColor = vec4(texture(texture_diffuse1, TexCoords).xyz * light, texture(texture_diffuse1, TexCoords).a);
-    FragColor = vec4((1.0-depth)*FragColor.xyz + (depth)*fogColor, FragColor.a);
+    if (doFog) FragColor = vec4((1.0-depth)*FragColor.xyz + (depth)*fogColor, FragColor.a);
 
     if (length(FragColor.xyz) > length(vec3(0.8, 0.8, 0.8))) BrightColor = vec4(FragColor.xyz / 3.0, FragColor.a);
     else BrightColor = vec4(0.0, 0.0, 0.0, 1.0);
