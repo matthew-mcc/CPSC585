@@ -140,6 +140,7 @@ private:
 	float outlineSensitivity = 22.f;
 	float outlineTransparency = 0.5f;
 	float outlineBlur = 0.1f;
+	float skyBloom = 1.f;
 
 	// Text
 	map<char, Character> textChars;

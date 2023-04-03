@@ -23,6 +23,7 @@ uniform sampler2D outlineMapNoLandscape;
 
 uniform bool renderingLand;
 uniform bool doFog;
+uniform float skyBloom;
 
 uniform vec3 lightColor;
 uniform vec3 shadowColor;
@@ -158,4 +159,6 @@ void main(){
 
     if (length(FragColor.xyz) > length(vec3(0.8, 0.8, 0.8))) BrightColor = vec4(FragColor.xyz / 3.0, FragColor.a);
     else BrightColor = vec4(0.0, 0.0, 0.0, 1.0);
+
+    if (!doFog) BrightColor = vec4(FragColor.xyz / skyBloom, FragColor.a);
 }

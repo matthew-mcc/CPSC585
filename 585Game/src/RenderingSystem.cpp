@@ -909,6 +909,7 @@ void RenderingSystem::updateRenderer(vector<std::shared_ptr<CallbackInterface>> 
 	ImGui::SliderFloat("Outline Transparency", &outlineTransparency, 0.f, 1.f);
 	ImGui::SliderFloat("Outline Sensitivity", &outlineSensitivity, 0.f, 50.f);
 	ImGui::SliderFloat("Outline Blur", &outlineBlur, 0.f, 1.f);
+	ImGui::SliderFloat("Sky Bloom", &skyBloom, 1.f, 5.f);
 	ImGui::SliderFloat("Min bias", &minBias, 0.0f, 0.5f);
 	ImGui::SliderFloat("Max bias", &maxBias, 0.0f, 0.5f);
 
@@ -985,6 +986,7 @@ void RenderingSystem::setCelShaderUniforms(Shader* shader, int pl) {
 	(*shader).setFloat("maxBias", maxBias);
 	(*shader).setFloat("outlineTransparency", outlineTransparency);
 	(*shader).setFloat("outlineSensitivity", outlineSensitivity);
+	(*shader).setFloat("skyBloom", skyBloom);
 }
 
 void RenderingSystem::bindTexture(int location, unsigned int texture) {
