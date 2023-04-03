@@ -554,15 +554,18 @@ void RenderingSystem::updateRenderer(vector<std::shared_ptr<CallbackInterface>> 
 			}
 		}*/
 
+		// UI SCALE
+		if (gameState->numPlayers == 1) uiScale = 1.0f;
+		if (gameState->numPlayers == 2) uiScale = 0.85f;
+		if (gameState->numPlayers >= 3) uiScale = 0.6f;
+
 		int leewayX = targetRes.x / 200;
 		int leewayY = targetRes.y / 120;
 		for (int player = 0; player < gameState->numPlayers; player++) {
 			int xOffset = 0;
 			int yOffset = 0;
-			float xScale = 1.f;
 			if (gameState->numPlayers == 2) {
 				if (player == 0) yOffset = targetRes.y;
-				xScale = 2.f;
 			}
 			else if (gameState->numPlayers > 2) {
 				if (player == 0) yOffset = targetRes.y;
@@ -587,54 +590,50 @@ void RenderingSystem::updateRenderer(vector<std::shared_ptr<CallbackInterface>> 
 			int ui_bmeter_increment = (ui_bmeter_rightbound - ui_bmeter_leftbound) / 30.0f;
 			int ui_pcount_increment = (ui_bmeter_rightbound - ui_bmeter_leftbound) / 10.0f;
 
+			int margin_left = 30;
+			int margin_right = 30;
+			int margin_top = 30;
+			int margin_bottom = 30;
+
+			int pod_counter_height = 70;
+			int player_card_height = 140;
+
 			drawUI(boostText,
-				(ui_bmeter_leftbound - xOffset) / 5 + xOffset, ui_bmeter_lowbound - leewayY,
-				ui_bmeter_leftbound - 2 * leewayX, ui_bmeter_upbound + leewayY, 2);
+				margin_left + xOffset, margin_bottom + yOffset,
+				margin_left + xOffset + (90 * uiScale), margin_bottom + yOffset + (60 * uiScale), 2);
 
 			drawUI(podsText,
-				(ui_bmeter_leftbound - xOffset) / 5 + xOffset, ui_pcount_lowbound,
-				ui_bmeter_leftbound - 2 * leewayX, ui_pcount_upbound, 2);
+				margin_left + xOffset, margin_bottom + yOffset + (pod_counter_height) * uiScale,
+				margin_left + xOffset + (90 * uiScale), margin_bottom + yOffset + (60 + pod_counter_height) * uiScale, 2);
 
 			int test = player;
 			if (test > 1) test = 1;
 			drawUI(ui_playercard[test],
-				(ui_bmeter_leftbound - xOffset) / 5 + xOffset, ui_pcount_upbound + 2 * leewayY,
-				ui_bmeter_leftbound - 2 * leewayX, targetRes.y / 4 + yOffset, 2);
+				margin_left + xOffset, margin_bottom + yOffset + (player_card_height) * uiScale,
+				margin_left + xOffset + (60 * uiScale), margin_bottom + yOffset + (80 + player_card_height) * uiScale, 2);
 
 			drawUI(boostBox,
-				ui_bmeter_leftbound - (leewayX * 2 / 3), ui_bmeter_lowbound - leewayY,
-				ui_bmeter_leftbound + ui_bmeter_increment * ui_bmeter_count + (leewayX * 2 / 3), ui_bmeter_upbound + leewayY, 2);
+				margin_left + xOffset + (100 * uiScale), margin_bottom + yOffset,
+				margin_left + xOffset + (540 * uiScale), margin_bottom + yOffset + (60 * uiScale), 2);
+			
 
 			// Drawing Boost Meter
 			for (int i = 0; i < ui_bmeter_count; i++) {
 				int boost_meter = (int)gameState->findEntity("vehicle_" + to_string(player))->playerProperties->boost_meter;
-				int offset = ui_bmeter_increment * i;
-
-				// Normalizing values
 				float onMeter = (float)i / (float)ui_bmeter_count;
 				float actualMeter = (float)boost_meter / 100.0f;
-				//int boostoffset = 10 * i;
 
 				if (actualMeter > onMeter) {
-					drawUI(boostOn, ui_bmeter_leftbound + offset, ui_bmeter_lowbound, ui_bmeter_leftbound + ui_bmeter_increment + offset, ui_bmeter_upbound, 1);
+					drawUI(boostOn, 
+						margin_left + xOffset + (110 + (i * 14)) * uiScale, margin_bottom + yOffset + (10 * uiScale),
+						margin_left + xOffset + (124 + (i * 14)) * uiScale, margin_bottom + yOffset + (50 * uiScale), 1);
 				}
 				else {
-					drawUI(boostOff, ui_bmeter_leftbound + offset, ui_bmeter_lowbound, ui_bmeter_leftbound + ui_bmeter_increment + offset, ui_bmeter_upbound, 1);
+					drawUI(boostOff, 
+						margin_left + xOffset + (110 + (i * 14)) * uiScale, margin_bottom + yOffset + (10 * uiScale),
+						margin_left + xOffset + (124 + (i * 14)) * uiScale, margin_bottom + yOffset + (50 * uiScale), 1);
 				}
 			}
-
-			/*
-			for (int i = 0; i < nbTrailers; i++) {
-				if (vehicle->attachedTrailers.at(i)->isStolen) {
-					vehicle->attachedTrailers.at(i)->isStolen = false;
-					nbStolenTrailers++;
-				}
-				vehicle->attachedTrailers.at(i)->isFlying = true;
-				vehicle->attachedTrailers.at(i)->isTowed = false;
-				changeRigidDynamicShape(vehicle->attachedTrailers.at(i)->rigidBody, detachedTrailerShape);
-				vehicle->attachedJoints.at(i)->release();
-			}*/
-
 
 			int stolenIndex = -1;
 			int stolenIndexIndex = 0;
@@ -659,55 +658,63 @@ void RenderingSystem::updateRenderer(vector<std::shared_ptr<CallbackInterface>> 
 
 						// Deciding on stolen or not
 						if (i == stolenIndex) {
-							drawUI(podcounterOn, ui_bmeter_leftbound + offset, ui_pcount_halfbound, ui_bmeter_leftbound + ui_pcount_increment + offset - leewayX, ui_pcount_upbound, 1);
+							drawUI(podcounterOn, 
+								margin_left + xOffset + (100 + (i * 20)) * uiScale, margin_bottom + yOffset + (30 + pod_counter_height) * uiScale,
+								margin_left + xOffset + (130 + (i * 20)) * uiScale, margin_bottom + yOffset + (60 + pod_counter_height) * uiScale, 2);
 
 							// Checking if there is a next stolen pod
 							if (gameState->findEntity("vehicle_" + to_string(player))->playerProperties->stolenTrailerIndices.size() > stolenIndexIndex) {
-
 								stolenIndex = gameState->findEntity("vehicle_" + to_string(player))->playerProperties->stolenTrailerIndices[stolenIndexIndex];
 								stolenIndexIndex++;
 							}
 						}
 
 						else
-							drawUI(podcounterPickup, ui_bmeter_leftbound + offset, ui_pcount_halfbound, ui_bmeter_leftbound + ui_pcount_increment + offset - leewayX, ui_pcount_upbound, 1);
+							drawUI(podcounterPickup, 
+								margin_left + xOffset + (100 + (i * 20)) * uiScale, margin_bottom + yOffset + (30 + pod_counter_height) * uiScale,
+								margin_left + xOffset + (130 + (i * 20)) * uiScale, margin_bottom + yOffset + (60 + pod_counter_height) * uiScale, 2);
 					}
 
 					// Drawing on bottom row
 					else {
 						if (i == stolenIndex) {
-							drawUI(podcounterOn, ui_bmeter_leftbound + offset, ui_pcount_lowbound, ui_bmeter_leftbound + ui_pcount_increment + offset - leewayX, ui_pcount_halfbound, 1);
+							drawUI(podcounterOn, 
+								margin_left + xOffset + (100 + (i * 20)) * uiScale, margin_bottom + yOffset + (pod_counter_height) * uiScale,
+								margin_left + xOffset + (130 + (i * 20)) * uiScale, margin_bottom + yOffset + (30 + pod_counter_height) * uiScale, 2);
 
 							if (gameState->findEntity("vehicle_" + to_string(player))->playerProperties->stolenTrailerIndices.size() > stolenIndexIndex) {
-
 								stolenIndex = gameState->findEntity("vehicle_" + to_string(player))->playerProperties->stolenTrailerIndices[stolenIndexIndex];
 								stolenIndexIndex++;
 							}
 						}
 						else
-							drawUI(podcounterPickup, ui_bmeter_leftbound + offset, ui_pcount_lowbound, ui_bmeter_leftbound + ui_pcount_increment + offset - leewayX, ui_pcount_halfbound, 1);
+							drawUI(podcounterPickup, 
+								margin_left + xOffset + (100 + (i * 20)) * uiScale, margin_bottom + yOffset + (pod_counter_height) * uiScale,
+								margin_left + xOffset + (130 + (i * 20)) * uiScale, margin_bottom + yOffset + (30 + pod_counter_height) * uiScale, 2);
 					}
 				}
 
 				// Drawing off cargo pods
 				else {
 					if (i % 2 == 0)
-						drawUI(podcounterOff, ui_bmeter_leftbound + offset, ui_pcount_halfbound, ui_bmeter_leftbound + ui_pcount_increment + offset - leewayX, ui_pcount_upbound, 1);
+						drawUI(podcounterOff, 
+							margin_left + xOffset + (100 + (i * 20)) * uiScale, margin_bottom + yOffset + (30 + pod_counter_height) * uiScale,
+							margin_left + xOffset + (130 + (i * 20)) * uiScale, margin_bottom + yOffset + (60 + pod_counter_height) * uiScale, 2);
 					else
-						drawUI(podcounterOff, ui_bmeter_leftbound + offset, ui_pcount_lowbound, ui_bmeter_leftbound + ui_pcount_increment + offset - leewayX, ui_pcount_halfbound, 1);
+						drawUI(podcounterOff, 
+							margin_left + xOffset + (100 + (i * 20)) * uiScale, margin_bottom + yOffset + (pod_counter_height) * uiScale,
+							margin_left + xOffset + (130 + (i * 20)) * uiScale, margin_bottom + yOffset + (30 + pod_counter_height) * uiScale, 2);
 				}
 			}
 
 			// Extra score text
 			string morescore;
 			int bonus_score = gameState->calculatePoints(0, gameState->findEntity("vehicle_" + to_string(player))->nbChildEntities, gameState->findEntity("vehicle_" + to_string(player))->playerProperties->stolenTrailerIndices.size());
-			morescore = "Cargo Value: " + to_string(bonus_score);
-			float textScale = 0.8f;
-			if (gameState->numPlayers > 2) textScale /= 2.f;
+			morescore = "+" + to_string(bonus_score);
 			RenderText(textShader, textVAO, textVBO, morescore,
-				ui_bmeter_leftbound - leewayX,
-				ui_pcount_upbound + 2 * leewayY,
-				textScale,
+				margin_left + xOffset + (480 * uiScale),
+				margin_bottom + yOffset + (pod_counter_height + 15) * uiScale,
+				0.8f * uiScale,
 				vec3(0.93, 0.93f, 0.93f),
 				textChars);
 
@@ -728,7 +735,9 @@ void RenderingSystem::updateRenderer(vector<std::shared_ptr<CallbackInterface>> 
 			}
 
 			//drawUI(timerAndScore, targetRes.x / 2 - 172, targetRes.y - 110, targetRes.x / 2 + 172, targetRes.y, 1);
-			drawUI(ui_timer_box, targetRes.x / 2 - 130 + xOffset, targetRes.y - 75 + yOffset, targetRes.x / 2 + 130 + xOffset, targetRes.y + yOffset, 1);
+			drawUI(ui_timer_box, 
+				targetRes.x / 2 + xOffset - (130 * uiScale), targetRes.y + yOffset - (75 * uiScale), 
+				targetRes.x / 2 + (130 * uiScale) + xOffset, targetRes.y + yOffset, 1);
 
 			if (timer->getCountdownMins() <= 1) {
 				timerColour = vec3(0.93f, 0.0f, 0.0f);
@@ -736,9 +745,9 @@ void RenderingSystem::updateRenderer(vector<std::shared_ptr<CallbackInterface>> 
 			// @ Peter - changed up your timer to not display score
 			//	-Comment out below RenderText, take out the comment blocks and will revert to previous
 			RenderText(textShader, textVAO, textVBO, timerMins + ":" + timerSeconds,
-				timer_xoffset + 20 + xOffset,
-				targetRes.y - 46.f + yOffset,
-				0.6f,
+				targetRes.x / 2.f + xOffset + (10 * uiScale),
+				targetRes.y + yOffset - (46.f * uiScale),
+				0.6f * uiScale,
 				timerColour,
 				textChars);
 
