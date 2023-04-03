@@ -116,14 +116,14 @@ void RenderingSystem::initRenderer() {
 	particleShader.use();
 	particleShader.setInt("sprite", 1);
 	portalParticles = ParticleSystem(particleShader, orbTexture, 500, 4.0f, 0.2f, portalColor, "p");
-
-	for (int i = 0; i < 6; i++) {
+	
+	for (int i = 0; i < gameState->numVehicles; i++) {
 		indicators.push_back(ParticleSystem(particleShader, ui_player_tracker[i], 1, 300.f, 0.f, vec3(1.f), "i"));
 		indicatorCounters.push_back(ParticleSystem(particleShader, ui_player_tracker[i], 1, 300.f, 0.1f, vec3(1.f), "i"));
 	}
-
+	
 	// FRAME BUFFER INITIALIZATIONS
-
+	
 	// WORLD SHADER INITIALIZATION
 	stbi_set_flip_vertically_on_load(true);
 	celShader = Shader("src/Shaders/celVertex.txt", "src/Shaders/celFragment.txt");
