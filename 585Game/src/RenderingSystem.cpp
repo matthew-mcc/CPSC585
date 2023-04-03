@@ -69,8 +69,8 @@ void RenderingSystem::initRenderer() {
 	podcounterPickup = generateTexture("assets/textures/UI/podcounterPickup.png", false);
 	podsText = generateTexture("assets/textures/UI/podsText.png", false);
 
-	scoreBar = generateTexture("assets/textures/UI/boostBox.png", false);
-	scoreBarDark = generateTexture("assets/textures/UI/bar.png", false);
+	scoreBar = generateTexture("assets/textures/UI/bar.png", false);
+	scoreBarDark = generateTexture("assets/textures/UI/barDark.png", false);
 
 	menuBackground = generateTexture("assets/textures/UI/menuBackground.png", false);
 	menuTitle = generateTexture("assets/textures/UI/menuTitle.png", false);
@@ -97,10 +97,15 @@ void RenderingSystem::initRenderer() {
 	// Only 2 exists atm, will need to be added later like the rest
 	ui_playercard.push_back(generateTexture("assets/textures/UI/playerCard1.png", false));
 	ui_playercard.push_back(generateTexture("assets/textures/UI/playerCard2.png", false));
+	ui_playercard.push_back(generateTexture("assets/textures/UI/playerCard3.png", false));
+	ui_playercard.push_back(generateTexture("assets/textures/UI/playerCard4.png", false));
+	ui_playercard.push_back(generateTexture("assets/textures/UI/playerCard5.png", false));
+	ui_playercard.push_back(generateTexture("assets/textures/UI/playerCard6.png", false));
 	for (int i = 1; i <= 12; i++) {
 		if (i <= 6) { 
 			ui_player_tracker.push_back(generateTexture(("assets/textures/UI/" + to_string(i) + ".png").c_str(), false)); 
 			ui_player_token.push_back(generateTexture(("assets/textures/UI/playertoken" + to_string(i) + ".png").c_str(), false));
+			ui_player_token_highlight.push_back(generateTexture(("assets/textures/UI/playertokenHighlight" + to_string(i) + ".png").c_str(), false));
 		}
 		ui_score_tracker.push_back(generateTexture(("assets/textures/UI/cargo_indicators/" + to_string(i) + ".png").c_str(), false));
 
@@ -526,7 +531,6 @@ void RenderingSystem::updateRenderer(vector<std::shared_ptr<CallbackInterface>> 
 				break;
 		}
 	}
-
 	else if (gameState->audio_ptr->lastBeep == 1) {
 		gameState->audio_ptr->CountdownBeep(4, playerEntity->transform->getPosition());
 		gameState->audio_ptr->lastBeep = 0;
@@ -534,34 +538,19 @@ void RenderingSystem::updateRenderer(vector<std::shared_ptr<CallbackInterface>> 
 
 	// Normal Gameplay Screen
 	else {
-		// Ayyylien
-		//drawUI(testTexture, callback_ptrs[0]->xres - 300.f, 30.f, callback_ptrs[0]->xres - 30.f, 300.f, 0);
-
-		// Boost Meter
-		/*for (int i = 0; i < 10; i++) {
-			int boost_meter = (int)gameState->findEntity("vehicle_" + to_string(player))->playerProperties->boost_meter;
-			int offset = 50 * i;
-			int boostoffset = 10 * i;
-
-			if (boost_meter > boostoffset && i < 7) {
-				drawUI(boostBlue, 50.0f + offset, 50.f, 100.0f + offset, 100.f, 0);
-			}
-			else if (boost_meter > boostoffset) {
-				drawUI(boostOrange, 50.0f + offset, 50.f, 100.0f + offset, 100.f, 0);
-			}
-			else {
-				drawUI(boostGrey, 50.0f + offset, 50.f, 100.0f + offset, 100.f, 0);
-			}
-		}*/
-
-		// UI SCALE
+		// UI Scale
 		if (gameState->numPlayers == 1) uiScale = 1.0f;
 		if (gameState->numPlayers == 2) uiScale = 0.85f;
 		if (gameState->numPlayers >= 3) uiScale = 0.6f;
+		
 
 		int leewayX = targetRes.x / 200;
 		int leewayY = targetRes.y / 120;
+
+		// Draw UI For Every Player's Screen
 		for (int player = 0; player < gameState->numPlayers; player++) {
+			
+			// Calculate UI X/Y Offsets Relative to Entire Screen
 			int xOffset = 0;
 			int yOffset = 0;
 			if (gameState->numPlayers == 2) {
@@ -572,52 +561,44 @@ void RenderingSystem::updateRenderer(vector<std::shared_ptr<CallbackInterface>> 
 				else if (player == 1) { xOffset = targetRes.x; yOffset = targetRes.y; }
 				else if (player == 3) xOffset = targetRes.x;
 			}
-			// Dot Boost Meter
-			// Goddarn scaling ok
-			// So lets set some bounds for the entire scaling factor
-			// Which will be our box
-			// We want it in the bottom left quadrant, ... so divide by 4?
 
-			int ui_bmeter_count = 30;	// Total number of columns the meter has
-			int ui_bmeter_leftbound = (targetRes.x / 15) + xOffset;
-			int ui_bmeter_rightbound = (targetRes.x / 4) + xOffset;
-			int ui_bmeter_upbound = (targetRes.y / 12) + yOffset;
-			int ui_bmeter_lowbound = (targetRes.y / 20) + yOffset;
+			// Boost Meter Dot Count
+			int ui_bmeter_count = 30;	// Number of dot images to put in series
 
-			int ui_pcount_upbound = (ui_bmeter_upbound - ui_bmeter_lowbound + 2 * leewayY) + ui_bmeter_upbound + 2 * leewayY;
-			int ui_pcount_lowbound = ui_bmeter_upbound + 2 * leewayY;
+			// Define Margins (not scaled)
+			int margin_left = 30;			// Safe area pixels from left side of screen
+			int margin_right = 30;			// Safe area pixels from right side of screen
+			int margin_top = 30;			// Safe area pixels from top of screen
+			int margin_bottom = 30;			// Safe area pixels from bottom of screen
 
-			int ui_bmeter_increment = (ui_bmeter_rightbound - ui_bmeter_leftbound) / 30.0f;
-			int ui_pcount_increment = (ui_bmeter_rightbound - ui_bmeter_leftbound) / 10.0f;
+			// Define Relative Spacings (scaled)
+			int pod_counter_height = 70;	// Y-height from bottom of screen
+			int player_card_height = 140;	// Y-height from bottom of screen
 
-			int margin_left = 30;
-			int margin_right = 30;
-			int margin_top = 30;
-			int margin_bottom = 30;
-
-			int pod_counter_height = 70;
-			int player_card_height = 140;
-
+			// Boost Text
 			drawUI(boostText,
 				margin_left + xOffset, margin_bottom + yOffset,
 				margin_left + xOffset + (90 * uiScale), margin_bottom + yOffset + (60 * uiScale), 2);
 
+			// Pods Text
 			drawUI(podsText,
 				margin_left + xOffset, margin_bottom + yOffset + (pod_counter_height) * uiScale,
 				margin_left + xOffset + (90 * uiScale), margin_bottom + yOffset + (60 + pod_counter_height) * uiScale, 2);
 
+			// Player Card
 			int test = player;
 			if (test > 1) test = 1;
 			drawUI(ui_playercard[test],
 				margin_left + xOffset, margin_bottom + yOffset + (player_card_height) * uiScale,
 				margin_left + xOffset + (60 * uiScale), margin_bottom + yOffset + (80 + player_card_height) * uiScale, 2);
 
+			// Boost Background Box
 			drawUI(boostBox,
 				margin_left + xOffset + (100 * uiScale), margin_bottom + yOffset,
 				margin_left + xOffset + (540 * uiScale), margin_bottom + yOffset + (60 * uiScale), 2);
 			
 
-			// Drawing Boost Meter
+			// Boost Dots
 			for (int i = 0; i < ui_bmeter_count; i++) {
 				int boost_meter = (int)gameState->findEntity("vehicle_" + to_string(player))->playerProperties->boost_meter;
 				float onMeter = (float)i / (float)ui_bmeter_count;
@@ -635,6 +616,7 @@ void RenderingSystem::updateRenderer(vector<std::shared_ptr<CallbackInterface>> 
 				}
 			}
 
+			// Retrieve Stolen Pod Indices
 			int stolenIndex = -1;
 			int stolenIndexIndex = 0;
 			if (gameState->findEntity("vehicle_" + to_string(player))->playerProperties->stolenTrailerIndices.size() > 0) {
@@ -645,43 +627,34 @@ void RenderingSystem::updateRenderer(vector<std::shared_ptr<CallbackInterface>> 
 			// Drawing Pod Counter
 			for (int i = 0; i < 18; i++) {
 				int pod_count = gameState->findEntity("vehicle_" + to_string(player))->nbChildEntities;
-				int pod_total = 10;
-				int offset = ui_pcount_increment * i / 2;
-				int ui_pcount_halfbound = ui_pcount_lowbound + (ui_pcount_upbound - ui_pcount_lowbound) / 2;
-
 
 				// Drawing on cargo pods
 				if (i < pod_count) {
-
 					// Drawing on top row
 					if (i % 2 == 0) {
-
 						// Deciding on stolen or not
 						if (i == stolenIndex) {
 							drawUI(podcounterOn, 
 								margin_left + xOffset + (100 + (i * 20)) * uiScale, margin_bottom + yOffset + (30 + pod_counter_height) * uiScale,
 								margin_left + xOffset + (130 + (i * 20)) * uiScale, margin_bottom + yOffset + (60 + pod_counter_height) * uiScale, 2);
-
 							// Checking if there is a next stolen pod
 							if (gameState->findEntity("vehicle_" + to_string(player))->playerProperties->stolenTrailerIndices.size() > stolenIndexIndex) {
 								stolenIndex = gameState->findEntity("vehicle_" + to_string(player))->playerProperties->stolenTrailerIndices[stolenIndexIndex];
 								stolenIndexIndex++;
 							}
 						}
-
 						else
 							drawUI(podcounterPickup, 
 								margin_left + xOffset + (100 + (i * 20)) * uiScale, margin_bottom + yOffset + (30 + pod_counter_height) * uiScale,
 								margin_left + xOffset + (130 + (i * 20)) * uiScale, margin_bottom + yOffset + (60 + pod_counter_height) * uiScale, 2);
 					}
-
 					// Drawing on bottom row
 					else {
 						if (i == stolenIndex) {
 							drawUI(podcounterOn, 
 								margin_left + xOffset + (100 + (i * 20)) * uiScale, margin_bottom + yOffset + (pod_counter_height) * uiScale,
 								margin_left + xOffset + (130 + (i * 20)) * uiScale, margin_bottom + yOffset + (30 + pod_counter_height) * uiScale, 2);
-
+							// Checking if there is a next stolen pod
 							if (gameState->findEntity("vehicle_" + to_string(player))->playerProperties->stolenTrailerIndices.size() > stolenIndexIndex) {
 								stolenIndex = gameState->findEntity("vehicle_" + to_string(player))->playerProperties->stolenTrailerIndices[stolenIndexIndex];
 								stolenIndexIndex++;
@@ -693,7 +666,6 @@ void RenderingSystem::updateRenderer(vector<std::shared_ptr<CallbackInterface>> 
 								margin_left + xOffset + (130 + (i * 20)) * uiScale, margin_bottom + yOffset + (30 + pod_counter_height) * uiScale, 2);
 					}
 				}
-
 				// Drawing off cargo pods
 				else {
 					if (i % 2 == 0)
@@ -707,7 +679,7 @@ void RenderingSystem::updateRenderer(vector<std::shared_ptr<CallbackInterface>> 
 				}
 			}
 
-			// Extra score text
+			// Extra Score Text
 			string morescore;
 			int bonus_score = gameState->calculatePoints(0, gameState->findEntity("vehicle_" + to_string(player))->nbChildEntities, gameState->findEntity("vehicle_" + to_string(player))->playerProperties->stolenTrailerIndices.size());
 			morescore = "+" + to_string(bonus_score);
@@ -718,158 +690,91 @@ void RenderingSystem::updateRenderer(vector<std::shared_ptr<CallbackInterface>> 
 				vec3(0.93, 0.93f, 0.93f),
 				textChars);
 
-			// Display game timer / countdown
+			// Create Formatted Time String
 			string timerMins = std::to_string(abs(timer->getCountdownMins()));
 			string timerSeconds = std::to_string(abs(timer->getCountdownSecs()));
 			string overtime = "Overtime: ";
 			string zero = "0";
 			vec3 timerColour = vec3(0.93f);
-			float timer_xoffset = targetRes.x / 2.f - 10.f;
+			float timer_xoffset = targetRes.x / 2.f - (10.f * uiScale);
 
+			// Calculate Time String X-Offset
 			if (timerSeconds.size() < 2) {
 				timerSeconds.insert(0, zero);
 			}
 			if (timer->getCountdown() < 0) {
 				timerMins.insert(0, overtime);
-				timer_xoffset = targetRes.x / 2.f - 100.f;
+				timer_xoffset = targetRes.x / 2.f - (100.f * uiScale);
 			}
 
-			//drawUI(timerAndScore, targetRes.x / 2 - 172, targetRes.y - 110, targetRes.x / 2 + 172, targetRes.y, 1);
+			// Timer Box
 			drawUI(ui_timer_box, 
 				targetRes.x / 2 + xOffset - (130 * uiScale), targetRes.y + yOffset - (75 * uiScale), 
 				targetRes.x / 2 + (130 * uiScale) + xOffset, targetRes.y + yOffset, 1);
 
-			if (timer->getCountdownMins() <= 1) {
-				timerColour = vec3(0.93f, 0.0f, 0.0f);
-			}
-			// @ Peter - changed up your timer to not display score
-			//	-Comment out below RenderText, take out the comment blocks and will revert to previous
+			// Red Timer Text if Time is Running Out
+			if (timer->getCountdownMins() <= 0) timerColour = vec3(0.93f, 0.0f, 0.0f);
+
+			// Timer Text
 			RenderText(textShader, textVAO, textVBO, timerMins + ":" + timerSeconds,
-				targetRes.x / 2.f + xOffset + (10 * uiScale),
+				xOffset + timer_xoffset + (20 * uiScale),
 				targetRes.y + yOffset - (46.f * uiScale),
 				0.6f * uiScale,
 				timerColour,
 				textChars);
 
-			/*
-			RenderText(textShader, textVAO, textVBO, timerMins + ":" + timerSeconds,
-				timer_xoffset - 115,
-				targetRes.y - 80.f,
-				0.8f,
-				vec3(0.93f, 0.93f, 0.93f),
-				textChars);
-
-			string playerScoreText = to_string(gameState->findEntity("vehicle_" + to_string(player))->playerProperties->getScore());
-			RenderText(textShader, textVAO, textVBO, playerScoreText,
-				(targetRes.x / 2 + 80) - (8 * (int)playerScoreText.size() - 1),
-				targetRes.y - 80.f,
-				0.8f,
-				vec3(0.93, 0.93f, 0.93f),
-				textChars);
-			*/
-
-			// Display boost meter - deprecated
-			/*
-			RenderText(textShader, textVAO, textVBO, "Boost Meter: " + to_string((int)playerEntities[0]->playerProperties->boost_meter),
-				20,
-				40, 0.6f,
-				vec3(0.2, 0.2f, 0.2f),
-				textChars);
-			*/
-
-			// Display player scores
+			// Scoreboard
 			vector<pair<int, int>> scoreboard;
 			for (int i = 0; i < gameState->numVehicles; i++) {
 				scoreboard.push_back(std::make_pair(gameState->findEntity("vehicle_" + to_string(i))->playerProperties->getScore(), i));
 			}
 			sort(scoreboard.rbegin(), scoreboard.rend());
 
-			/*
-			// Text Scoreboard: Debugging
-			for (int i = 0; i < gameState->numVehicles; i++) {
-				//string vehicleName = "vehicle_" + to_string(scoreboard[i].first);
-				string scoreText = "Salvager #" + to_string(scoreboard[i].second) + ": " + to_string(scoreboard[i].first);
-
-				RenderText(textShader, textVAO, textVBO, scoreText,
-					targetRes.x - (16 * (int)scoreText.size()),
-					targetRes.y - 100.f - (i * 50.f),
-					0.6f,
-					vec3(0.2, 0.2f, 0.2f),
-					textChars);
-			}
-			*/
-
-
-			int ui_scoreboard_leftbound = (targetRes.x * 17 / 18);
-			int ui_scoreboard_rightbound = (targetRes.x * 59 / 60);
-			int ui_scoreboard_upbound = (targetRes.y * 19 / 20);
-
-			int ui_scoreboard_row_increment = (targetRes.y / 40);
-			int ui_scoreboard_column_incremenent = (targetRes.x / 80);
-
-			float j = 0.0f;
-
-			RenderText(textShader, textVAO, textVBO, "Score: ",
-				ui_scoreboard_leftbound - ui_scoreboard_column_incremenent + xOffset,
-				ui_scoreboard_upbound + leewayY + yOffset,
-				targetRes.y * 0.6 / 1080.0f,
-				vec3(0.2f),
+			// Header Text and Bar
+			drawUI(scoreBar,
+				targetRes.x + xOffset - margin_right - (200 * uiScale), targetRes.y + yOffset - margin_top,
+				targetRes.x + xOffset - margin_right, targetRes.y + yOffset - margin_top - (40 * uiScale), 2);
+			RenderText(textShader, textVAO, textVBO, "SCORE",
+				targetRes.x + xOffset - margin_right - (150 * uiScale),
+				targetRes.y + yOffset - margin_top - (30 * uiScale),
+				0.6 * uiScale,
+				vec3(0.93f),
 				textChars);
 
+			// Player Score Widget Stack
 			for (int i = 0; i < gameState->numVehicles; i++) {
-				// If == player
-				if (scoreboard[i].second == player) {
-
+				// Background Bar
+				if (i % 2 == 0) {
 					drawUI(scoreBarDark,
-						ui_scoreboard_leftbound + xOffset,
-						ui_scoreboard_upbound - ui_scoreboard_row_increment * (j + 1.25f) + yOffset,
-						ui_scoreboard_rightbound + xOffset,
-						ui_scoreboard_upbound - ui_scoreboard_row_increment * j + yOffset,
-						2);
-					// Maybe someday will use drawn elements, but for now it's too messy
-					drawUI(ui_playercard[test],
-						ui_scoreboard_leftbound - ui_scoreboard_column_incremenent * 1.25f + xOffset,
-						ui_scoreboard_upbound - ui_scoreboard_row_increment * (j + 1.25f) + yOffset,
-						ui_scoreboard_leftbound + xOffset,
-						ui_scoreboard_upbound - ui_scoreboard_row_increment * j + yOffset,
-						1);
-
-					RenderText(textShader, textVAO, textVBO, ": " + to_string(scoreboard[i].first),
-						//ui_scoreboard_leftbound + ui_scoreboard_column_incremenent * 1.25f,
-						ui_scoreboard_leftbound + xOffset,
-						ui_scoreboard_upbound - ui_scoreboard_row_increment * (j + 1.25f) + 0.75f * leewayY + yOffset,
-						targetRes.y * 0.75 / 1080.0f,
-						vec3(0.93f),
-						textChars);
-
-					j = j + 1.25f;
+						targetRes.x + xOffset - margin_right - (200 * uiScale), targetRes.y + yOffset - margin_top - (80 + (i * 40)) * uiScale,
+						targetRes.x + xOffset - margin_right, targetRes.y + yOffset - margin_top - (40 + (i * 40)) * uiScale, 2);
 				}
 				else {
-
 					drawUI(scoreBar,
-						ui_scoreboard_leftbound + xOffset,
-						ui_scoreboard_upbound - ui_scoreboard_row_increment * (j + 1) + yOffset,
-						ui_scoreboard_rightbound + xOffset,
-						ui_scoreboard_upbound - ui_scoreboard_row_increment * j + yOffset,
-						2);
-
-					drawUI(ui_player_token[scoreboard[i].second],
-						ui_scoreboard_leftbound - ui_scoreboard_column_incremenent + xOffset,
-						ui_scoreboard_upbound - ui_scoreboard_row_increment * (j + 1) + yOffset,
-						ui_scoreboard_leftbound + xOffset,
-						ui_scoreboard_upbound - ui_scoreboard_row_increment * j + yOffset,
-						1);
-
-					RenderText(textShader, textVAO, textVBO, ": " + to_string(scoreboard[i].first),
-						//ui_scoreboard_leftbound + ui_scoreboard_column_incremenent,
-						ui_scoreboard_leftbound + xOffset,
-						ui_scoreboard_upbound - ui_scoreboard_row_increment * (j + 1) + 0.5f * leewayY + yOffset,
-						targetRes.y * 0.6 / 1080.0f,
-						vec3(0.93f),
-						textChars);
-
-					j = j + 1.0f;
+						targetRes.x + xOffset - margin_right - (200 * uiScale), targetRes.y + yOffset - margin_top - (80 + (i * 40)) * uiScale,
+						targetRes.x + xOffset - margin_right, targetRes.y + yOffset - margin_top - (40 + (i * 40)) * uiScale, 2);
 				}
+
+				// Player Number
+				if (scoreboard[i].second == player) {
+					drawUI(ui_player_token_highlight[scoreboard[i].second],
+						targetRes.x + xOffset - margin_right - (200 * uiScale), targetRes.y + yOffset - margin_top - (80 + (i * 40)) * uiScale,
+						targetRes.x + xOffset - margin_right - (165 * uiScale), targetRes.y + yOffset - margin_top - (40 + (i * 40)) * uiScale, 1);
+				}
+				// Non-Player Number
+				else {
+					drawUI(ui_player_token[scoreboard[i].second],
+						targetRes.x + xOffset - margin_right - (200 * uiScale), targetRes.y + yOffset - margin_top - (80 + (i * 40)) * uiScale,
+						targetRes.x + xOffset - margin_right - (165 * uiScale), targetRes.y + yOffset - margin_top - (40 + (i * 40)) * uiScale, 1);
+				}
+
+				// Score Text
+				RenderText(textShader, textVAO, textVBO, ": " + to_string(scoreboard[i].first),
+					targetRes.x + xOffset - margin_right - (150 * uiScale),
+					targetRes.y + yOffset - margin_top - (74 + (i * 40)) * uiScale,
+					0.8 * uiScale,
+					vec3(0.93f),
+					textChars);
 			}
 		}
 	}
@@ -903,6 +808,9 @@ void RenderingSystem::updateRenderer(vector<std::shared_ptr<CallbackInterface>> 
 			gameState->audio_ptr->setVolume(vehicleName + "_tire", npcTireVolume);
 		}
 	}
+
+	//ImGui::Text("UI Parameters");
+	//ImGui::SliderFloat("UI Scale", &uiScale, 0.f, 3.0f);
 
 	ImGui::Text("Cel Shader Parameters");
 	ImGui::SliderFloat("Light Rotation", &lightRotation, 0.f, 6.28f);

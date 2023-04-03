@@ -113,6 +113,7 @@ private:
 	std::vector<unsigned int> ui_score_tracker;
 	std::vector<unsigned int> ui_playercard;
 	std::vector<unsigned int> ui_player_token;
+	std::vector<unsigned int> ui_player_token_highlight;
 
 	// Shaders
 	Shader textShader;
