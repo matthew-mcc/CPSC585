@@ -555,7 +555,7 @@ void RenderingSystem::updateRenderer(vector<std::shared_ptr<CallbackInterface>> 
 		}*/
 
 		int leewayX = targetRes.x / 200;
-		int leewayY = targetRes.y / 150;
+		int leewayY = targetRes.y / 120;
 		for (int player = 0; player < gameState->numPlayers; player++) {
 			int xOffset = 0;
 			int yOffset = 0;
@@ -728,7 +728,7 @@ void RenderingSystem::updateRenderer(vector<std::shared_ptr<CallbackInterface>> 
 			}
 
 			//drawUI(timerAndScore, targetRes.x / 2 - 172, targetRes.y - 110, targetRes.x / 2 + 172, targetRes.y, 1);
-			drawUI(ui_timer_box, targetRes.x / 2 - 120 + xOffset, targetRes.y - 80 + yOffset, targetRes.x / 2 + 120 + xOffset, targetRes.y + yOffset, 1);
+			drawUI(ui_timer_box, targetRes.x / 2 - 130 + xOffset, targetRes.y - 75 + yOffset, targetRes.x / 2 + 130 + xOffset, targetRes.y + yOffset, 1);
 
 			if (timer->getCountdownMins() <= 1) {
 				timerColour = vec3(0.93f, 0.0f, 0.0f);
