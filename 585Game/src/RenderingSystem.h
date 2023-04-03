@@ -148,9 +148,8 @@ private:
 	unsigned int textVBO;
 	int fps;
 
-	// Camera Position / Orientation
-
-	// Camera Parameters
+	// UI Parameters
+	float uiScale = 1.0f;
 
 	// Audio Parameters
 	float playerTireVolume = 0.5f;
