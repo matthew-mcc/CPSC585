@@ -1166,13 +1166,11 @@ void PhysicsSystem::stepPhysics(vector<shared_ptr<CallbackInterface>> callback_p
 
 void PhysicsSystem::AI_StateController(Vehicle* vehicle, PxReal timestep) {
 	Timer* timer = &Timer::Instance();
-
-	//cout << vehicles.at(0)->vehicle.mPhysXState.physxActor.rigidBody->getGlobalPose().p.x << " " << vehicles.at(0)->vehicle.mPhysXState.physxActor.rigidBody->getGlobalPose().p.y << " " << vehicles.at(0)->vehicle.mPhysXState.physxActor.rigidBody->getGlobalPose().p.z << endl;
-	//cout << vehicle->AI_State << endl;
-	//cout << vehicles.at(1)->vehicle.mEngineDriveState.gearboxState.currentGear << endl;
+	PxTransform vehicle_transform = vehicle->vehicle.mPhysXState.physxActor.rigidBody->getGlobalPose().getNormalized();
+	
 	AI_Stuck(vehicle);
 
-	//cout << vehicles.at(1)->vehicle.mCommandState.steer << endl;
+	
 	// Recharge Boost
 	if (!vehicle->AI_IsBoosting) {
 		if (vehicle->AI_BoostMeter < 100) {
@@ -1180,10 +1178,25 @@ void PhysicsSystem::AI_StateController(Vehicle* vehicle, PxReal timestep) {
 		}
 	}
 	
-	if (!vehicles.at(1)->onGround) {
-		// Potentially add mid-air correction here
+	// Mid Air Correction
+	if (!vehicles.at(0)->onGround) {
+		float threshold = 0.2f;
+
+		if (vehicle_transform.q.x > threshold) {
+			
+			// NOSE UP
+			vehicle->vehicle.mPhysXState.physxActor.rigidBody->addTorque(vehicle_transform.rotate(PxVec3(-2, 0, 0) * timer->getDeltaTime()), PxForceMode().eVELOCITY_CHANGE);
+		}
+		else if (vehicle_transform.q.x < -threshold) {
+			// NOSE DOWN
+			vehicle->vehicle.mPhysXState.physxActor.rigidBody->addTorque(vehicle_transform.rotate(PxVec3(2, 0, 0) * timer->getDeltaTime()), PxForceMode().eVELOCITY_CHANGE);
+
+		}
+		
+
 	}
 
+	// AI Stuck somewhere
 	if (vehicle->AI_IsStuck) {
 		
 
@@ -1496,6 +1509,10 @@ void PhysicsSystem::AI_CollectTrailer(Vehicle* vehicle, PxReal timestep) {
 	
 
 	Trailer* currTrailer = trailers.at(vehicle->AI_CurrTrailerIndex);
+	
+	if (currTrailer->isTowed) {
+		// Apply Mini Boost?
+	}
 	AI_MoveTo(vehicle, currTrailer->rigidBody->getGlobalPose().p);
 
 	
