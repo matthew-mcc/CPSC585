@@ -539,13 +539,14 @@ void RenderingSystem::updateRenderer(vector<std::shared_ptr<CallbackInterface>> 
 	// Normal Gameplay Screen
 	else {
 		// UI Scale
-		if (gameState->numPlayers == 1) uiScale = 1.0f;
-		if (gameState->numPlayers == 2) uiScale = 0.85f;
-		if (gameState->numPlayers >= 3) uiScale = 0.6f;
-		
-
-		int leewayX = targetRes.x / 200;
-		int leewayY = targetRes.y / 120;
+		// Scales relative to 2K resolution (2560 x 1440)
+			// Screen width of 2560 equals scale of 1.0
+			// Screen width of 1920 equals scale of 0.75
+			// and so on...
+		// Additionally, takes into account the number of screens (splitscreen mode) and scales accordingly
+		if (gameState->numPlayers == 1) uiScale = 1.0f * (targetRes.x / 2560.f);
+		if (gameState->numPlayers == 2) uiScale = 0.85f * (targetRes.x / 2560.f);
+		if (gameState->numPlayers >= 3) uiScale = 1.2f * (targetRes.x / 2560.f);
 
 		// Draw UI For Every Player's Screen
 		for (int player = 0; player < gameState->numPlayers; player++) {
