@@ -60,6 +60,7 @@ struct Vehicle {
 	bool AI_IsStuck = false;
 	float AI_ReverseTimer = 0.f;
 	bool AI_DroppingOff = false;
+	int AI_DropOffThreshold = 5;
 
 	
 	// Maybe we don't need a map of values, but instead just one personality?
