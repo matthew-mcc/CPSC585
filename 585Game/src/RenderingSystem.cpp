@@ -91,6 +91,9 @@ void RenderingSystem::initRenderer() {
 	startCountdown3 = generateTexture("assets/textures/UI/startCountdown3.png", false);
 	startCountdown2 = generateTexture("assets/textures/UI/startCountdown2.png", false);
 	startCountdown1 = generateTexture("assets/textures/UI/startCountdown1.png", false);
+	resetCountdown1 = generateTexture("assets/textures/UI/resetting1.png", false);
+	resetCountdown2 = generateTexture("assets/textures/UI/resetting2.png", false);
+	resetCountdown3 = generateTexture("assets/textures/UI/resetting3.png", false);
 	timerAndScore = generateTexture("assets/textures/UI/timerAndScore.png", false);
 	ui_timer_box = generateTexture("assets/textures/UI/timerBox.png", false);
 
@@ -776,6 +779,26 @@ void RenderingSystem::updateRenderer(vector<std::shared_ptr<CallbackInterface>> 
 					0.8 * uiScale,
 					vec3(0.93f),
 					textChars);
+			}
+
+			// Reset Countdown
+			float resetTime = playerEntities.at(player)->playerProperties->reset;
+			if (resetTime != 0) {
+				if (resetTime < 1.0f) {
+					drawUI(resetCountdown3, 
+						targetRes.x / 2 + xOffset - (176 * uiScale), targetRes.y / 2 + yOffset + (158 * uiScale), 
+						targetRes.x / 2 + xOffset + (176 * uiScale), targetRes.y / 2 + yOffset + (415 * uiScale), 1);
+				}
+				else if (resetTime < 2.0f) {
+					drawUI(resetCountdown2,
+						targetRes.x / 2 + xOffset - (176 * uiScale), targetRes.y / 2 + yOffset + (158 * uiScale),
+						targetRes.x / 2 + xOffset + (176 * uiScale), targetRes.y / 2 + yOffset + (415 * uiScale), 1);
+				}
+				else if (resetTime < 3.0f) {
+					drawUI(resetCountdown1,
+						targetRes.x / 2 + xOffset - (176 * uiScale), targetRes.y / 2 + yOffset + (158 * uiScale),
+						targetRes.x / 2 + xOffset + (176 * uiScale), targetRes.y / 2 + yOffset + (415 * uiScale), 1);
+				}
 			}
 		}
 	}

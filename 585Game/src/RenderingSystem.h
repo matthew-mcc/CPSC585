@@ -106,6 +106,9 @@ private:
 	unsigned int startCountdown3;
 	unsigned int startCountdown2;
 	unsigned int startCountdown1;
+	unsigned int resetCountdown3;
+	unsigned int resetCountdown2;
+	unsigned int resetCountdown1;
 	unsigned int timerAndScore;
 	unsigned int ui_timer_box;
 

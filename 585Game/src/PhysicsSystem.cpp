@@ -963,7 +963,7 @@ void PhysicsSystem::stepPhysics(vector<shared_ptr<CallbackInterface>> callback_p
 				}
 
 				// Reset
-				if (length(players[i]->transform->getLinearVelocity()) < 5.0f) {
+				if (length(players[i]->transform->getLinearVelocity()) < 10.0f) {
 					if (players[i]->playerProperties->reset > players[i]->playerProperties->reset_max) {
 						if (vehicles.at(i)->attachedTrailers.size() > 0) {
 							detachTrailer(vehicles.at(i)->attachedTrailers.at(0), vehicles.at(i), NULL);
