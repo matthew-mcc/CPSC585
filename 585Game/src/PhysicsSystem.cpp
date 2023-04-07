@@ -942,16 +942,20 @@ void PhysicsSystem::stepPhysics(vector<shared_ptr<CallbackInterface>> callback_p
 			}
 
 			// In Air
-			else { 
+			else {
 				// Update ground flag
 				vehicles.at(i)->onGround = false;
-				
+
 				// Set Rotation based on air controls
 				if (!disableInput) {
-					if(gScene->raycast(vehicle_transform.p+ vehicle_transform.rotate(PxVec3(0.f, 2.f, 0.f)), vehicle_transform.rotate(PxVec3(0.f, -1.f, 0.f)), 1.f, AircontrolBuffer,PxHitFlag::eMESH_BOTH_SIDES) && AircontrolBuffer.block.shape->getSimulationFilterData().word0 == COLLISION_FLAG_GROUND) //if totally upside down
+					if (gScene->raycast(vehicle_transform.p + vehicle_transform.rotate(PxVec3(0.f, 2.f, 0.f)), vehicle_transform.rotate(PxVec3(0.f, -1.f, 0.f)), 1.f, AircontrolBuffer, PxHitFlag::eMESH_BOTH_SIDES) && AircontrolBuffer.block.shape->getSimulationFilterData().word0 == COLLISION_FLAG_GROUND) //if totally upside down
 						vehicles.at(i)->vehicle.mPhysXState.physxActor.rigidBody->addTorque(vehicle_transform.rotate(PxVec3(0, 0, -players[i]->playerProperties->AirRoll)), PxForceMode().eVELOCITY_CHANGE);
 					else
-						vehicles.at(i)->vehicle.mPhysXState.physxActor.rigidBody->addTorque(vehicle_transform.rotate(PxVec3(players[i]->playerProperties->AirPitch * 2.5f, players[i]->playerProperties->AirRoll * 1.0f, players[i]->playerProperties->AirRoll * -3.0f) * timestep), PxForceMode().eVELOCITY_CHANGE);
+						vehicles.at(i)->vehicle.mPhysXState.physxActor.rigidBody->addTorque(vehicle_transform.rotate(PxVec3(players[i]->playerProperties->AirPitch * 2.5f, players[i]->playerProperties->AirRoll * 1.0f, 0.f) * timestep), PxForceMode().eVELOCITY_CHANGE);
+					if (vehicle_transform.rotate(PxVec3(1.f, 0.f, 0.f)).y<-0.05f)//automatic rolling the vehicle
+						vehicles.at(i)->vehicle.mPhysXState.physxActor.rigidBody->addTorque(vehicle_transform.rotate(PxVec3(0.f,0.f, 1.f) * timestep), PxForceMode().eVELOCITY_CHANGE);
+					else if(vehicle_transform.rotate(PxVec3(1.f, 0.f, 0.f)).y > 0.05f)
+						vehicles.at(i)->vehicle.mPhysXState.physxActor.rigidBody->addTorque(vehicle_transform.rotate(PxVec3(0.f,0.f, -1.f) * timestep), PxForceMode().eVELOCITY_CHANGE);
 				}
 			}
 
