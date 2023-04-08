@@ -22,7 +22,6 @@ public:
 
 private:
 	void resetValue(float& target, float range, float desireValue, float speed, float step);
-	void updateRadius(float base, float zoom);
 
 	Entity* player;
 	int playerNo;

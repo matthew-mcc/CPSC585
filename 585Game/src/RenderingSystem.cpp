@@ -154,9 +154,9 @@ void RenderingSystem::updateRenderer(vector<std::shared_ptr<CallbackInterface>> 
 		blurMap.push_back(FBuffer(1920, 1080, "b"));
 		intermediateBuffer.push_back(FBuffer(1920, 1080, "i"));
 		for (int i = 0; i < gameState->numVehicles && boostParticles.size() < gameState->numVehicles; i++) {
+			dirtParticles.push_back(ParticleSystem(particleShader, rockTexture, 500, 1.0f, 0.2f, dirtColor, "d"));
 			if (i < numPlayers) boostParticles.push_back(ParticleSystem(particleShader, rockTexture, 1000, 0.5f, 0.25f, boostColor1, boostColor2, boostColor3, "b"));
 			else boostParticles.push_back(ParticleSystem(particleShader, rockTexture, 300, 0.5f, 0.2f, boostColor1, boostColor2, boostColor3, "b"));	// Optimization: Less particles for non-player vehicles
-			dirtParticles.push_back(ParticleSystem(particleShader, rockTexture, 500, 1.0f, 0.2f, dirtColor, "d"));
 		}
 	}
 	else if (nearShadowMap.size() < numPlayers) {
@@ -169,12 +169,12 @@ void RenderingSystem::updateRenderer(vector<std::shared_ptr<CallbackInterface>> 
 		intermediateBuffer.pop_back();
 		portalParticles = ParticleSystem(particleShader, orbTexture, 500 / numPlayers, 4.0f, 0.2f, portalColor, "p");
 		for (int i = 0; i < gameState->numVehicles; i++) {
-			boostParticles.pop_back();
 			dirtParticles.pop_back();
+			boostParticles.pop_back();
 		}
 		for (int i = 0; i < gameState->numVehicles && boostParticles.size() < gameState->numVehicles; i++) {
-			boostParticles.push_back(ParticleSystem(particleShader, rockTexture, 5000 / (gameState->numVehicles * numPlayers), 0.5f, 0.25f, boostColor1, boostColor2, boostColor3, "b"));
 			dirtParticles.push_back(ParticleSystem(particleShader, rockTexture, 200 / numPlayers, 1.0f, 0.2f, dirtColor, "d"));
+			boostParticles.push_back(ParticleSystem(particleShader, rockTexture, 5000 / (gameState->numVehicles * numPlayers), 0.5f, 0.25f, boostColor1, boostColor2, boostColor3, "b"));
 		}
 
 		for (int i = 0; i < numPlayers; i++) {
@@ -394,8 +394,8 @@ void RenderingSystem::updateRenderer(vector<std::shared_ptr<CallbackInterface>> 
 
 		for (int i = 0; i < boostParticles.size(); i++) {
 			dirtParticles.at(i).color = dirtColor;
-			boostParticles.at(i).Draw(playerCameras[pl].view, playerCameras[pl].projection, playerCameras[pl].camera_previous_position);
 			dirtParticles.at(i).Draw(playerCameras[pl].view, playerCameras[pl].projection, playerCameras[pl].camera_previous_position);
+			boostParticles.at(i).Draw(playerCameras[pl].view, playerCameras[pl].projection, playerCameras[pl].camera_previous_position);
 		}
 
 		for (int i = 0; i < indicators.size(); i++) {
