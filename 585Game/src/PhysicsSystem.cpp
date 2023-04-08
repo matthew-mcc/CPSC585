@@ -894,9 +894,6 @@ void PhysicsSystem::stepPhysics(vector<shared_ptr<CallbackInterface>> callback_p
 			}
 		}
 
-		bool disableInput = false;
-		if (timer->getCountdown() > timer->getStartTime()) disableInput = true;
-
 		// PLAYER VEHICLE INPUT
 		if (i < gameState->numPlayers) {
 			// On Ground
@@ -907,38 +904,30 @@ void PhysicsSystem::stepPhysics(vector<shared_ptr<CallbackInterface>> callback_p
 				if (vehicles.at(i)->onGround == false) vehicles.at(i)->landed = true;
 				vehicles.at(i)->onGround = true;
 
-				// Check if input is disabled
-				if (!disableInput) {
-					// Forward Drive
-					if ((forwardSpeed > -1.0f && players[i]->playerProperties->throttle > players[i]->playerProperties->brake) ||
-						forwardSpeed > 0.5f) {
-						// Give vehicle a help in getting moving by instantly putting into 1st when close to stationary
-						if (forwardSpeed < 0.5) {
-							vehicles.at(i)->vehicle.mEngineDriveState.gearboxState.currentGear = 2;
-						}
-						// Set inputs for forward driving
-						vehicles.at(i)->vehicle.mCommandState.throttle = players[i]->playerProperties->throttle;
-						vehicles.at(i)->vehicle.mCommandState.brakes[0] = players[i]->playerProperties->brake;
-						vehicles.at(i)->vehicle.mCommandState.nbBrakes = 1;
+				// Forward Drive
+				if ((forwardSpeed > -1.0f && players[i]->playerProperties->throttle > players[i]->playerProperties->brake) ||
+					forwardSpeed > 0.5f) {
+					// Give vehicle a help in getting moving by instantly putting into 1st when close to stationary
+					if (forwardSpeed < 0.5) {
+						vehicles.at(i)->vehicle.mEngineDriveState.gearboxState.currentGear = 2;
 					}
-
-					// Reverse Drive
-					else {
-						// Set inputs for reverse driving
-						vehicles.at(i)->vehicle.mEngineDriveState.gearboxState.currentGear = 0;
-						vehicles.at(i)->vehicle.mCommandState.throttle = players[i]->playerProperties->brake;
-						vehicles.at(i)->vehicle.mCommandState.brakes[0] = players[i]->playerProperties->throttle;
-						vehicles.at(i)->vehicle.mCommandState.nbBrakes = 1;
-					}
-
-					// Steering Input
-					vehicles.at(i)->vehicle.mCommandState.steer = players[i]->playerProperties->steer;
+					// Set inputs for forward driving
+					vehicles.at(i)->vehicle.mCommandState.throttle = players[i]->playerProperties->throttle;
+					vehicles.at(i)->vehicle.mCommandState.brakes[0] = players[i]->playerProperties->brake;
+					vehicles.at(i)->vehicle.mCommandState.nbBrakes = 1;
 				}
 
-				// Input is disabled
+				// Reverse Drive
 				else {
-					vehicles.at(i)->vehicle.mCommandState.brakes[0] = 1;
+					// Set inputs for reverse driving
+					vehicles.at(i)->vehicle.mEngineDriveState.gearboxState.currentGear = 0;
+					vehicles.at(i)->vehicle.mCommandState.throttle = players[i]->playerProperties->brake;
+					vehicles.at(i)->vehicle.mCommandState.brakes[0] = players[i]->playerProperties->throttle;
+					vehicles.at(i)->vehicle.mCommandState.nbBrakes = 1;
 				}
+
+				// Steering Input
+				vehicles.at(i)->vehicle.mCommandState.steer = players[i]->playerProperties->steer;
 			}
 
 			// In Air
@@ -947,36 +936,32 @@ void PhysicsSystem::stepPhysics(vector<shared_ptr<CallbackInterface>> callback_p
 				vehicles.at(i)->onGround = false;
 				
 				// Set Rotation based on air controls
-				if (!disableInput) {
-					if(gScene->raycast(vehicle_transform.p+ vehicle_transform.rotate(PxVec3(0.f, 2.f, 0.f)), vehicle_transform.rotate(PxVec3(0.f, -1.f, 0.f)), 1.f, AircontrolBuffer,PxHitFlag::eMESH_BOTH_SIDES) && AircontrolBuffer.block.shape->getSimulationFilterData().word0 == COLLISION_FLAG_GROUND) //if totally upside down
-						vehicles.at(i)->vehicle.mPhysXState.physxActor.rigidBody->addTorque(vehicle_transform.rotate(PxVec3(0, 0, -players[i]->playerProperties->AirRoll)), PxForceMode().eVELOCITY_CHANGE);
-					else
-						vehicles.at(i)->vehicle.mPhysXState.physxActor.rigidBody->addTorque(vehicle_transform.rotate(PxVec3(players[i]->playerProperties->AirPitch * 2.5f, players[i]->playerProperties->AirRoll * 1.0f, players[i]->playerProperties->AirRoll * -3.0f) * timestep), PxForceMode().eVELOCITY_CHANGE);
-				}
+				if(gScene->raycast(vehicle_transform.p+ vehicle_transform.rotate(PxVec3(0.f, 2.f, 0.f)), vehicle_transform.rotate(PxVec3(0.f, -1.f, 0.f)), 1.f, AircontrolBuffer,PxHitFlag::eMESH_BOTH_SIDES) && AircontrolBuffer.block.shape->getSimulationFilterData().word0 == COLLISION_FLAG_GROUND) //if totally upside down
+					vehicles.at(i)->vehicle.mPhysXState.physxActor.rigidBody->addTorque(vehicle_transform.rotate(PxVec3(0, 0, -players[i]->playerProperties->AirRoll)), PxForceMode().eVELOCITY_CHANGE);
+				else
+					vehicles.at(i)->vehicle.mPhysXState.physxActor.rigidBody->addTorque(vehicle_transform.rotate(PxVec3(players[i]->playerProperties->AirPitch * 2.5f, players[i]->playerProperties->AirRoll * 1.0f, players[i]->playerProperties->AirRoll * -3.0f) * timestep), PxForceMode().eVELOCITY_CHANGE);
 			}
 
 			// Non-Air-Dependent Inputs
-			if (!disableInput) {
-				// Boost
-				if (vehicles.at(i)->vehicle.mPhysXState.physxActor.rigidBody->getLinearVelocity().magnitude() < players[i]->playerProperties->boost_max_velocity) {
-					vehicles.at(i)->vehicle.mPhysXState.physxActor.rigidBody->addForce(vehicle_transform.rotate(PxVec3(0.f, 0.f, players[i]->playerProperties->boost) * timestep), PxForceMode().eVELOCITY_CHANGE);
-				}
+			// Boost
+			if (vehicles.at(i)->vehicle.mPhysXState.physxActor.rigidBody->getLinearVelocity().magnitude() < players[i]->playerProperties->boost_max_velocity) {
+				vehicles.at(i)->vehicle.mPhysXState.physxActor.rigidBody->addForce(vehicle_transform.rotate(PxVec3(0.f, 0.f, players[i]->playerProperties->boost) * timestep), PxForceMode().eVELOCITY_CHANGE);
+			}
 
-				// Reset
-				if (length(players[i]->transform->getLinearVelocity()) < 10.0f) {
-					if (players[i]->playerProperties->reset > players[i]->playerProperties->reset_max) {
-						if (vehicles.at(i)->attachedTrailers.size() > 0) {
-							detachTrailer(vehicles.at(i)->attachedTrailers.at(0), vehicles.at(i), NULL);
-						}
-						PxVec3 oldPos = vehicles.at(i)->vehicle.mPhysXState.physxActor.rigidBody->getGlobalPose().p;
-						PxQuat oldRot = vehicles.at(i)->vehicle.mPhysXState.physxActor.rigidBody->getGlobalPose().q;
-						vehicles.at(i)->vehicle.mPhysXState.physxActor.rigidBody->setGlobalPose(PxTransform(PxVec3(oldPos.x, 10.f, oldPos.z)));
-						players[i]->playerProperties->reset = 0.f;
+			// Reset
+			if (length(players[i]->transform->getLinearVelocity()) < 10.0f) {
+				if (players[i]->playerProperties->reset > players[i]->playerProperties->reset_max) {
+					if (vehicles.at(i)->attachedTrailers.size() > 0) {
+						detachTrailer(vehicles.at(i)->attachedTrailers.at(0), vehicles.at(i), NULL);
 					}
-				}
-				else {
+					PxVec3 oldPos = vehicles.at(i)->vehicle.mPhysXState.physxActor.rigidBody->getGlobalPose().p;
+					PxQuat oldRot = vehicles.at(i)->vehicle.mPhysXState.physxActor.rigidBody->getGlobalPose().q;
+					vehicles.at(i)->vehicle.mPhysXState.physxActor.rigidBody->setGlobalPose(PxTransform(PxVec3(oldPos.x, 10.f, oldPos.z)));
 					players[i]->playerProperties->reset = 0.f;
 				}
+			}
+			else {
+				players[i]->playerProperties->reset = 0.f;
 			}
 		}
 
@@ -993,7 +978,7 @@ void PhysicsSystem::stepPhysics(vector<shared_ptr<CallbackInterface>> callback_p
 			}
 
 			// AI State Control
-			if(!disableInput) AI_StateController(vehicles.at(i), timestep);
+			AI_StateController(vehicles.at(i), timestep);
 		}
 	}
 
@@ -1300,11 +1285,11 @@ void PhysicsSystem::AI_MoveTo(Vehicle* vehicle, PxVec3 destination) {
 
 	PxReal dotProductFront = delta_player.dot(vehicle->vehicle.mPhysXState.physxActor.rigidBody->getGlobalPose().q.rotate(PxVec3(0, 0, 1)));
 
-	if (distanceSq_player < 500.f) {
-		if (dotProductFront <= 0) {
-			AI_ApplyBoost(vehicle);
-
-		}
+	if (distanceSq_player < 500.f && dotProductFront <= 0) {
+		AI_ApplyBoost(vehicle);
+	}
+	else {
+		vehicle->aiBoost = 0.f;
 	}
 	
 	vehicle->vehicle.mCommandState.steer = 0.f;
@@ -1390,16 +1375,9 @@ void PhysicsSystem::AI_MoveTo(Vehicle* vehicle, PxVec3 destination) {
 			AI_ApplyBoost(vehicle);
 		}
 		
-		else if (distanceSq_player < 1000.f) {
-			if (dotProductFront <= 0) {
-				AI_ApplyBoost(vehicle);
-
-			}
+		else if (distanceSq_player < 1000.f && dotProductFront <= 0) {
+			AI_ApplyBoost(vehicle);
 		}
-
-		
-
-
 
 		else {
 			vehicle->aiBoost = 0.0f;

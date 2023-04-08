@@ -115,7 +115,6 @@ public:
 	float steer_activate_speed = 2.0f;			// Higher = Quicker snap to input steer level
 	float steer_speed_sensitivity = 75.f;		// Higher = More responsive at high speeds
 	float min_speed_sensitivity = 0.68f;		// Higher = Less effective speed sensitivity (range [0..1])
-
 	bool boosterrrrr = false;
 
 	// Camera Control
@@ -137,8 +136,15 @@ public:
 	bool horn5 = false;
 	bool horn6 = false;
 
+	// Timer
+	Timer* timer;
+
 	// GAMEPAD VEHICLE INPUT
-	void XboxUpdate(XboxInput x, Timer* timer, float vehicleSpeed, bool gameEnded, int cNum) {
+	void XboxUpdate(XboxInput x, float vehicleSpeed, bool gameEnded, int cNum) {
+		// Check if Input is Enabled
+		if (timer->getCountdown() > timer->getStartTime()) return;
+		
+		// Retrieve gameEnded Bool
 		this->gameEnded = gameEnded;
 
 		// Retrive Delta Time
@@ -270,4 +276,4 @@ public:
 	}
 };
 
-std::shared_ptr<CallbackInterface> processInput(GLFWwindow* window);
+std::shared_ptr<CallbackInterface> processInput(GLFWwindow* window, Timer* timer);

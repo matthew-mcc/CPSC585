@@ -30,7 +30,7 @@ int main() {
 	xInput.run();
 	audio.Init(gameState->numVehicles);	// Remember to change this if we ever find a better way to keep track of vehicle count
 	vector<std::shared_ptr<CallbackInterface>> callback_ptrs;
-	callback_ptrs.push_back(processInput(renderer.window));
+	callback_ptrs.push_back(processInput(renderer.window, timer));
 	renderer.SetupImgui();
 	physics.initPhysX();
 
@@ -55,11 +55,11 @@ int main() {
 		xInput.update();
 		if (gameState->inMenu) {
 			isLoaded = false;
-			for (int i = 0; i < callback_ptrs.size(); i++) callback_ptrs[i]->XboxUpdate(xInput, timer, 0.0f, gameState->gameEnded, i);
+			for (int i = 0; i < callback_ptrs.size(); i++) callback_ptrs[i]->XboxUpdate(xInput, 0.0f, gameState->gameEnded, i);
 			gameState->menuEventHandler(callback_ptrs);
 		}
 		else {
-			for (int i = 0; i < callback_ptrs.size(); i++) callback_ptrs[i]->XboxUpdate(xInput, timer, length(gameState->findEntity("vehicle_" + to_string(i))->transform->getLinearVelocity()), gameState->gameEnded, i);
+			for (int i = 0; i < callback_ptrs.size(); i++) callback_ptrs[i]->XboxUpdate(xInput, length(gameState->findEntity("vehicle_" + to_string(i))->transform->getLinearVelocity()), gameState->gameEnded, i);
 		}
 
 		// Update Audio Manager
@@ -78,7 +78,7 @@ int main() {
 			renderer.resetRenderer();
 			audio.StartEvents(gameState->numVehicles);
 			xInput.run(gameState->numPlayers);
-			for (int i = 1; i < gameState->numPlayers; i++) callback_ptrs.push_back(processInput(renderer.window));
+			for (int i = 1; i < gameState->numPlayers; i++) callback_ptrs.push_back(processInput(renderer.window, timer));
 			isLoaded = true;
 		}
 

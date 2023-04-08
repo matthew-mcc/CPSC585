@@ -55,6 +55,11 @@ public:
 	bool control = false;
 	// KEYBOARD VEHICLE INPUT
 	virtual void keyCallback(int key, int scancode, int action, int mods) {
+		// Check if Input is Enabled
+		if (timer->getCountdown() > timer->getStartTime()) {
+			keys_pressed = 0;
+			return;
+		}
 
 		// THROTTLE (W)
 		if (key == GLFW_KEY_W || key == GLFW_KEY_UP) {
@@ -167,10 +172,14 @@ public:
 
 		// BOOST
 		if (key == GLFW_KEY_SPACE) {
-			if (action == GLFW_PRESS)
+			if (action == GLFW_PRESS) {
 				boosterrrrr = true;
-			if (action == GLFW_RELEASE)
+				keys_pressed++;
+			}
+			if (action == GLFW_RELEASE) {
 				boosterrrrr = false;
+				keys_pressed--;
+			}
 		}
 
 		// RESET
@@ -235,6 +244,9 @@ public:
 				keys_pressed--;
 			}
 		}
+
+		// Ensure keys_pressed is lower-bounded to 0
+		if (keys_pressed < 0) keys_pressed = 0;
 	}
 	
 	// MOUSE BUTTON CALLBACK
@@ -331,7 +343,7 @@ void windowSizeMetaCallback(GLFWwindow* window, int width, int height) {
 
 // Process Input
 	// Handles GLFW window inputs
-std::shared_ptr<CallbackInterface> processInput(GLFWwindow* window) {
+std::shared_ptr<CallbackInterface> processInput(GLFWwindow* window, Timer* timer) {
 	callbacks.push_back(std::make_shared<KeyCallbacks>());
 	//glfwSetWindowUserPointer(window, callbacks_.get());
 	glfwSetKeyCallback(window, keyMetaCallback);
@@ -340,7 +352,7 @@ std::shared_ptr<CallbackInterface> processInput(GLFWwindow* window) {
 	
 	glfwSetScrollCallback(window, scrollMetaCallback);
 	glfwSetWindowSizeCallback(window, windowSizeMetaCallback);
-
+	callbacks.at(callbacks.size() - 1).get()->timer = timer;
 	return callbacks[callbacks.size() - 1];
 	//if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
 		//glfwSetWindowShouldClose(window, true);
