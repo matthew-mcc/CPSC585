@@ -1,5 +1,5 @@
 #pragma once
-//#pragma comment(linker, "/SUBSYSTEM:windows /ENTRY:mainCRTStartup")		// Comment out to keep debug terminal window
+#pragma comment(linker, "/SUBSYSTEM:windows /ENTRY:mainCRTStartup")		// Comment out to keep debug terminal window
 #include <RenderingSystem.h>
 #include <PhysicsSystem.h>
 #include <GameState.h>
