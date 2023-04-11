@@ -58,6 +58,10 @@ private:
 	std::vector<ParticleSystem> indicators;
 	std::vector<ParticleSystem> indicatorCounters;
 
+	// ???
+	std::vector<ParticleSystem> SHHHHITSASECRET;
+	std::vector<unsigned int> topSecretTextures;
+
 	// Frame buffers
 	vector<FBuffer> nearShadowMap;
 	FBuffer farShadowMap;
@@ -169,4 +173,9 @@ private:
 	vec3 boostColor2 = vec3(0.33f, 0.33f, 0.1f);
 	vec3 boostColor3 = vec3(0.1f, 0.f, 0.f);
 	vec3 dirtColor = vec3(0.38f, 0.20f, 0.17f);
+
+	float testPos1;
+	float testPos2;
+	float testPos3;
+	float testSize;
 };

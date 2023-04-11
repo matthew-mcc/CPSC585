@@ -23,6 +23,11 @@ void ParticleSystem::initPS(Shader shader, unsigned int texture, unsigned int am
 		 1.0,  1.0, 0.0, 0.0, 0.0,
 		 1.0, -1.0, 0.0, 0.0, 1.0
 	};
+	if (mode.compare("a") == 0) {
+		for (int i = 0; i < 4; i++) {
+			particle_quad[5 * i] *= 1.77f;
+		}
+	}
 	glGenVertexArrays(1, &VAO);
 	glGenBuffers(1, &VBO);
 	glBindVertexArray(VAO);
@@ -56,7 +61,7 @@ void ParticleSystem::Update(float dt, glm::vec3 spawnPoint, glm::vec3 spawnVeloc
 		if (spawnVelocity != glm::vec3(0.f, 0.f, 0.f)) {
 			if (mode.compare("d") == 0) {
 				if (rand() % 2) respawnParticle(particles[unusedParticle], spawnPoint, spawnVelocity + vec3(rand() % 300 / 100.f - 1.5f, rand() % 300 / 100.f - 1.5f, rand() % 300 / 100.f - 1.5f), offset2);
-				else respawnParticle(particles[unusedParticle], spawnPoint, spawnVelocity + vec3(rand() % 300 / 100.f - 1.5f, rand() % 300 / 100.f - 1.5f, rand() % 300 / 100.f - 1.5f), offset);
+				else			respawnParticle(particles[unusedParticle], spawnPoint, spawnVelocity + vec3(rand() % 300 / 100.f - 1.5f, rand() % 300 / 100.f - 1.5f, rand() % 300 / 100.f - 1.5f), offset);
 			}
 			else respawnParticle(particles[unusedParticle], spawnPoint, spawnVelocity, offset);
 		}
@@ -64,7 +69,7 @@ void ParticleSystem::Update(float dt, glm::vec3 spawnPoint, glm::vec3 spawnVeloc
 	// update all particles
 	for (unsigned int i = 0; i < amount; ++i) {
 		Particle& p = particles[i];
-		if (mode.compare("i") == 0) {
+		if (mode.compare("i") == 0 || mode.compare("a") == 0) {
 			p.position = spawnPoint + offset;
 			return;
 		}
@@ -147,10 +152,12 @@ void ParticleSystem::Draw(glm::mat4 view, glm::mat4 proj, glm::vec3 cameraPositi
 			shader.setVec3("particleCenter", particles[i].position);
 			shader.setVec3("camRight", glm::vec3(view[0][0], view[1][0], view[2][0]));
 			shader.setVec3("camUp", glm::vec3(view[0][1], view[1][1], view[2][1]));
-			shader.setFloat("scale", particles[i].size);
+			shader.setFloat("scale", size);
+			//shader.setFloat("scale", particles[i].size);
 			shader.setBool("screenSpace", mode.compare("i") == 0);
 			shader.setFloat("xRes", targetRes.x);
 			shader.setFloat("yRes", targetRes.y);
+			shader.setBool("doFog", mode.compare("a") == 0);
 			glActiveTexture(GL_TEXTURE1);
 			glBindTexture(GL_TEXTURE_2D, texture);
 			glActiveTexture(GL_TEXTURE0);
@@ -202,7 +209,7 @@ void ParticleSystem::respawnParticle(Particle& particle, glm::vec3 spawnPoint, g
 		particle.position = spawnPoint + offset;
 		particle.velocity = spawnVelocity;
 	}
-	else if (mode.compare("i") == 0) {
+	else if (mode.compare("i") == 0 || mode.compare("a") == 0) {
 		particle.position = spawnPoint + offset;
 		particle.velocity = vec3(0.f);
 	}

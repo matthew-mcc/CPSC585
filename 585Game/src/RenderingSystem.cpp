@@ -46,6 +46,10 @@ void RenderingSystem::initRenderer() {
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	// TEXTURE LOADING
+	for (int i = 0; i < 358; i++) {
+		topSecretTextures.push_back(generateTexture(("assets/textures/Top Secret Do Not Look/alein-" + to_string(i) + ".png").c_str(), false));
+	}
+
 	testTexture = generateTexture("assets/textures/alien.png", false);
 	orbTexture = generateTexture("assets/textures/orb.png", false);
 	rockTexture = generateTexture("assets/textures/rock.png", false);
@@ -119,6 +123,7 @@ void RenderingSystem::initRenderer() {
 	particleShader.use();
 	particleShader.setInt("sprite", 1);
 	portalParticles = ParticleSystem(particleShader, orbTexture, 500, 4.0f, 0.2f, portalColor, "p");
+	for (int i = 0; i < 3; i++) SHHHHITSASECRET.push_back(ParticleSystem(particleShader, testTexture, 1, 300.f, 2.0f, vec3(1.f), "a"));
 	
 	for (int i = 0; i < gameState->numVehicles; i++) {
 		indicators.push_back(ParticleSystem(particleShader, ui_player_tracker[i], 1, 300.f, 0.f, vec3(1.f), "i"));
@@ -322,6 +327,18 @@ void RenderingSystem::updateRenderer(vector<std::shared_ptr<CallbackInterface>> 
 			vec3(0.f, 3.f, 0.f));
 	}
 
+	vector<vec3> secretPositions;
+	secretPositions.push_back(vec3{-294.f, 46.3f, 202.13f});
+	secretPositions.push_back(vec3{testPos1, testPos2, testPos3});
+	secretPositions.push_back(vec3{testPos1, testPos2, testPos3});
+	for (int i = 0; i < 1/*SHHHHITSASECRET.size()*/; i++) {
+		SHHHHITSASECRET[i].size = 5.62f;
+		SHHHHITSASECRET[i].Update(timer->getDeltaTime(),
+			secretPositions[i],
+			vec3(1.f),
+			vec3(0.f, 3.f, 0.f));
+	}
+
 	for (int pl = 0; pl < numPlayers; pl++) {
 		// NEAR SHADOWMAP RENDER
 		lightPos = vec3(sin(lightRotation) * cos(lightAngle), sin(lightAngle), cos(lightRotation) * cos(lightAngle)) * 40.f;
@@ -407,6 +424,21 @@ void RenderingSystem::updateRenderer(vector<std::shared_ptr<CallbackInterface>> 
 				indicatorCounters[i].updateTex(ui_score_tracker[playerScore - 1]);
 				if (i != pl) indicatorCounters[i].Draw(playerCameras[pl].view, playerCameras[pl].projection, playerCameras[pl].camera_previous_position, targetRes);
 			}
+		}
+
+		//printf("%4.2f, %4.2f, %4.2f\n", playerEntities[pl]->transform->getPosition().x, playerEntities[pl]->transform->getPosition().y, playerEntities[pl]->transform->getPosition().z);
+		for (int i = 0; i < SHHHHITSASECRET.size(); i++) {
+			SHHHHITSASECRET[i].secretTimer += timer->getDeltaTime();
+			while (SHHHHITSASECRET[i].secretTimer > 0.07f) {
+				SHHHHITSASECRET[i].secretTimer -= 0.07f;
+				SHHHHITSASECRET[i].secretCounter++;
+				if (SHHHHITSASECRET[i].secretCounter > 357) SHHHHITSASECRET[i].secretCounter = 0;
+			}
+			SHHHHITSASECRET[i].updateTex(topSecretTextures[SHHHHITSASECRET[i].secretCounter]);
+			SHHHHITSASECRET[i].shader.use();
+			SHHHHITSASECRET[i].shader.setFloat("fogDepth", fogDepth);
+			SHHHHITSASECRET[i].shader.setVec3("fogColor", fogColor);
+			SHHHHITSASECRET[i].Draw(playerCameras[pl].view, playerCameras[pl].projection, playerCameras[pl].camera_previous_position, targetRes);
 		}
 		glDepthMask(GL_TRUE);
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -805,6 +837,11 @@ void RenderingSystem::updateRenderer(vector<std::shared_ptr<CallbackInterface>> 
 
 	// Imgui Window
 	ImGui::Begin("Super Space Salvagers - Debug Menu");
+
+	ImGui::SliderFloat("Alien X", &testPos1, -350.f, -200.f);
+	ImGui::SliderFloat("Alien Y", &testPos2, 40.f, 50.f);
+	ImGui::SliderFloat("Alien Z", &testPos3, 150.f, 270.0f);
+	ImGui::SliderFloat("Alien Scale", &testSize, 1.f, 10.0f);
 
 	ImGui::Text("Audio");
 	if (ImGui::SliderFloat("Music Volume", &musicVolume, 0.0f, 3.0f)) {

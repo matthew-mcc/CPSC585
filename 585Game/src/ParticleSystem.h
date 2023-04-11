@@ -34,12 +34,14 @@ public:
     void updateTex(unsigned int tex);
     vec3 color, color2, color3;
     float size = 0.2f;
+    int secretCounter = 0;
+    float secretTimer = 0.f;
+    Shader shader;
 
 private:
     void initPS(Shader shader, unsigned int texture, unsigned int amount, float startingLife, float size, vec3 color, vec3 color2, vec3 color3, string mode);
     unsigned int firstUnusedParticle();
     std::vector<Particle> particles;
-    Shader shader;
     unsigned int texture;
     unsigned int amount;
     float startingLife;
