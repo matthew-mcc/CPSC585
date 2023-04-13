@@ -50,6 +50,13 @@ public:
 
 	int lastBeep = 0;
 
+	float musicVolume = 1.0f;
+	float playerTireVolume = 0.5f;
+	float playerEngineVolume = 0.5f;
+	float npcTireVolume = 1.0f;
+	float npcEngineVolume = 1.0f;
+	float honkVolume = 0.5f;
+
 private:
 	// Bank paths
 	std::string bankPathMaster = "assets/audio/Master.bank";

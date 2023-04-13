@@ -45,12 +45,13 @@ void AudioManager::Init(int vehicleCount) {
 }
 
 void AudioManager::StartEvents(int vehicleCount) {
-	//audioEngine.PlayEvent("SpaceMusic2");
+	audioEngine.PlayEvent("SpaceMusic2");
 	for (int i = 0; i < vehicleCount; i++) {
 		std::string vehicle = "vehicle_" + to_string(i);
 		audioEngine.PlayEvent(vehicle + "_tire");
 		audioEngine.PlayEvent(vehicle + "_engine");
 		audioEngine.PlayEvent(vehicle + "_boost");
+
 	}
 }
 
@@ -64,11 +65,19 @@ void AudioManager::Update(int numVehicles, bool inMenu) {
 			setVolume(vehicleName + "_boost", 0.f);
 			setVolume(vehicleName + "_honk", 0.f);
 		}
-		else {
-			setVolume(vehicleName + "_engine", 1.f);
-			setVolume(vehicleName + "_tire", 1.f);
-			setVolume(vehicleName + "_boost", 1.f);
-			setVolume(vehicleName + "_honk", 1.f);
+		else{
+			if (i == 0) {
+				setVolume(vehicleName + "_engine", playerEngineVolume);
+				setVolume(vehicleName + "_tire", playerTireVolume);
+				setVolume(vehicleName + "_boost", playerEngineVolume);
+				setVolume(vehicleName + "_honk", honkVolume);
+			}
+			else {
+				setVolume(vehicleName + "_engine", 1.f);
+				setVolume(vehicleName + "_tire", 1.f);
+				setVolume(vehicleName + "_boost", 1.f);
+				setVolume(vehicleName + "_honk", honkVolume);
+			}
 		}
 	}
 	audioEngine.Update();

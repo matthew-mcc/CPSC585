@@ -100,6 +100,8 @@ void RenderingSystem::initRenderer() {
 	resetCountdown3 = generateTexture("assets/textures/UI/resetting3.png", false);
 	timerAndScore = generateTexture("assets/textures/UI/timerAndScore.png", false);
 	ui_timer_box = generateTexture("assets/textures/UI/timerBox.png", false);
+	ui_timer_warning = generateTexture("assets/textures/UI/timerWarning.png", false);
+	ui_timer_final_warning = generateTexture("assets/textures/UI/timerFinalWarning.png", false);
 
 	// Only 2 exists atm, will need to be added later like the rest
 	ui_playercard.push_back(generateTexture("assets/textures/UI/playerCard1.png", false));
@@ -759,6 +761,22 @@ void RenderingSystem::updateRenderer(vector<std::shared_ptr<CallbackInterface>> 
 				timerColour,
 				textChars);
 
+
+			// 1 Minute Remaining Warning
+			if (timer->getCountdownMins() == 0 && timer->getCountdownSecs() <= 60 && timer->getCountdownSecs() > 55) {
+				drawUI(ui_timer_warning,
+					targetRes.x / 2 + xOffset - (180 * uiScale), targetRes.y + yOffset - (160 * uiScale),
+					targetRes.x / 2 + (180 * uiScale) + xOffset, targetRes.y + 4 * yOffset - (85 * uiScale), 1);
+			}
+			// 10 Second Warning
+			if (timer->getCountdownMins() == 0 && timer->getCountdownSecs() <= 10 && timer->getCountdownSecs() > 0) {
+				drawUI(ui_timer_final_warning,
+					targetRes.x / 2 + xOffset - (180 * uiScale), targetRes.y + yOffset - (160 * uiScale),
+					targetRes.x / 2 + (180 * uiScale) + xOffset, targetRes.y + 4 * yOffset - (85 * uiScale), 1);
+			}
+
+
+
 			// Scoreboard
 			vector<pair<int, int>> scoreboard;
 			for (int i = 0; i < gameState->numVehicles; i++) {
@@ -844,29 +862,34 @@ void RenderingSystem::updateRenderer(vector<std::shared_ptr<CallbackInterface>> 
 	ImGui::SliderFloat("Alien Scale", &testSize, 1.f, 10.0f);
 
 	ImGui::Text("Audio");
-	if (ImGui::SliderFloat("Music Volume", &musicVolume, 0.0f, 3.0f)) {
-		gameState->audio_ptr->setVolume("SpaceMusic2", musicVolume);
+	if (ImGui::SliderFloat("Music Volume", &gameState->audio_ptr->musicVolume, 0.0f, 3.0f)) {
+		gameState->audio_ptr->setVolume("SpaceMusic2", gameState->audio_ptr->musicVolume);
 	}
-
-	if (ImGui::SliderFloat("Player Engine Sounds", &playerEngineVolume, 0.0f, 2.0f)) {
-		gameState->audio_ptr->setVolume("vehicle_0_engine", playerEngineVolume);
+	if (ImGui::SliderFloat("Player Engine Sounds", &gameState->audio_ptr->playerEngineVolume, 0.0f, 2.0f)) {
+		gameState->audio_ptr->setVolume("vehicle_0_engine", gameState->audio_ptr->playerEngineVolume);
 	}
-	if (ImGui::SliderFloat("Player Tire Sounds", &playerTireVolume, 0.0f, 2.0f)) {
-		gameState->audio_ptr->setVolume("vehicle_0_tire", playerTireVolume);
+	if (ImGui::SliderFloat("Player Tire Sounds", &gameState->audio_ptr->playerTireVolume, 0.0f, 2.0f)) {
+		gameState->audio_ptr->setVolume("vehicle_0_tire", gameState->audio_ptr->playerTireVolume);
 	}
-
-	if (ImGui::SliderFloat("NPC Engine Sounds", &npcEngineVolume, 0.0f, 2.0f)) {
-		for (int i = 1; i < 4; i++) {
+	if (ImGui::SliderFloat("NPC Engine Sounds", &gameState->audio_ptr->npcEngineVolume, 0.0f, 2.0f)) {
+		for (int i = 1; i < gameState->numVehicles; i++) {
 			std::string vehicleName = "vehicle_";
 			vehicleName += to_string(i);
-			gameState->audio_ptr->setVolume(vehicleName + "_engine", npcEngineVolume);
+			gameState->audio_ptr->setVolume(vehicleName + "_engine", gameState->audio_ptr->npcEngineVolume);
 		}
 	}
-	if (ImGui::SliderFloat("NPC Tire Sounds", &npcTireVolume, 0.0f, 2.0f)) {
-		for (int i = 1; i < 4; i++) {
+	if (ImGui::SliderFloat("NPC Tire Sounds", &gameState->audio_ptr->npcTireVolume, 0.0f, 2.0f)) {
+		for (int i = 1; i < gameState->numVehicles; i++) {
 			std::string vehicleName = "vehicle_";
 			vehicleName += to_string(i);
-			gameState->audio_ptr->setVolume(vehicleName + "_tire", npcTireVolume);
+			gameState->audio_ptr->setVolume(vehicleName + "_tire", gameState->audio_ptr->npcTireVolume);
+		}
+	}
+	if (ImGui::SliderFloat("Honk Volume", &gameState->audio_ptr->honkVolume, 0.0f, 2.0f)) {
+		for (int i = 1; i < gameState->numVehicles; i++) {
+			std::string vehicleName = "vehicle_";
+			vehicleName += to_string(i);
+			gameState->audio_ptr->setVolume(vehicleName + "_honk", gameState->audio_ptr->honkVolume);
 		}
 	}
 
