@@ -62,6 +62,10 @@ int main() {
 			for (int i = 0; i < callback_ptrs.size(); i++) callback_ptrs[i]->XboxUpdate(xInput, length(gameState->findEntity("vehicle_" + to_string(i))->transform->getLinearVelocity()), gameState->gameEnded, i);
 		}
 
+		if (gameState->gameEnded && callback_ptrs[0]->backToMenu) {
+			audio.audioEngine.PlayEvent("SpaceMusic2");
+		}
+
 		// Update Audio Manager
 		audio.Update(gameState->numVehicles, gameState->inMenu);
 
@@ -81,7 +85,6 @@ int main() {
 			for (int i = 1; i < gameState->numPlayers; i++) callback_ptrs.push_back(processInput(renderer.window, timer));
 			isLoaded = true;
 		}
-
 	}
 	
 	// Terminate program
