@@ -766,13 +766,13 @@ void RenderingSystem::updateRenderer(vector<std::shared_ptr<CallbackInterface>> 
 			if (timer->getCountdownMins() == 0 && timer->getCountdownSecs() <= 60 && timer->getCountdownSecs() > 55) {
 				drawUI(ui_timer_warning,
 					targetRes.x / 2 + xOffset - (180 * uiScale), targetRes.y + yOffset - (160 * uiScale),
-					targetRes.x / 2 + (180 * uiScale) + xOffset, targetRes.y + 4 * yOffset - (85 * uiScale), 1);
+					targetRes.x / 2 + (180 * uiScale) + xOffset, targetRes.y + yOffset - (85 * uiScale), 1);
 			}
 			// 10 Second Warning
 			if (timer->getCountdownMins() == 0 && timer->getCountdownSecs() <= 10 && timer->getCountdownSecs() > 0) {
 				drawUI(ui_timer_final_warning,
 					targetRes.x / 2 + xOffset - (180 * uiScale), targetRes.y + yOffset - (160 * uiScale),
-					targetRes.x / 2 + (180 * uiScale) + xOffset, targetRes.y + 4 * yOffset - (85 * uiScale), 1);
+					targetRes.x / 2 + (180 * uiScale) + xOffset, targetRes.y + yOffset - (85 * uiScale), 1);
 			}
 
 
