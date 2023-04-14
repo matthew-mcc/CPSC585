@@ -949,6 +949,7 @@ void PhysicsSystem::stepPhysics(vector<shared_ptr<CallbackInterface>> callback_p
 			}
 
 			// Reset
+			
 			if (length(players[i]->transform->getLinearVelocity()) < 10.0f) {
 				if (players[i]->playerProperties->reset > players[i]->playerProperties->reset_max) {
 					if (vehicles.at(i)->attachedTrailers.size() > 0) {
@@ -1155,6 +1156,16 @@ void PhysicsSystem::AI_StateController(Vehicle* vehicle, PxReal timestep) {
 	Timer* timer = &Timer::Instance();
 	PxTransform vehicle_transform = vehicle->vehicle.mPhysXState.physxActor.rigidBody->getGlobalPose().getNormalized();
 	
+
+	//cout << vehicles.at(0)->vehicle.mPhysXState.physxActor.rigidBody->getGlobalPose().q. << endl;
+
+	/*PxTransform testTrans = vehicles.at(0)->vehicle.mPhysXState.physxActor.rigidBody->getGlobalPose();
+	PxVec3 up = testTrans.q.rotate(PxVec3(0, 1, 0));
+
+	if (up.y < 0) {
+		cout << "Upside down :*(" << endl;
+	}*/
+
 	AI_Stuck(vehicle);
 
 	
@@ -1185,19 +1196,35 @@ void PhysicsSystem::AI_StateController(Vehicle* vehicle, PxReal timestep) {
 
 	// AI Stuck somewhere
 	if (vehicle->AI_IsStuck) {
-		
+		PxTransform testTrans = vehicle->vehicle.mPhysXState.physxActor.rigidBody->getGlobalPose();
+		PxVec3 up = testTrans.q.rotate(PxVec3(0, 1, 0));
 
-		if (vehicle->AI_ReverseTimer < 0.25f) {
-			if (vehicle->vehicle.mPhysXState.physxActor.rigidBody->getLinearVelocity().magnitude() < 60.f) {
-				vehicle->vehicle.mPhysXState.physxActor.rigidBody->addForce(vehicle->vehicle.mPhysXState.physxActor.rigidBody->getGlobalPose().q.rotate(PxVec3(0, 0, -1)), PxForceMode().eVELOCITY_CHANGE);
-				vehicle->vehicle.mCommandState.steer = 1.f;
+		if (up.y < 0) {
+			if (vehicle->attachedTrailers.size() > 0) {
+				detachTrailer(vehicle->attachedTrailers.at(0), vehicle, NULL);
 			}
-			vehicle->AI_ReverseTimer += timer->getDeltaTime();
+			PxVec3 oldPos = vehicle->vehicle.mPhysXState.physxActor.rigidBody->getGlobalPose().p;
+			vehicle->vehicle.mPhysXState.physxActor.rigidBody->setGlobalPose(PxTransform(PxVec3(oldPos.x, 10.f, oldPos.z)));
+			vehicle->AI_IsStuck = false;
+			
 		}
 		else {
-			vehicle->AI_IsStuck = false;
-			vehicle->AI_ReverseTimer = 0.f;
+			if (vehicle->AI_ReverseTimer < 0.25f) {
+				if (vehicle->vehicle.mPhysXState.physxActor.rigidBody->getLinearVelocity().magnitude() < 60.f) {
+					vehicle->vehicle.mPhysXState.physxActor.rigidBody->addForce(vehicle->vehicle.mPhysXState.physxActor.rigidBody->getGlobalPose().q.rotate(PxVec3(0, 0, -1)), PxForceMode().eVELOCITY_CHANGE);
+					vehicle->vehicle.mCommandState.steer = 1.f;
+				}
+				vehicle->AI_ReverseTimer += timer->getDeltaTime();
+			}
+			else {
+				vehicle->AI_IsStuck = false;
+				vehicle->AI_ReverseTimer = 0.f;
+			}
 		}
+
+		
+
+		
 		
 	}
 	else {
