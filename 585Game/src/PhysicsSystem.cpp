@@ -1314,7 +1314,7 @@ void PhysicsSystem::AI_MoveTo(Vehicle* vehicle, PxVec3 destination) {
 
 	PxReal dotProductFront = delta_player.dot(vehicle->vehicle.mPhysXState.physxActor.rigidBody->getGlobalPose().q.rotate(PxVec3(0, 0, 1)));
 
-	if (distanceSq_player < 500.f && dotProductFront <= 0) {
+	if (distanceSq_player < 400.f && dotProductFront <= 0.5f && vehicle->attachedTrailers.size() > 0) {
 		AI_ApplyBoost(vehicle);
 	}
 	else {
@@ -1404,7 +1404,7 @@ void PhysicsSystem::AI_MoveTo(Vehicle* vehicle, PxVec3 destination) {
 			AI_ApplyBoost(vehicle);
 		}
 		
-		else if (distanceSq_player < 1000.f && dotProductFront <= 0) {
+		else if (distanceSq_player < 1000.f && dotProductFront <= 0.25) {
 			AI_ApplyBoost(vehicle);
 		}
 
@@ -1661,11 +1661,11 @@ void PhysicsSystem::AI_DetermineAttackPatterns(Vehicle* vehicle, Vehicle* target
 	float attackDistanceModifier = 0;
 	float attackAngleModifier = 0.f;
 	if (vehicle->AI_Personality == "Aggressive") {
-		attackDistanceModifier = 3000.f;
+		attackDistanceModifier = 3500.f;
 		attackAngleModifier = -0.5f;
 	}
 	if (vehicle->AI_Personality == "Default") {
-		attackDistanceModifier = 1500.f;
+		attackDistanceModifier = 2250.f;
 		attackAngleModifier = -0.3f;
 	}
 
@@ -1767,7 +1767,7 @@ void PhysicsSystem::AI_BumpPlayer(Vehicle* vehicle) {
 
 			// Calculate distance
 			PxReal distanceSq = delta.x * delta.x + delta.z * delta.z;
-			if (distanceSq < 500.f) {
+			if (distanceSq < 750.f) {
 				AI_ApplyBoost(vehicle);
 			}
 			else {
