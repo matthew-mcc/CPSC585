@@ -103,6 +103,23 @@ void RenderingSystem::initRenderer() {
 	ui_timer_warning = generateTexture("assets/textures/UI/timerWarning.png", false);
 	ui_timer_final_warning = generateTexture("assets/textures/UI/timerFinalWarning.png", false);
 
+	ingameMenu0 = generateTexture("assets/textures/UI/ingame_menu/escapeMenu0.png", false);
+	ingameMenu1 = generateTexture("assets/textures/UI/ingame_menu/escapeMenu1.png", false);
+	ingameMenu2 = generateTexture("assets/textures/UI/ingame_menu/escapeMenu2.png", false);
+	ingameMenu3 = generateTexture("assets/textures/UI/ingame_menu/escapeMenu3.png", false);
+	volume10 = generateTexture("assets/textures/UI/ingame_menu/10-0.png", false);
+	volume9 = generateTexture("assets/textures/UI/ingame_menu/9-1.png", false);
+	volume8 = generateTexture("assets/textures/UI/ingame_menu/8-2.png", false);
+	volume7 = generateTexture("assets/textures/UI/ingame_menu/7-3.png", false);
+	volume6 = generateTexture("assets/textures/UI/ingame_menu/6-4.png", false);
+	volume5 = generateTexture("assets/textures/UI/ingame_menu/5-5.png", false);
+	volume4 = generateTexture("assets/textures/UI/ingame_menu/4-6.png", false);
+	volume3 = generateTexture("assets/textures/UI/ingame_menu/3-7.png", false);
+	volume2 = generateTexture("assets/textures/UI/ingame_menu/2-8.png", false);
+	volume1 = generateTexture("assets/textures/UI/ingame_menu/1-9.png", false);
+	volume0 = generateTexture("assets/textures/UI/ingame_menu/0-10.png", false);
+
+
 	// Only 2 exists atm, will need to be added later like the rest
 	ui_playercard.push_back(generateTexture("assets/textures/UI/playerCard1.png", false));
 	ui_playercard.push_back(generateTexture("assets/textures/UI/playerCard2.png", false));
@@ -205,6 +222,23 @@ void RenderingSystem::updateRenderer(vector<std::shared_ptr<CallbackInterface>> 
 		gameState->inMenu = true;
 		gameState->gameEnded = false;
 	}
+
+	// In game escape menu
+	if (!gameState->inMenu && !gameState->gameEnded && callback_ptrs[0]->ingameMenu && !callback_ptrs[0]->ingameMenuChange) {
+		callback_ptrs[0]->ingameMenuChange = true;
+		gameState->ingameOptionIndex = 0;
+		gameState->inGameMenu = true;
+		
+	}
+	if (!gameState->inMenu && !gameState->gameEnded && !callback_ptrs[0]->ingameMenu) {
+		callback_ptrs[0]->ingameMenuChange = false;
+		gameState->ingameOptionIndex = 0;
+		gameState->inGameMenu = false;
+	}
+
+	//if (!gameState->gameEnded && !callback_ptrs[0]->ingameMenu) {
+		//gameState->inGameMenu = false;
+	//}
 
 	// MAIN MENU
 	if (gameState->inMenu) {
@@ -530,6 +564,162 @@ void RenderingSystem::updateRenderer(vector<std::shared_ptr<CallbackInterface>> 
 			vec3(0.94, 0.94f, 0.94f),
 			textChars);
 	}
+
+	// 
+	if (gameState->inGameMenu) {
+		// Resume
+		if (gameState->ingameOptionIndex == 0) {
+			drawUI(ingameMenu0, callback_ptrs[0]->xres / 2 - 340, callback_ptrs[0]->yres / 2 - 418, callback_ptrs[0]->xres / 2 + 340, callback_ptrs[0]->yres / 2 + 418, 2);
+		}
+		// SFX
+		if (gameState->ingameOptionIndex == 1) {
+			drawUI(ingameMenu1, callback_ptrs[0]->xres / 2 - 340, callback_ptrs[0]->yres / 2 - 418, callback_ptrs[0]->xres / 2 + 340, callback_ptrs[0]->yres / 2 + 418, 2);
+		}
+		// Music
+		if (gameState->ingameOptionIndex == 2) {
+			drawUI(ingameMenu2, callback_ptrs[0]->xres / 2 - 340, callback_ptrs[0]->yres / 2 - 418, callback_ptrs[0]->xres / 2 + 340, callback_ptrs[0]->yres / 2 + 418, 2);
+		}
+		// Quit
+		if (gameState->ingameOptionIndex == 3) {
+			drawUI(ingameMenu3, callback_ptrs[0]->xres / 2 - 340, callback_ptrs[0]->yres / 2 - 418, callback_ptrs[0]->xres / 2 + 340, callback_ptrs[0]->yres / 2 + 418, 2);
+		}
+
+
+		// So these use ranges instead of exact values since I ran into a bug with the volume being exactly at 0, leading to some sound
+		// In an abundance of caution, big ranges used
+		// Drawing SFX Volume Slider:
+		if (gameState->audio_ptr->SFXVolume < 0.1f) {
+			drawUI(volume0, callback_ptrs[0]->xres / 2 - 180, callback_ptrs[0]->yres / 2 + 75, callback_ptrs[0]->xres / 2 + 180, callback_ptrs[0]->yres / 2 + 115, 1);
+		}
+		if (gameState->audio_ptr->SFXVolume > 0.1f && gameState->audio_ptr->SFXVolume < 0.3f) {
+			drawUI(volume1, callback_ptrs[0]->xres / 2 - 180, callback_ptrs[0]->yres / 2 + 75, callback_ptrs[0]->xres / 2 + 180, callback_ptrs[0]->yres / 2 + 115, 1);
+		}
+		if (gameState->audio_ptr->SFXVolume > 0.3f && gameState->audio_ptr->SFXVolume < 0.5f) {
+			drawUI(volume2, callback_ptrs[0]->xres / 2 - 180, callback_ptrs[0]->yres / 2 + 75, callback_ptrs[0]->xres / 2 + 180, callback_ptrs[0]->yres / 2 + 115, 1);
+		}
+		if (gameState->audio_ptr->SFXVolume > 0.5f && gameState->audio_ptr->SFXVolume < 0.7f) {
+			drawUI(volume3, callback_ptrs[0]->xres / 2 - 180, callback_ptrs[0]->yres / 2 + 75, callback_ptrs[0]->xres / 2 + 180, callback_ptrs[0]->yres / 2 + 115, 1);
+		}
+		if (gameState->audio_ptr->SFXVolume > 0.7f && gameState->audio_ptr->SFXVolume < 0.9f) {
+			drawUI(volume4, callback_ptrs[0]->xres / 2 - 180, callback_ptrs[0]->yres / 2 + 75, callback_ptrs[0]->xres / 2 + 180, callback_ptrs[0]->yres / 2 + 115, 1);
+		}
+		if (gameState->audio_ptr->SFXVolume > 0.9f && gameState->audio_ptr->SFXVolume < 1.1f) {
+			drawUI(volume5, callback_ptrs[0]->xres / 2 - 180, callback_ptrs[0]->yres / 2 + 75, callback_ptrs[0]->xres / 2 + 180, callback_ptrs[0]->yres / 2 + 115, 1);
+		}
+		if (gameState->audio_ptr->SFXVolume > 1.1f && gameState->audio_ptr->SFXVolume < 1.3f) {
+			drawUI(volume6, callback_ptrs[0]->xres / 2 - 180, callback_ptrs[0]->yres / 2 + 75, callback_ptrs[0]->xres / 2 + 180, callback_ptrs[0]->yres / 2 + 115, 1);
+		}
+		if (gameState->audio_ptr->SFXVolume > 1.3f && gameState->audio_ptr->SFXVolume < 1.5f) {
+			drawUI(volume7, callback_ptrs[0]->xres / 2 - 180, callback_ptrs[0]->yres / 2 + 75, callback_ptrs[0]->xres / 2 + 180, callback_ptrs[0]->yres / 2 + 115, 1);
+		}
+		if (gameState->audio_ptr->SFXVolume > 1.5f && gameState->audio_ptr->SFXVolume < 1.7f) {
+			drawUI(volume8, callback_ptrs[0]->xres / 2 - 180, callback_ptrs[0]->yres / 2 + 75, callback_ptrs[0]->xres / 2 + 180, callback_ptrs[0]->yres / 2 + 115, 1);
+		}
+		if (gameState->audio_ptr->SFXVolume > 1.7f && gameState->audio_ptr->SFXVolume < 1.9f) {
+			drawUI(volume9, callback_ptrs[0]->xres / 2 - 180, callback_ptrs[0]->yres / 2 + 75, callback_ptrs[0]->xres / 2 + 180, callback_ptrs[0]->yres / 2 + 115, 1);
+		}
+		if (gameState->audio_ptr->SFXVolume > 1.9) {
+			drawUI(volume10, callback_ptrs[0]->xres / 2 - 180, callback_ptrs[0]->yres / 2 + 75, callback_ptrs[0]->xres / 2 + 180, callback_ptrs[0]->yres / 2 + 115, 1);
+		}
+
+		// Drawing Music Slider:
+		if (gameState->audio_ptr->musicVolume < 0.1f) {
+			drawUI(volume0, callback_ptrs[0]->xres / 2 - 180, callback_ptrs[0]->yres / 2 - 98, callback_ptrs[0]->xres / 2 + 180, callback_ptrs[0]->yres / 2 - 58, 1);
+		}
+		if (gameState->audio_ptr->musicVolume > 0.1f && gameState->audio_ptr->musicVolume < 0.3f) {
+			drawUI(volume1, callback_ptrs[0]->xres / 2 - 180, callback_ptrs[0]->yres / 2 - 98, callback_ptrs[0]->xres / 2 + 180, callback_ptrs[0]->yres / 2 - 58, 1);
+		}
+		if (gameState->audio_ptr->musicVolume > 0.3f && gameState->audio_ptr->musicVolume < 0.5f) {
+			drawUI(volume2, callback_ptrs[0]->xres / 2 - 180, callback_ptrs[0]->yres / 2 - 98, callback_ptrs[0]->xres / 2 + 180, callback_ptrs[0]->yres / 2 - 58, 1);
+		}
+		if (gameState->audio_ptr->musicVolume > 0.5f && gameState->audio_ptr->musicVolume < 0.7f) {
+			drawUI(volume3, callback_ptrs[0]->xres / 2 - 180, callback_ptrs[0]->yres / 2 - 98, callback_ptrs[0]->xres / 2 + 180, callback_ptrs[0]->yres / 2 - 58, 1);
+		}
+		if (gameState->audio_ptr->musicVolume > 0.7f && gameState->audio_ptr->musicVolume < 0.9f) {
+			drawUI(volume4, callback_ptrs[0]->xres / 2 - 180, callback_ptrs[0]->yres / 2 - 98, callback_ptrs[0]->xres / 2 + 180, callback_ptrs[0]->yres / 2 - 58, 1);
+		}
+		if (gameState->audio_ptr->musicVolume > 0.9f && gameState->audio_ptr->musicVolume < 1.1f) {
+			drawUI(volume5, callback_ptrs[0]->xres / 2 - 180, callback_ptrs[0]->yres / 2 - 98, callback_ptrs[0]->xres / 2 + 180, callback_ptrs[0]->yres / 2 - 58, 1);
+		}
+		if (gameState->audio_ptr->musicVolume > 1.1f && gameState->audio_ptr->musicVolume < 1.3f) {
+			drawUI(volume6, callback_ptrs[0]->xres / 2 - 180, callback_ptrs[0]->yres / 2 - 98, callback_ptrs[0]->xres / 2 + 180, callback_ptrs[0]->yres / 2 - 58, 1);
+		}
+		if (gameState->audio_ptr->musicVolume > 1.3f && gameState->audio_ptr->musicVolume < 1.5f) {
+			drawUI(volume7, callback_ptrs[0]->xres / 2 - 180, callback_ptrs[0]->yres / 2 - 98, callback_ptrs[0]->xres / 2 + 180, callback_ptrs[0]->yres / 2 - 58, 1);
+		}
+		if (gameState->audio_ptr->musicVolume > 1.5f && gameState->audio_ptr->musicVolume < 1.7f) {
+			drawUI(volume8, callback_ptrs[0]->xres / 2 - 180, callback_ptrs[0]->yres / 2 - 98, callback_ptrs[0]->xres / 2 + 180, callback_ptrs[0]->yres / 2 - 58, 1);
+		}
+		if (gameState->audio_ptr->musicVolume > 1.7f && gameState->audio_ptr->musicVolume < 1.9f) {
+			drawUI(volume9, callback_ptrs[0]->xres / 2 - 180, callback_ptrs[0]->yres / 2 - 98, callback_ptrs[0]->xres / 2 + 180, callback_ptrs[0]->yres / 2 - 58, 1);
+		}
+		if (gameState->audio_ptr->musicVolume > 1.9f) {
+			drawUI(volume10, callback_ptrs[0]->xres / 2 - 180, callback_ptrs[0]->yres / 2 - 98, callback_ptrs[0]->xres / 2 + 180, callback_ptrs[0]->yres / 2 - 58, 1);
+		}
+
+
+		/*
+		if (gameState->ingameOptionIndex == 0) {
+			drawUI(ingameMenuSelector, 
+				callback_ptrs[0]->xres / 2 - 245, callback_ptrs[0]->yres / 2 + 225, 
+				callback_ptrs[0]->xres / 2 + 245, callback_ptrs[0]->yres / 2 + 375, 2);
+		}
+		if (gameState->ingameOptionIndex == 1) {
+			drawUI(ingameMenuSelector, 
+				callback_ptrs[0]->xres / 2 - 245, callback_ptrs[0]->yres / 2 + 50,
+				callback_ptrs[0]->xres / 2 + 245, callback_ptrs[0]->yres / 2 + 200, 2);
+
+		}
+		if (gameState->ingameOptionIndex == 2) {
+			drawUI(ingameMenuSelector, 
+				callback_ptrs[0]->xres / 2 - 245, callback_ptrs[0]->yres / 2 - 125,
+				callback_ptrs[0]->xres / 2 + 245, callback_ptrs[0]->yres / 2 + 45, 2);
+		}
+		if (gameState->ingameOptionIndex == 3) {
+			drawUI(ingameMenuSelector, 
+				callback_ptrs[0]->xres / 2 - 245, callback_ptrs[0]->yres / 2 - 335,
+				callback_ptrs[0]->xres / 2 + 245, callback_ptrs[0]->yres / 2 - 225, 2);
+		}
+
+		*/
+
+
+		/*
+		string debugmenu = to_string(gameState->ingameOptionIndex);
+		if (gameState->ingameOptionIndex == 1) {
+			string debugVolume = to_string(gameState->audio_ptr->SFXVolume);
+
+			RenderText(textShader, textVAO, textVBO, debugVolume,
+				callback_ptrs[0]->xres / 2 + 400,
+				callback_ptrs[0]->yres / 2,
+				3.f,
+				vec3(0.94, 0.94f, 0.94f),
+				textChars);
+		}
+		if (gameState->ingameOptionIndex == 2) {
+			string debugVolume = to_string(gameState->audio_ptr->musicVolume);
+
+			RenderText(textShader, textVAO, textVBO, debugVolume,
+				callback_ptrs[0]->xres / 2 + 400,
+				callback_ptrs[0]->yres / 2,
+				3.f,
+				vec3(0.94, 0.94f, 0.94f),
+				textChars);
+		}
+		
+		
+		RenderText(textShader, textVAO, textVBO, debugmenu,
+			callback_ptrs[0]->xres / 2 - 400,
+			callback_ptrs[0]->yres / 2,
+			3.f,
+			vec3(0.94, 0.94f, 0.94f),
+			textChars);
+			*/
+
+	}
+
+
+
 
 	// Pre-Game Countdown
 	else if (timer->getCountdown() > timer->getStartTime()) {
@@ -863,6 +1053,7 @@ void RenderingSystem::updateRenderer(vector<std::shared_ptr<CallbackInterface>> 
 
 	ImGui::Text("Audio");
 	if (ImGui::SliderFloat("Music Volume", &gameState->audio_ptr->musicVolume, 0.0f, 3.0f)) {
+		gameState->audio_ptr->setVolume("SpaceIntro", gameState->audio_ptr->musicVolume);
 		gameState->audio_ptr->setVolume("SpaceMusic2", gameState->audio_ptr->musicVolume);
 	}
 	if (ImGui::SliderFloat("Player Engine Sounds", &gameState->audio_ptr->playerEngineVolume, 0.0f, 2.0f)) {

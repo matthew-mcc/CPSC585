@@ -32,11 +32,8 @@ void AudioManager::Init(int vehicleCount) {
 
 
 	// Load and play music!
-	//audioEngine.LoadSound("assets/audio/SpaceMusic2.wav", false, true, false);
-	//audioEngine.PlaySound("assets/audio/SpaceMusic2.wav", glm::vec3(0.0f), 1.0f);
-	audioEngine.LoadEventInstanced(spacemusic2GUID, "SpaceMusic2");
-	audioEngine.LoadEventInstanced(spaceintroGUID, "SpaceIntro");
-	//audioEngine.PlayEvent("SpaceMusic2");
+	audioEngine.LoadEventInstanced(spacemusic2GUID, SpaceMusic2);
+	audioEngine.LoadEventInstanced(spaceintroGUID, SpaceIntro);
 	audioEngine.PlayEvent("SpaceIntro");
 
 	// Updating some parameters
@@ -58,30 +55,41 @@ void AudioManager::StartEvents(int vehicleCount) {
 }
 
 void AudioManager::Update(int numVehicles, bool inMenu) {
-	for (int i = 0; i < numVehicles; i++) {
-		string vehicleName = "vehicle_";
-		vehicleName += to_string(i);
-		if (inMenu) {
+	if (inMenu) {
+		for (int i = 0; i < numVehicles; i++) {
+			string vehicleName = "vehicle_";
+			vehicleName += to_string(i);
+
+			if (SFXresume) {
+				SFXresume = false;
+			}
 			setVolume(vehicleName + "_engine", 0.f);
 			setVolume(vehicleName + "_tire", 0.f);
 			setVolume(vehicleName + "_boost", 0.f);
 			setVolume(vehicleName + "_honk", 0.f);
+
 		}
-		else{
+	}
+	else if (!SFXresume) {
+		for (int i = 0; i < numVehicles; i++) {
+			string vehicleName = "vehicle_";
+			vehicleName += to_string(i);
+			SFXresume = true;
 			if (i == 0) {
-				setVolume(vehicleName + "_engine", playerEngineVolume);
-				setVolume(vehicleName + "_tire", playerTireVolume);
-				setVolume(vehicleName + "_boost", playerEngineVolume);
-				setVolume(vehicleName + "_honk", honkVolume);
+				setVolume(vehicleName + "_engine", playerEngineVolume * SFXVolume);
+				setVolume(vehicleName + "_tire", playerTireVolume * SFXVolume);
+				setVolume(vehicleName + "_boost", playerEngineVolume * SFXVolume);
+				setVolume(vehicleName + "_honk", honkVolume * SFXVolume);
 			}
 			else {
-				setVolume(vehicleName + "_engine", 1.f);
-				setVolume(vehicleName + "_tire", 1.f);
-				setVolume(vehicleName + "_boost", 1.f);
-				setVolume(vehicleName + "_honk", honkVolume);
+				setVolume(vehicleName + "_engine", npcEngineVolume * SFXVolume);
+				setVolume(vehicleName + "_tire", npcTireVolume * SFXVolume);
+				setVolume(vehicleName + "_boost", npcEngineVolume * SFXVolume);
+				setVolume(vehicleName + "_honk", honkVolume * SFXVolume);
 			}
 		}
 	}
+
 	audioEngine.Update();
 }
 
@@ -103,7 +111,8 @@ void AudioManager::SFX(std::string eventName) {
 }
 
 void AudioManager::Latch(glm::vec3 pos) {
-	audioEngine.PlaySound("assets/audio/Latch1.wav", pos, 10.0f);
+	float vtodb = audioEngine.VolumeTodb(SFXVolume);
+	audioEngine.PlaySound("assets/audio/Latch1.wav", pos, 10.0f * vtodb);
 }
 
 // Does nothing atm
@@ -113,26 +122,27 @@ void AudioManager::LatchEvent(glm::vec3 pos) {
 
 void AudioManager::Dropoff() {
 	glm::vec3 dropoffPos = glm::vec3(1.0f, 0.5f, 33.0f);
-	//audioEngine.PlaySound("assets/audio/ping_placeholder.flac", dropoffPos, 10.0f);
 	audioEngine.PlayEvent(e_dropoff);
 }
 
 void AudioManager::Landing(glm::vec3 pos) {
-	audioEngine.PlaySound("assets/audio/Landing1.wav", pos, 15.0f);
+	float vtodb = audioEngine.VolumeTodb(SFXVolume);
+	audioEngine.PlaySound("assets/audio/Landing1.wav", pos, 15.0f * vtodb);
 }
 
 void AudioManager::CountdownBeep(int type, glm::vec3 pos) {
-	if (type == 0) audioEngine.PlaySound("assets/audio/Beep1.wav", pos, 15.0f);
-	if (type == 1) audioEngine.PlaySound("assets/audio/Beep2.wav", pos, 15.0f);
-	if (type == 2) audioEngine.PlaySound("assets/audio/Beep3.wav", pos, 15.0f);
-	if (type == 3) audioEngine.PlaySound("assets/audio/Beep4.wav", pos, 15.0f);
-	if (type == 4) audioEngine.PlaySound("assets/audio/Beep5.wav", pos, 15.0f);
+	float vtodb = audioEngine.VolumeTodb(SFXVolume);
+	if (type == 0) audioEngine.PlaySound("assets/audio/Beep1.wav", pos, 15.0f * vtodb);
+	if (type == 1) audioEngine.PlaySound("assets/audio/Beep2.wav", pos, 15.0f * vtodb);
+	if (type == 2) audioEngine.PlaySound("assets/audio/Beep3.wav", pos, 15.0f * vtodb);
+	if (type == 3) audioEngine.PlaySound("assets/audio/Beep4.wav", pos, 15.0f * vtodb);
+	if (type == 4) audioEngine.PlaySound("assets/audio/Beep5.wav", pos, 15.0f * vtodb);
 }
 
 void AudioManager::MenuClick(int type, glm::vec3 pos) {
-	if (type == 0) audioEngine.PlaySound("assets/audio/Click1.wav", pos);
-	if (type == 1) audioEngine.PlaySound("assets/audio/Click2.wav", pos);
-	if (type == 2) audioEngine.PlaySound("assets/audio/Click3.wav", pos);
+	if (type == 0) audioEngine.PlaySound("assets/audio/Click1.wav", pos, 1.0f);
+	if (type == 1) audioEngine.PlaySound("assets/audio/Click2.wav", pos, 1.0f);
+	if (type == 2) audioEngine.PlaySound("assets/audio/Click3.wav", pos, 1.0f);
 }
 
 
@@ -154,7 +164,6 @@ void AudioManager::UpdateTire(const std::string &strEventName, const glm::vec3 &
 }
 
 void AudioManager::UpdateBoost(const std::string& strEventName, const glm::vec3& pos, const glm::vec3& velocity, const glm::vec3& forward, const glm::vec3& up, float distance, float boost) {
-	
 	std::string soundName = strEventName + "_boost";
 	audioEngine.SetEvent3dAttributes(soundName, pos, velocity, forward, up);
 	audioEngine.SetEventParameter(soundName, "Boost", boost);
@@ -168,6 +177,27 @@ void AudioManager::UpdateEngine(const std::string& strEventName, const glm::vec3
 
 void AudioManager::setVolume(const std::string& strEventName, float db) {
 	audioEngine.SetEventVolume(strEventName, db);
+}
+
+
+void AudioManager::updateSFXVolume() {
+
+	audioEngine.SetEventVolume(SpaceMusic2, musicVolume);
+	/* 
+	// Very annoying that I should find that I can't access numVehicles here
+	for (int i = 1; i < gameState->numVehicles; i++) {
+		std::string vehicleName = "vehicle_";
+		vehicleName += to_string(i);
+		gameState->audio_ptr->setVolume(vehicleName + "_engine", gameState->audio_ptr->npcEngineVolume);
+	}
+	*/
+
+}
+
+void AudioManager::updateMusicVolume() {
+	audioEngine.SetEventVolume(SpaceMusic2, musicVolume);
+	audioEngine.SetEventVolume(SpaceIntro, musicVolume);
+
 }
 
 void AudioManager::hornhonk(const std::string& strEventName, const glm::vec3& pos, const glm::vec3& velocity, const glm::vec3& forward, const glm::vec3& up) {

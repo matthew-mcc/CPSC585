@@ -64,10 +64,12 @@ public:
 		// THROTTLE (W)
 		if (key == GLFW_KEY_W || key == GLFW_KEY_UP) {
 			if (action == GLFW_PRESS) {
+				navigateU = true;
 				throttle = 1.f;
 				keys_pressed++;
 			}
 			if (action == GLFW_RELEASE) {
+				navigateU = false;
 				throttle = 0.f;
 				keys_pressed--;
 			}
@@ -76,11 +78,13 @@ public:
 		// BRAKE (S)
 		if (key == GLFW_KEY_S || key == GLFW_KEY_DOWN) {
 			if (action == GLFW_PRESS) {
+				navigateD = true;
 				reverse = 1.f;
 				brake = 1.f;
 				keys_pressed++;
 			}
 			if (action == GLFW_RELEASE) {
+				navigateD = false;
 				reverse = 0.f;
 				brake = 0.f;
 				keys_pressed--;
@@ -237,10 +241,14 @@ public:
 				if (gameEnded) {
 					backToMenu = true;
 				}
+				if (!gameEnded) {
+					ingameMenu = !ingameMenu;
+				}
 				keys_pressed++;
 			}
 			if (action == GLFW_RELEASE){
 				backToMenu = false;
+				//ingameMenu = false;
 				keys_pressed--;
 			}
 		}

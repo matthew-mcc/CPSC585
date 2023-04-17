@@ -17,6 +17,7 @@ public:
 	void endGame();
 	void resetGameState(AudioManager* audio);
 	void menuEventHandler(vector<std::shared_ptr<CallbackInterface>> cbps);
+	void ingameMenuEventHandler(vector<std::shared_ptr<CallbackInterface>> cbps);
 
 	// Entity Tracking
 	vector<Entity> entityList;
@@ -32,6 +33,12 @@ public:
 	int playerSelectIndex = 2;
 	int menuOptionIndex = 0;
 	int nbMenuOptions = 4;
+
+	bool inGameMenu = false;
+	int ingameOptionIndex = 0;
+	int nbIngameOptions = 4;
+	bool sfxChange = false;
+	bool musicChange = false;
 
 	// Game Parameters
 	int numPlayers = 1;

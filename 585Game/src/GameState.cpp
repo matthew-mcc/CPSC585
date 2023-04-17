@@ -292,3 +292,130 @@ void GameState::menuEventHandler(vector<std::shared_ptr<CallbackInterface>> cbps
 		}
 	}
 }
+
+
+void GameState::ingameMenuEventHandler(vector<std::shared_ptr<CallbackInterface>> cbps) {
+	// Toggled when in a game and player 1 hits escape
+	if (inGameMenu) {
+		// Resume
+		if (ingameOptionIndex == 0) {
+			if (cbps[0]->navigateD) {
+				cbps[0]->navigateD = false;
+				ingameOptionIndex++;
+			}
+			if (cbps[0]->menuConfirm) {
+				audio_ptr->MenuClick(0, listener_position);
+				cbps[0]->ingameMenu = false;
+				inGameMenu = false;
+			}
+		}
+
+		// Volume - SFX
+		if (ingameOptionIndex == 1) {
+			if (cbps[0]->navigateU) {
+				cbps[0]->navigateU = false;
+				ingameOptionIndex--;
+			}
+			if (cbps[0]->navigateD) {
+				cbps[0]->navigateD = false;
+				ingameOptionIndex++;
+			}
+			// Increasing volume
+			if (cbps[0]->navigateR) {
+				sfxChange = true;
+				cbps[0]->navigateR = false;
+				if (audio_ptr->SFXVolume < audio_ptr->maxVolume) {
+					audio_ptr->SFXVolume += 0.2f;
+				}
+			}
+			// Decreasing volume
+			if (cbps[0]->navigateL) {
+				sfxChange = true;
+				cbps[0]->navigateL = false;
+				if (audio_ptr->SFXVolume > 0.0f) {
+					if (audio_ptr->SFXVolume < 0.1f) {
+						audio_ptr->SFXVolume = 0.0f;	// If this isn't here, it might not be at exactly 0, leading to some sound
+					}
+					audio_ptr->SFXVolume -= 0.2f;
+				}
+			}
+		}
+
+		// Volume - Music
+		if (ingameOptionIndex == 2) {
+			if (cbps[0]->navigateU) {
+				cbps[0]->navigateU = false;
+				ingameOptionIndex--;
+			}
+			if (cbps[0]->navigateD) {
+				cbps[0]->navigateD = false;
+				ingameOptionIndex++;
+			}
+			// Increasing music volume
+			if (cbps[0]->navigateR) {
+				musicChange = true;
+				cbps[0]->navigateR = false;
+				if (audio_ptr->musicVolume < audio_ptr->maxVolume) {
+					audio_ptr->musicVolume = audio_ptr->musicVolume + 0.2f;
+				}
+			}
+			// Decreasing music volume
+			if (cbps[0]->navigateL) {
+				musicChange = true;
+				cbps[0]->navigateL = false;
+				if (audio_ptr->musicVolume > 0.0f) {
+					if (audio_ptr->musicVolume < 0.1f) {
+						audio_ptr->musicVolume = 0.0f;
+					}
+					else {
+						audio_ptr->musicVolume -= 0.2f;
+					}
+				}
+			}
+		}
+
+
+		// Quit Button
+		if (ingameOptionIndex == 3) {
+			if (cbps[0]->navigateU) {
+				cbps[0]->navigateU = false;
+				ingameOptionIndex--;
+			}
+
+			// Help me, Peter!
+			if (cbps[0]->menuConfirm) {
+				cbps[0]->menuConfirm = false;
+				audio_ptr->MenuClick(0, listener_position);
+				cbps[0]->ingameMenu = false;
+				gameEnded = false;
+				inGameMenu = false;
+				inMenu = true;
+			}
+		}
+
+		// Apply changes to volume
+		if (sfxChange) {
+			std::cout << "SFX: " << to_string(audio_ptr->SFXVolume) << std::endl;
+			sfxChange = false;
+			audio_ptr->setVolume(audio_ptr->e_dropoff, audio_ptr->SFXVolume);
+			audio_ptr->setVolume("vehicle_0_engine", audio_ptr->playerEngineVolume * audio_ptr->SFXVolume);
+			audio_ptr->setVolume("vehicle_0_tire", audio_ptr->playerTireVolume * audio_ptr->SFXVolume);
+			audio_ptr->setVolume("vehicle_0_honk", audio_ptr->honkVolume * audio_ptr->SFXVolume);
+
+			for (int i = 1; i <numVehicles; i++) {
+				std::string vehicleName = "vehicle_";
+				vehicleName += to_string(i);
+				audio_ptr->setVolume(vehicleName + "_engine", audio_ptr->npcEngineVolume * audio_ptr->SFXVolume);
+				audio_ptr->setVolume(vehicleName + "_tire", audio_ptr->npcTireVolume * audio_ptr->SFXVolume);
+				audio_ptr->setVolume(vehicleName + "_honk", audio_ptr->honkVolume * audio_ptr->SFXVolume);
+			}
+		}
+
+		if (musicChange) {
+			std::cout << "Music: " << to_string(audio_ptr->musicVolume) << std::endl;
+			musicChange = false;
+			audio_ptr->setVolume("SpaceIntro", audio_ptr->musicVolume);
+			audio_ptr->setVolume("SpaceMusic2", audio_ptr->musicVolume);
+		}
+	}
+}

@@ -105,6 +105,26 @@ private:
 	unsigned int menuPlayerSelect3;
 	unsigned int menuPlayerSelect4;
 	unsigned int menuPlayerSelectBack;
+
+	unsigned int ingameMenu0;
+	unsigned int ingameMenu1;
+	unsigned int ingameMenu2;
+	unsigned int ingameMenu3;
+
+
+	unsigned int volume10;
+	unsigned int volume9;
+	unsigned int volume8;
+	unsigned int volume7;
+	unsigned int volume6;
+	unsigned int volume5;
+	unsigned int volume4;
+	unsigned int volume3;
+	unsigned int volume2;
+	unsigned int volume1;
+	unsigned int volume0;
+
+
 	unsigned int startCountdown5;
 	unsigned int startCountdown4;
 	unsigned int startCountdown3;
@@ -117,6 +137,8 @@ private:
 	unsigned int ui_timer_box;
 	unsigned int ui_timer_warning;
 	unsigned int ui_timer_final_warning;
+
+
 
 
 	std::vector<unsigned int> ui_player_tracker;

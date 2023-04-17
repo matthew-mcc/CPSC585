@@ -44,20 +44,26 @@ public:
 	void hornhonk(const std::string& strEventName, const glm::vec3& pos, const glm::vec3& velocity, const glm::vec3& forward, const glm::vec3& up);
 
 	void setVolume(const std::string& strEventName, float db);
+	void updateSFXVolume();
+	void updateMusicVolume();
 
 	CAudioEngine audioEngine;
 	CAudioEngine* audioEnginePtr;
 
 	int lastBeep = 0;
-
+	bool SFXresume = true;
+	float SFXVolume = 1.0f;
 	float musicVolume = 1.0f;
+	float SFXdb = 0.0f;
+	float musicdb = 0.0f;
+	float maxVolume = 2.0f;
 	float playerTireVolume = 0.5f;
 	float playerEngineVolume = 0.5f;
 	float npcTireVolume = 1.0f;
 	float npcEngineVolume = 1.0f;
 	float honkVolume = 0.5f;
 
-private:
+
 	// Bank paths
 	std::string bankPathMaster = "assets/audio/Master.bank";
 	std::string bank_path_actions = "assets/audio/Actions.bank";

@@ -19,26 +19,26 @@ int PlayerProperties::getScore() {
 
 // Takes all player vehicle input from callbacks and updates player properties variables
 void PlayerProperties::updateCallbacks(std::shared_ptr<CallbackInterface> callback_ptr) {
+	if(!callback_ptr->ingameMenu){
+		brake = callback_ptr->brake;
+		reverse = callback_ptr->reverse;
+		throttle = callback_ptr->throttle;
+		steer = callback_ptr->steer;
 
-	brake = callback_ptr->brake;
-	reverse = callback_ptr->reverse;
-	throttle = callback_ptr->throttle;
-	steer = callback_ptr->steer;
+		AirPitch = callback_ptr->AirPitch;
+		AirRoll = callback_ptr->AirRoll;
 
-	AirPitch = callback_ptr->AirPitch;
-	AirRoll = callback_ptr->AirRoll;
+		addTrailer = callback_ptr->addTrailer;
+		boost_status_cb = callback_ptr->boosterrrrr;
 
-	addTrailer = callback_ptr->addTrailer;
-
-	boost_status_cb = callback_ptr->boosterrrrr;
-
-	if (callback_ptr->reset == 0.f) {
-		reset = 0.f;
+		if (callback_ptr->reset == 0.f) {
+			reset = 0.f;
+		}
+		else {
+			reset += callback_ptr->reset;
+		}
+		updateBoost();
 	}
-	else {
-		reset += callback_ptr->reset;
-	}
-	updateBoost();
 }
 
 // Boosting, how works? 

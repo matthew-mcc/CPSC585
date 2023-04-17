@@ -62,10 +62,15 @@ int main() {
 			for (int i = 0; i < callback_ptrs.size(); i++) callback_ptrs[i]->XboxUpdate(xInput, length(gameState->findEntity("vehicle_" + to_string(i))->transform->getLinearVelocity()), gameState->gameEnded, i);
 		}
 
+		if (gameState->inGameMenu) {
+			gameState->ingameMenuEventHandler(callback_ptrs);
+		}
+
 		if (gameState->gameEnded && callback_ptrs[0]->backToMenu) {
 			audio.audioEngine.StopEvent("SpaceMusic2");
 			audio.audioEngine.PlayEvent("SpaceIntro");
 		}
+
 
 		// Update Audio Manager
 		audio.Update(gameState->numVehicles, gameState->inMenu);

@@ -92,12 +92,19 @@ public:
 	// Main Menu
 	bool menuConfirm = false;
 	bool menuConfirmHold = false;
+	bool navigateU = false;
+	bool navigateUHold = false;
+	bool navigateD = false;
+	bool navigateDHold = false;
 	bool navigateR = false;
 	bool navigateRHold = false;
 	bool navigateL = false;
 	bool navigateLHold = false;
 	bool backToMenu = false;
 	bool gameEnded = false;
+
+	bool ingameMenu = false;
+	bool ingameMenuChange = false;
 
 	// Vehicle Control Inputs
 	int keys_pressed = 0;
