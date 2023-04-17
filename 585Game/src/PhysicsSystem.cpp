@@ -895,7 +895,7 @@ void PhysicsSystem::stepPhysics(vector<shared_ptr<CallbackInterface>> callback_p
 		}
 
 		// PLAYER VEHICLE INPUT
-		if (i < gameState->numPlayers) {
+		if (i < gameState->numPlayers && !gameState->inGameMenu) {
 			// On Ground
 			if (gScene->raycast(vehicle_transform.p, vehicle_transform.rotate(PxVec3(0.f, -1.f, 0.f)), 0.7f, AircontrolBuffer) 
 				&& AircontrolBuffer.block.shape->getSimulationFilterData().word0 == COLLISION_FLAG_GROUND){
@@ -949,7 +949,6 @@ void PhysicsSystem::stepPhysics(vector<shared_ptr<CallbackInterface>> callback_p
 			}
 
 			// Reset
-			
 			if (length(players[i]->transform->getLinearVelocity()) < 10.0f) {
 				if (players[i]->playerProperties->reset > players[i]->playerProperties->reset_max) {
 					if (vehicles.at(i)->attachedTrailers.size() > 0) {
