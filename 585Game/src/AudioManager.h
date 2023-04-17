@@ -64,7 +64,9 @@ private:
 
 	// Event GUID's
 	std::string spacemusic2GUID = "{912a0889-5a99-4ce0-9a7c-2076275b812a}";
+	std::string spaceintroGUID = "{91e50eb1-26b3-4742-a562-8d6f8a0613c2}";
 	std::string SpaceMusic2 = "SpaceMusic2";
+	std::string SpaceIntro = "SpaceIntro";
 	std::string e_pod_pickup = "{18b007c8-1f2c-4417-90bb-989e3419b7f9}";
 	std::string e_dropoff = "{8152d370-812b-42ff-8376-d6cf870fa7b0}";
 	//std::string e_dropoff_path = "event: / sfx / dropoff";

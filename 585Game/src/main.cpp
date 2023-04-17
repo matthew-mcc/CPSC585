@@ -63,7 +63,8 @@ int main() {
 		}
 
 		if (gameState->gameEnded && callback_ptrs[0]->backToMenu) {
-			audio.audioEngine.PlayEvent("SpaceMusic2");
+			audio.audioEngine.StopEvent("SpaceMusic2");
+			audio.audioEngine.PlayEvent("SpaceIntro");
 		}
 
 		// Update Audio Manager

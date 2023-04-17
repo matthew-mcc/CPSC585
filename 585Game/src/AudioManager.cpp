@@ -34,8 +34,10 @@ void AudioManager::Init(int vehicleCount) {
 	// Load and play music!
 	//audioEngine.LoadSound("assets/audio/SpaceMusic2.wav", false, true, false);
 	//audioEngine.PlaySound("assets/audio/SpaceMusic2.wav", glm::vec3(0.0f), 1.0f);
-	audioEngine.LoadEventInstanced(spacemusic2GUID, SpaceMusic2);
-	audioEngine.PlayEvent("SpaceMusic2");
+	audioEngine.LoadEventInstanced(spacemusic2GUID, "SpaceMusic2");
+	audioEngine.LoadEventInstanced(spaceintroGUID, "SpaceIntro");
+	//audioEngine.PlayEvent("SpaceMusic2");
+	audioEngine.PlayEvent("SpaceIntro");
 
 	// Updating some parameters
 	// Debug and because it's annoying - ImGui will set it on change
@@ -45,13 +47,13 @@ void AudioManager::Init(int vehicleCount) {
 }
 
 void AudioManager::StartEvents(int vehicleCount) {
+	audioEngine.StopEvent("SpaceIntro");
 	audioEngine.PlayEvent("SpaceMusic2");
 	for (int i = 0; i < vehicleCount; i++) {
 		std::string vehicle = "vehicle_" + to_string(i);
 		audioEngine.PlayEvent(vehicle + "_tire");
 		audioEngine.PlayEvent(vehicle + "_engine");
 		audioEngine.PlayEvent(vehicle + "_boost");
-
 	}
 }
 
