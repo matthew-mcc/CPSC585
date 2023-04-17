@@ -113,8 +113,8 @@ void AudioManager::SFX(std::string eventName) {
 }
 
 void AudioManager::Latch(glm::vec3 pos) {
-	float vtodb = audioEngine.VolumeTodb(SFXVolume);
-	audioEngine.PlaySound("assets/audio/Latch1.wav", pos, 10.0f * vtodb);
+	//float vtodb = audioEngine.VolumeTodb(SFXVolume);
+	audioEngine.PlaySound("assets/audio/Latch1.wav", pos, 10.0f * SFXVolume);
 }
 
 // Does nothing atm
@@ -128,8 +128,8 @@ void AudioManager::Dropoff() {
 }
 
 void AudioManager::Landing(glm::vec3 pos) {
-	float vtodb = audioEngine.VolumeTodb(SFXVolume);
-	audioEngine.PlaySound("assets/audio/Landing1.wav", pos, 15.0f * vtodb);
+	//float vtodb = audioEngine.VolumeTodb(SFXVolume);
+	audioEngine.PlaySound("assets/audio/Landing1.wav", pos, 15.0f * SFXVolume);
 }
 
 void AudioManager::CountdownBeep(int type, glm::vec3 pos) {
@@ -185,15 +185,6 @@ void AudioManager::setVolume(const std::string& strEventName, float db) {
 void AudioManager::updateSFXVolume() {
 
 	audioEngine.SetEventVolume(SpaceMusic2, musicVolume);
-	/* 
-	// Very annoying that I should find that I can't access numVehicles here
-	for (int i = 1; i < gameState->numVehicles; i++) {
-		std::string vehicleName = "vehicle_";
-		vehicleName += to_string(i);
-		gameState->audio_ptr->setVolume(vehicleName + "_engine", gameState->audio_ptr->npcEngineVolume);
-	}
-	*/
-
 }
 
 void AudioManager::updateMusicVolume() {
