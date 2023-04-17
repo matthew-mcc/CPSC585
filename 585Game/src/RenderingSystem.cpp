@@ -921,7 +921,7 @@ void RenderingSystem::updateRenderer(vector<std::shared_ptr<CallbackInterface>> 
 			// Create Formatted Time String
 			string timerMins = std::to_string(abs(timer->getCountdownMins()));
 			string timerSeconds = std::to_string(abs(timer->getCountdownSecs()));
-			string overtime = "Overtime: ";
+			string overtime = "OT: ";
 			string zero = "0";
 			vec3 timerColour = vec3(0.93f);
 			float timer_xoffset = targetRes.x / 2.f - (10.f * uiScale);
@@ -930,10 +930,11 @@ void RenderingSystem::updateRenderer(vector<std::shared_ptr<CallbackInterface>> 
 			if (timerSeconds.size() < 2) {
 				timerSeconds.insert(0, zero);
 			}
-			if (timer->getCountdown() < 0) {
-				timerMins.insert(0, overtime);
-				timer_xoffset = targetRes.x / 2.f - (100.f * uiScale);
-			}
+			// Due to not fitting in the timer box, took out the extra text and offset
+			//if (timer->getCountdown() < 0) {
+			//	timerMins.insert(0, overtime);
+			//	timer_xoffset = targetRes.x / 2.f - (100.f * uiScale);
+			//}
 
 			// Timer Box
 			drawUI(ui_timer_box, 
@@ -953,7 +954,7 @@ void RenderingSystem::updateRenderer(vector<std::shared_ptr<CallbackInterface>> 
 
 
 			// 1 Minute Remaining Warning
-			if (timer->getCountdownMins() == 0 && timer->getCountdownSecs() <= 60 && timer->getCountdownSecs() > 55) {
+			if (timer->getCountdownMins() == 0 && timer->getCountdownSecs() <= 60 && timer->getCountdownSecs() > 50) {
 				drawUI(ui_timer_warning,
 					targetRes.x / 2 + xOffset - (180 * uiScale), targetRes.y + yOffset - (160 * uiScale),
 					targetRes.x / 2 + (180 * uiScale) + xOffset, targetRes.y + yOffset - (85 * uiScale), 1);
