@@ -1132,8 +1132,8 @@ void RenderingSystem::updateRenderer(vector<std::shared_ptr<CallbackInterface>> 
 
 
 	ImGui::End();
-	ImGui::Render();
-	ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+	//ImGui::Render();
+	//ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
 	// PREPARE FOR NEXT FRAME
 		// Swap buffers, poll events
