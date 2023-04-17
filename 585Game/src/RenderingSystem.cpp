@@ -301,14 +301,12 @@ void RenderingSystem::updateRenderer(vector<std::shared_ptr<CallbackInterface>> 
 
 	// CAMERA POSITION / LAG
 	// Retrieve player direction vectors
-	if (!gameState->inGameMenu) {
-		for (int i = playerEntities.size(); i < numPlayers && playerEntities.size() < numPlayers; i++) {
-			playerEntities.push_back(gameState->findEntity("vehicle_" + to_string(i)));
-			playerCameras.push_back(Camera(playerEntities[i], i));
-		}
-		for (int i = 0; i < numPlayers; i++) {
-			playerCameras[i].updateCamera((float)timer->getDeltaTime(), callback_ptrs[i], gameState->numPlayers);
-		}
+	for (int i = playerEntities.size(); i < numPlayers && playerEntities.size() < numPlayers; i++) {
+		playerEntities.push_back(gameState->findEntity("vehicle_" + to_string(i)));
+		playerCameras.push_back(Camera(playerEntities[i], i));
+	}
+	for (int i = 0; i < numPlayers; i++) {
+		playerCameras[i].updateCamera((float)timer->getDeltaTime(), callback_ptrs[i], gameState->numPlayers);
 	}
 
 	// MESH ANIMATIONS
