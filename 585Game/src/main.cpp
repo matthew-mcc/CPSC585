@@ -37,7 +37,7 @@ int main() {
 	// PRIMARY GAME LOOP
 	while (!glfwWindowShouldClose(renderer.window) && !gameState->quit) {
 		// Loaded and not in menu (regular gameplay)
-		if (isLoaded && !gameState->inMenu) {
+		if (isLoaded && !gameState->inMenu && !gameState->inGameMenu) {
 			// Update Timer
 			timer->update();
 

@@ -100,10 +100,12 @@ public:
 	bool navigateRHold = false;
 	bool navigateL = false;
 	bool navigateLHold = false;
+
 	bool backToMenu = false;
 	bool gameEnded = false;
 
 	bool ingameMenu = false;
+	bool ingameMenuHold = false;
 	bool ingameMenuChange = false;
 
 	// Vehicle Control Inputs
@@ -278,6 +280,47 @@ public:
 			else {
 				navigateR = false;
 				navigateRHold = false;
+			}
+
+			// Menu Navigate Up
+			if (x.data[cNum].UP) {
+				if (navigateUHold) {
+					navigateU = false;
+				}
+				else {
+					navigateU = true;
+					navigateUHold = true;
+				}
+			}
+			else {
+				navigateU = false;
+				navigateUHold = false;
+			}
+
+			// Menu Navigate Down
+			if (x.data[cNum].DOWN) {
+				if (navigateDHold) {
+					navigateD = false;
+				}
+				else {
+					navigateD = true;
+					navigateDHold = true;
+				}
+			}
+			else {
+				navigateD = false;
+				navigateDHold = false;
+			}
+
+			// Open Game Menu
+			if (x.data[cNum].START) {
+				if (!ingameMenuHold) {
+					ingameMenu = !ingameMenu;
+					ingameMenuHold = true;
+				}
+			}
+			else {
+				ingameMenuHold = false;
 			}
 		}
 	}
