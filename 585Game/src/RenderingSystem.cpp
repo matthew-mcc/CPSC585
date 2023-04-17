@@ -587,72 +587,72 @@ void RenderingSystem::updateRenderer(vector<std::shared_ptr<CallbackInterface>> 
 		// So these use ranges instead of exact values since I ran into a bug with the volume being exactly at 0, leading to some sound
 		// In an abundance of caution, big ranges used
 		// Drawing SFX Volume Slider:
-		if (gameState->audio_ptr->SFXVolume < 0.1f) {
+		if (gameState->audio_ptr->SFXVolume < 0.09f) {
 			drawUI(volume0, callback_ptrs[0]->xres / 2 - 180, callback_ptrs[0]->yres / 2 + 75, callback_ptrs[0]->xres / 2 + 180, callback_ptrs[0]->yres / 2 + 115, 1);
 		}
-		if (gameState->audio_ptr->SFXVolume > 0.1f && gameState->audio_ptr->SFXVolume < 0.3f) {
+		if (gameState->audio_ptr->SFXVolume >= 0.09f && gameState->audio_ptr->SFXVolume <= 0.11f) {
 			drawUI(volume1, callback_ptrs[0]->xres / 2 - 180, callback_ptrs[0]->yres / 2 + 75, callback_ptrs[0]->xres / 2 + 180, callback_ptrs[0]->yres / 2 + 115, 1);
 		}
-		if (gameState->audio_ptr->SFXVolume > 0.3f && gameState->audio_ptr->SFXVolume < 0.5f) {
+		if (gameState->audio_ptr->SFXVolume >= 0.19f && gameState->audio_ptr->SFXVolume <= 0.21f) {
 			drawUI(volume2, callback_ptrs[0]->xres / 2 - 180, callback_ptrs[0]->yres / 2 + 75, callback_ptrs[0]->xres / 2 + 180, callback_ptrs[0]->yres / 2 + 115, 1);
 		}
-		if (gameState->audio_ptr->SFXVolume > 0.5f && gameState->audio_ptr->SFXVolume < 0.7f) {
+		if (gameState->audio_ptr->SFXVolume >= 0.29f && gameState->audio_ptr->SFXVolume <= 0.31f) {
 			drawUI(volume3, callback_ptrs[0]->xres / 2 - 180, callback_ptrs[0]->yres / 2 + 75, callback_ptrs[0]->xres / 2 + 180, callback_ptrs[0]->yres / 2 + 115, 1);
 		}
-		if (gameState->audio_ptr->SFXVolume > 0.7f && gameState->audio_ptr->SFXVolume < 0.9f) {
+		if (gameState->audio_ptr->SFXVolume >= 0.39f && gameState->audio_ptr->SFXVolume <= 0.41f) {
 			drawUI(volume4, callback_ptrs[0]->xres / 2 - 180, callback_ptrs[0]->yres / 2 + 75, callback_ptrs[0]->xres / 2 + 180, callback_ptrs[0]->yres / 2 + 115, 1);
 		}
-		if (gameState->audio_ptr->SFXVolume > 0.9f && gameState->audio_ptr->SFXVolume < 1.1f) {
+		if (gameState->audio_ptr->SFXVolume >= 0.49f && gameState->audio_ptr->SFXVolume <= 0.51f) {
 			drawUI(volume5, callback_ptrs[0]->xres / 2 - 180, callback_ptrs[0]->yres / 2 + 75, callback_ptrs[0]->xres / 2 + 180, callback_ptrs[0]->yres / 2 + 115, 1);
 		}
-		if (gameState->audio_ptr->SFXVolume > 1.1f && gameState->audio_ptr->SFXVolume < 1.3f) {
+		if (gameState->audio_ptr->SFXVolume >= 0.59f && gameState->audio_ptr->SFXVolume <= 0.61f) {
 			drawUI(volume6, callback_ptrs[0]->xres / 2 - 180, callback_ptrs[0]->yres / 2 + 75, callback_ptrs[0]->xres / 2 + 180, callback_ptrs[0]->yres / 2 + 115, 1);
 		}
-		if (gameState->audio_ptr->SFXVolume > 1.3f && gameState->audio_ptr->SFXVolume < 1.5f) {
+		if (gameState->audio_ptr->SFXVolume >= 0.69f && gameState->audio_ptr->SFXVolume <= 0.71f) {
 			drawUI(volume7, callback_ptrs[0]->xres / 2 - 180, callback_ptrs[0]->yres / 2 + 75, callback_ptrs[0]->xres / 2 + 180, callback_ptrs[0]->yres / 2 + 115, 1);
 		}
-		if (gameState->audio_ptr->SFXVolume > 1.5f && gameState->audio_ptr->SFXVolume < 1.7f) {
+		if (gameState->audio_ptr->SFXVolume >= 0.79f && gameState->audio_ptr->SFXVolume <= 0.81f) {
 			drawUI(volume8, callback_ptrs[0]->xres / 2 - 180, callback_ptrs[0]->yres / 2 + 75, callback_ptrs[0]->xres / 2 + 180, callback_ptrs[0]->yres / 2 + 115, 1);
 		}
-		if (gameState->audio_ptr->SFXVolume > 1.7f && gameState->audio_ptr->SFXVolume < 1.9f) {
+		if (gameState->audio_ptr->SFXVolume >= 0.89f && gameState->audio_ptr->SFXVolume <= 0.91f) {
 			drawUI(volume9, callback_ptrs[0]->xres / 2 - 180, callback_ptrs[0]->yres / 2 + 75, callback_ptrs[0]->xres / 2 + 180, callback_ptrs[0]->yres / 2 + 115, 1);
 		}
-		if (gameState->audio_ptr->SFXVolume > 1.9) {
+		if (gameState->audio_ptr->SFXVolume >= 0.99f && gameState->audio_ptr->SFXVolume <= 1.01f) {
 			drawUI(volume10, callback_ptrs[0]->xres / 2 - 180, callback_ptrs[0]->yres / 2 + 75, callback_ptrs[0]->xres / 2 + 180, callback_ptrs[0]->yres / 2 + 115, 1);
 		}
 
 		// Drawing Music Slider:
-		if (gameState->audio_ptr->musicVolume < 0.1f) {
+		if (gameState->audio_ptr->musicVolume < 0.09f) {
 			drawUI(volume0, callback_ptrs[0]->xres / 2 - 180, callback_ptrs[0]->yres / 2 - 98, callback_ptrs[0]->xres / 2 + 180, callback_ptrs[0]->yres / 2 - 58, 1);
 		}
-		if (gameState->audio_ptr->musicVolume > 0.1f && gameState->audio_ptr->musicVolume < 0.3f) {
+		if (gameState->audio_ptr->musicVolume >= 0.09f && gameState->audio_ptr->musicVolume <= 0.11f) {
 			drawUI(volume1, callback_ptrs[0]->xres / 2 - 180, callback_ptrs[0]->yres / 2 - 98, callback_ptrs[0]->xres / 2 + 180, callback_ptrs[0]->yres / 2 - 58, 1);
 		}
-		if (gameState->audio_ptr->musicVolume > 0.3f && gameState->audio_ptr->musicVolume < 0.5f) {
+		if (gameState->audio_ptr->musicVolume >= 0.19f && gameState->audio_ptr->musicVolume <= 0.21f) {
 			drawUI(volume2, callback_ptrs[0]->xres / 2 - 180, callback_ptrs[0]->yres / 2 - 98, callback_ptrs[0]->xres / 2 + 180, callback_ptrs[0]->yres / 2 - 58, 1);
 		}
-		if (gameState->audio_ptr->musicVolume > 0.5f && gameState->audio_ptr->musicVolume < 0.7f) {
+		if (gameState->audio_ptr->musicVolume >= 0.29f && gameState->audio_ptr->musicVolume <= 0.31f) {
 			drawUI(volume3, callback_ptrs[0]->xres / 2 - 180, callback_ptrs[0]->yres / 2 - 98, callback_ptrs[0]->xres / 2 + 180, callback_ptrs[0]->yres / 2 - 58, 1);
 		}
-		if (gameState->audio_ptr->musicVolume > 0.7f && gameState->audio_ptr->musicVolume < 0.9f) {
+		if (gameState->audio_ptr->musicVolume >= 0.39f && gameState->audio_ptr->musicVolume <= 0.41f) {
 			drawUI(volume4, callback_ptrs[0]->xres / 2 - 180, callback_ptrs[0]->yres / 2 - 98, callback_ptrs[0]->xres / 2 + 180, callback_ptrs[0]->yres / 2 - 58, 1);
 		}
-		if (gameState->audio_ptr->musicVolume > 0.9f && gameState->audio_ptr->musicVolume < 1.1f) {
+		if (gameState->audio_ptr->musicVolume >= 0.49f && gameState->audio_ptr->musicVolume <= 0.51f) {
 			drawUI(volume5, callback_ptrs[0]->xres / 2 - 180, callback_ptrs[0]->yres / 2 - 98, callback_ptrs[0]->xres / 2 + 180, callback_ptrs[0]->yres / 2 - 58, 1);
 		}
-		if (gameState->audio_ptr->musicVolume > 1.1f && gameState->audio_ptr->musicVolume < 1.3f) {
+		if (gameState->audio_ptr->musicVolume >= 0.59f && gameState->audio_ptr->musicVolume <= 0.61f) {
 			drawUI(volume6, callback_ptrs[0]->xres / 2 - 180, callback_ptrs[0]->yres / 2 - 98, callback_ptrs[0]->xres / 2 + 180, callback_ptrs[0]->yres / 2 - 58, 1);
 		}
-		if (gameState->audio_ptr->musicVolume > 1.3f && gameState->audio_ptr->musicVolume < 1.5f) {
+		if (gameState->audio_ptr->musicVolume >= 0.69f && gameState->audio_ptr->musicVolume <= 0.71f) {
 			drawUI(volume7, callback_ptrs[0]->xres / 2 - 180, callback_ptrs[0]->yres / 2 - 98, callback_ptrs[0]->xres / 2 + 180, callback_ptrs[0]->yres / 2 - 58, 1);
 		}
-		if (gameState->audio_ptr->musicVolume > 1.5f && gameState->audio_ptr->musicVolume < 1.7f) {
+		if (gameState->audio_ptr->musicVolume >= 0.79f && gameState->audio_ptr->musicVolume <= 0.81f) {
 			drawUI(volume8, callback_ptrs[0]->xres / 2 - 180, callback_ptrs[0]->yres / 2 - 98, callback_ptrs[0]->xres / 2 + 180, callback_ptrs[0]->yres / 2 - 58, 1);
 		}
-		if (gameState->audio_ptr->musicVolume > 1.7f && gameState->audio_ptr->musicVolume < 1.9f) {
+		if (gameState->audio_ptr->musicVolume >= 0.89f && gameState->audio_ptr->musicVolume <= 0.91f) {
 			drawUI(volume9, callback_ptrs[0]->xres / 2 - 180, callback_ptrs[0]->yres / 2 - 98, callback_ptrs[0]->xres / 2 + 180, callback_ptrs[0]->yres / 2 - 58, 1);
 		}
-		if (gameState->audio_ptr->musicVolume > 1.9f) {
+		if (gameState->audio_ptr->musicVolume >= 0.99f && gameState->audio_ptr->musicVolume <= 1.01f) {
 			drawUI(volume10, callback_ptrs[0]->xres / 2 - 180, callback_ptrs[0]->yres / 2 - 98, callback_ptrs[0]->xres / 2 + 180, callback_ptrs[0]->yres / 2 - 58, 1);
 		}
 

@@ -325,7 +325,7 @@ void GameState::ingameMenuEventHandler(vector<std::shared_ptr<CallbackInterface>
 				sfxChange = true;
 				cbps[0]->navigateR = false;
 				if (audio_ptr->SFXVolume < audio_ptr->maxVolume) {
-					audio_ptr->SFXVolume += 0.2f;
+					audio_ptr->SFXVolume += 0.1f;
 				}
 			}
 			// Decreasing volume
@@ -336,7 +336,7 @@ void GameState::ingameMenuEventHandler(vector<std::shared_ptr<CallbackInterface>
 					if (audio_ptr->SFXVolume < 0.1f) {
 						audio_ptr->SFXVolume = 0.0f;	// If this isn't here, it might not be at exactly 0, leading to some sound
 					}
-					audio_ptr->SFXVolume -= 0.2f;
+					audio_ptr->SFXVolume -= 0.1f;
 				}
 			}
 		}
@@ -356,7 +356,7 @@ void GameState::ingameMenuEventHandler(vector<std::shared_ptr<CallbackInterface>
 				musicChange = true;
 				cbps[0]->navigateR = false;
 				if (audio_ptr->musicVolume < audio_ptr->maxVolume) {
-					audio_ptr->musicVolume = audio_ptr->musicVolume + 0.2f;
+					audio_ptr->musicVolume = audio_ptr->musicVolume + 0.1f;
 				}
 			}
 			// Decreasing music volume
@@ -368,7 +368,7 @@ void GameState::ingameMenuEventHandler(vector<std::shared_ptr<CallbackInterface>
 						audio_ptr->musicVolume = 0.0f;
 					}
 					else {
-						audio_ptr->musicVolume -= 0.2f;
+						audio_ptr->musicVolume -= 0.1f;
 					}
 				}
 			}

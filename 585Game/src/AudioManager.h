@@ -56,7 +56,7 @@ public:
 	float musicVolume = 1.0f;
 	float SFXdb = 0.0f;
 	float musicdb = 0.0f;
-	float maxVolume = 2.0f;
+	float maxVolume = 1.0f;
 	float playerTireVolume = 0.3f;
 	float playerEngineVolume = 0.4f;
 	float npcTireVolume = 0.5f;
