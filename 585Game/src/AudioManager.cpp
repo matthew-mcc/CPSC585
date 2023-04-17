@@ -34,6 +34,8 @@ void AudioManager::Init(int vehicleCount) {
 	// Load and play music!
 	audioEngine.LoadEventInstanced(spacemusic2GUID, SpaceMusic2);
 	audioEngine.LoadEventInstanced(spaceintroGUID, SpaceIntro);
+
+	
 	audioEngine.PlayEvent("SpaceIntro");
 
 	// Updating some parameters

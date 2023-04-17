@@ -57,10 +57,10 @@ public:
 	float SFXdb = 0.0f;
 	float musicdb = 0.0f;
 	float maxVolume = 2.0f;
-	float playerTireVolume = 0.5f;
-	float playerEngineVolume = 0.5f;
-	float npcTireVolume = 1.0f;
-	float npcEngineVolume = 1.0f;
+	float playerTireVolume = 0.3f;
+	float playerEngineVolume = 0.4f;
+	float npcTireVolume = 0.5f;
+	float npcEngineVolume = 0.4f;
 	float honkVolume = 0.5f;
 
 
@@ -71,6 +71,8 @@ public:
 	// Event GUID's
 	std::string spacemusic2GUID = "{912a0889-5a99-4ce0-9a7c-2076275b812a}";
 	std::string spaceintroGUID = "{91e50eb1-26b3-4742-a562-8d6f8a0613c2}";
+	//std::string spaceintroFlatGUID = "{4063c1c2 - 73fa - 431a - 98c2 - 4c5e4ced5f73}";
+
 	std::string SpaceMusic2 = "SpaceMusic2";
 	std::string SpaceIntro = "SpaceIntro";
 	std::string e_pod_pickup = "{18b007c8-1f2c-4417-90bb-989e3419b7f9}";

@@ -382,10 +382,14 @@ void GameState::ingameMenuEventHandler(vector<std::shared_ptr<CallbackInterface>
 				ingameOptionIndex--;
 			}
 
-			// Help me, Peter!
+			// If quit selected
 			if (cbps[0]->menuConfirm) {
 				cbps[0]->menuConfirm = false;
 				audio_ptr->MenuClick(0, listener_position);
+
+				audio_ptr->audioEnginePtr->StopEvent(audio_ptr->SpaceMusic2);
+				audio_ptr->audioEnginePtr->PlayEvent(audio_ptr->SpaceIntro);
+
 				cbps[0]->ingameMenu = false;
 				gameEnded = false;
 				inGameMenu = false;
@@ -399,6 +403,7 @@ void GameState::ingameMenuEventHandler(vector<std::shared_ptr<CallbackInterface>
 			sfxChange = false;
 			audio_ptr->setVolume(audio_ptr->e_dropoff, audio_ptr->SFXVolume);
 			audio_ptr->setVolume("vehicle_0_engine", audio_ptr->playerEngineVolume * audio_ptr->SFXVolume);
+			audio_ptr->setVolume("vehicle_0_boost", audio_ptr->playerEngineVolume* audio_ptr->SFXVolume);
 			audio_ptr->setVolume("vehicle_0_tire", audio_ptr->playerTireVolume * audio_ptr->SFXVolume);
 			audio_ptr->setVolume("vehicle_0_honk", audio_ptr->honkVolume * audio_ptr->SFXVolume);
 
@@ -406,6 +411,7 @@ void GameState::ingameMenuEventHandler(vector<std::shared_ptr<CallbackInterface>
 				std::string vehicleName = "vehicle_";
 				vehicleName += to_string(i);
 				audio_ptr->setVolume(vehicleName + "_engine", audio_ptr->npcEngineVolume * audio_ptr->SFXVolume);
+				audio_ptr->setVolume(vehicleName + "_boost", audio_ptr->npcTireVolume * audio_ptr->SFXVolume);
 				audio_ptr->setVolume(vehicleName + "_tire", audio_ptr->npcTireVolume * audio_ptr->SFXVolume);
 				audio_ptr->setVolume(vehicleName + "_honk", audio_ptr->honkVolume * audio_ptr->SFXVolume);
 			}

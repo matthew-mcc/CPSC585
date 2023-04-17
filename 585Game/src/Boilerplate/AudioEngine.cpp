@@ -126,6 +126,20 @@ void CAudioEngine::SetEvent3dAttributes(const string& strEventName, const glm::v
 	CAudioEngine::ErrorCheck(tFoundIt->second->set3DAttributes(&attributes));
 }
 
+void CAudioEngine::SetMusic3dAttributes(const string& strEventName, const glm::vec3& pos) {
+	auto tFoundIt = sgpImplementation->mEvents.find(strEventName);
+	if (tFoundIt == sgpImplementation->mEvents.end())
+		return;
+	FMOD_VECTOR zeroOrientation = { 0,0,0 };
+	FMOD_VECTOR position;
+	position.x = pos.x;
+	position.y = pos.y;
+	position.z = pos.z;
+
+	FMOD_3D_ATTRIBUTES attributes;
+
+	CAudioEngine::ErrorCheck(tFoundIt->second->set3DAttributes(&attributes));
+}
 
 void CAudioEngine::SetChannel3dPosition(int nChannelID, const glm::vec3 &vPosition) {
 	auto tFoundIt = sgpImplementation->mChannels.find(nChannelID);

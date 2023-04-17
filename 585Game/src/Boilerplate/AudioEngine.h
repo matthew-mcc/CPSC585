@@ -87,6 +87,7 @@ public:
 	void SetEvent3dAttributes(const string& strEventName, const glm::vec3& pos, const glm::vec3& velocity, const glm::vec3& forward, const glm::vec3& up);
 	void GetEvent3dAttributes(const string& strEventName, FMOD_3D_ATTRIBUTES* returnedAttributes);
 	void SetEventVolume(const string& strEventName, float db);
+	void SetMusic3dAttributes(const string& strEventName, const glm::vec3& pos);
 	FMOD_3D_ATTRIBUTES Gen3DAttributes(const glm::vec3& pos, const glm::vec3& velocity, const glm::vec3& forward, const glm::vec3 up);
 	FMOD_3D_ATTRIBUTES listener_attributes;
 

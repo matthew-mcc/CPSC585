@@ -1132,11 +1132,12 @@ void RenderingSystem::updateRenderer(vector<std::shared_ptr<CallbackInterface>> 
 
 
 	ImGui::End();
+	// These to turn the debug menu back on
 	//ImGui::Render();
 	//ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
 	// PREPARE FOR NEXT FRAME
-		// Swap buffers, poll events
+	// Swap buffers, poll events
 	glfwSwapBuffers(window);
 	glfwPollEvents();
 
