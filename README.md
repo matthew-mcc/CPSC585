@@ -12,7 +12,7 @@ The team:
 
 # Execution: #
 Visit the [itch.io project.](https://funkypants4457.itch.io/super-space-salvagers) Download the ZIP, extract it anywhere and run the SuperSpaceSalvagers.exe.
-(Possible to clone this repo and compile your own local version, but you need to download the necessary PHYSX dll's.
+(Possible to clone this repo and compile your own local version, but you need to download the necessary PHYSX dll's)
 
 # Gameplay and Controls #
 
