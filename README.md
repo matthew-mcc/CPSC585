@@ -11,7 +11,7 @@ The team:
 * Music: Evan Tretiak
 
 # Execution: #
-Visit this link: https://drive.google.com/file/d/1tMX7BZuLVwxF9iF_XXMngoqsA2e5IwWN/view?usp=sharing. Download the ZIP, extract it anywhere and run the SuperSpaceSalvagers.exe.
+Visit the [itch.io project.](https://funkypants4457.itch.io/super-space-salvagers) Download the ZIP, extract it anywhere and run the SuperSpaceSalvagers.exe.
 (Possible to clone this repo and compile your own local version, but you need to download the necessary PHYSX dll's.
 
 # Gameplay and Controls #
